@@ -1,0 +1,426 @@
+import React, { useState, useEffect, useRef } from 'react';
+import AppLayout from '@/layouts/app-layout';
+import { IoMdArrowRoundBack, IoMdClose } from 'react-icons/io';
+import { TbTruckDelivery } from 'react-icons/tb';
+import {
+    FiZoomIn,
+    FiShoppingCart,
+    FiCreditCard,
+    FiChevronDown,
+} from 'react-icons/fi';
+import { useShoppingCart } from './shopping-car-context';
+import { usePage } from '@inertiajs/react';
+import { Inertia } from '@inertiajs/inertia';
+import type { SharedProps } from './product-card';
+
+interface ProductDetailsProps {
+    id_product: number;
+    name: string;
+    price: number;
+    description: string;
+    disponibility: number;
+    image: string;
+    type?: string;
+    code?: string;
+    onClose: () => void;
+}
+
+export function ProductDetails({
+    id_product,
+    name,
+    price,
+    description,
+    disponibility,
+    image,
+    type,
+    code,
+    onClose,
+}: ProductDetailsProps) {
+    const { addToCart, isProductInCart } = useShoppingCart();
+    const { props } = usePage<SharedProps>();
+    const { auth } = props;
+
+    
+    const isInCart = isProductInCart(id_product);
+
+    const [lightboxOpen, setLightboxOpen] = useState(false);
+    const [zoomLevel, setZoomLevel] = useState(1);
+    const [zoomPosition, setZoomPosition] = useState({ x: 0, y: 0 });
+    const [lightboxZoomLevel, setLightboxZoomLevel] = useState(1);
+    const [lightboxZoomPosition, setLightboxZoomPosition] = useState({ x: 0, y: 0 });
+    const [showAddedAnimation, setShowAddedAnimation] = useState(isInCart);
+    const imageContainerRef = useRef<HTMLDivElement>(null);
+    const lightboxImageRef = useRef<HTMLDivElement>(null);
+
+    // Dirección y envío
+    const [addresses, setAddresses] = useState<any[]>([]);
+    const [loadingAddresses, setLoadingAddresses] = useState(false);
+    const [selectedAddress, setSelectedAddress] = useState('');
+    const [shipping, setShipping] = useState<{ price: number; eta: string } | null>(null);
+    const [loadingShipping, setLoadingShipping] = useState(false);
+    const [shippingError, setShippingError] = useState<string | null>(null);
+
+    useEffect(() => {
+        // Permitir scroll natural de la página
+        document.body.style.overflow = 'auto';
+        return () => { document.body.style.overflow = ''; };
+    }, []);
+
+    useEffect(() => {
+        if (!auth?.user) return;
+        setLoadingAddresses(true);
+        fetch('/user/addresses', {
+            headers: { Accept: 'application/json' },
+            credentials: 'include',
+        })
+            .then(r => r.json())
+            .then(b => { if (b.success) setAddresses(b.addresses); })
+            .finally(() => setLoadingAddresses(false));
+    }, [auth?.user]);
+
+    const formatPrice = (n: number) =>
+        new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(n);
+
+    const formatEta = (iso: string) => {
+        const d = new Date(iso);
+        const s = d.toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric' });
+        return s.charAt(0).toUpperCase() + s.slice(1);
+    };
+
+    const handleAddressChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const addrId = e.target.value;
+        setSelectedAddress(addrId);
+        setShipping(null);
+        setShippingError(null);
+        if (!addrId) return;
+        setLoadingShipping(true);
+        fetch(`/dhl/rate?address_id=${addrId}&product_id=${id_product}&quantity=1`, {
+            headers: { Accept: 'application/json' },
+            credentials: 'include',
+        })
+            .then(r => r.json())
+            .then(b => {
+                if (b.success) setShipping(b.data);
+                else setShippingError('No fue posible cotizar el envío');
+            })
+            .catch(() => setShippingError('Error al cotizar envío'))
+            .finally(() => setLoadingShipping(false));
+    };
+
+    const handleImageMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+        if (!imageContainerRef.current) return;
+        const { left, top, width, height } = imageContainerRef.current.getBoundingClientRect();
+        setZoomPosition({ x: ((e.clientX - left) / width) * 100, y: ((e.clientY - top) / height) * 100 });
+    };
+
+    const handleLightboxMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+        if (!lightboxImageRef.current) return;
+        const { left, top, width, height } = lightboxImageRef.current.getBoundingClientRect();
+        setLightboxZoomPosition({ x: ((e.clientX - left) / width) * 100, y: ((e.clientY - top) / height) * 100 });
+    };
+
+    const [isAddingToCart, setIsAddingToCart] = useState(false);
+    
+    
+    useEffect(() => {
+        setShowAddedAnimation(isInCart);
+    }, [isInCart]);
+    
+    const [currentDisponibility, setCurrentDisponibility] = useState(disponibility);
+    const [reconciling, setReconciling] = useState(false);
+
+    // Reconciliar al montar la vista de detalle
+    useEffect(() => {
+        let aborted = false;
+        
+        // Solo iniciar reconciliación si no es cero inicial
+        if (disponibility > 0) {
+            setReconciling(true);
+        }
+        
+        fetch(`/api/products/${id_product}/reconcile-stock`, { credentials: 'include' })
+            .then(r => r.ok ? r.json() : null)
+            .then(data => {
+                if (!aborted && data && data.success && typeof data.local_stock === 'number') {
+                    setCurrentDisponibility(data.local_stock);
+                }
+            })
+            .catch(() => {
+                // En caso de error, mantener el stock inicial
+                if (!aborted) {
+                    setCurrentDisponibility(disponibility);
+                }
+            })
+            .finally(() => { 
+                if (!aborted) {
+                    setReconciling(false); 
+                }
+            });
+        return () => { aborted = true; };
+    }, [id_product]);
+
+    const handleAddToCart = async (e: React.MouseEvent<HTMLButtonElement>) => {
+        e.stopPropagation();
+        if (!auth?.user) { Inertia.visit('/login'); return; }
+        if (isAddingToCart || isInCart) return; 
+        try {
+            setIsAddingToCart(true);
+            let finalStock = currentDisponibility;
+            try {
+                const r = await fetch(`/api/products/${id_product}/reconcile-stock`, { credentials: 'include' });
+                if (r.ok) {
+                    const d = await r.json();
+                    if (d && d.success && typeof d.local_stock === 'number') {
+                        finalStock = d.local_stock;
+                        setCurrentDisponibility(d.local_stock);
+                    }
+                }
+            } catch {}
+            await addToCart({ id_product, name, price, quantity: 1, disponibility: finalStock, image });
+            
+            
+            setTimeout(() => {
+                setIsAddingToCart(false);
+                
+            }, 2000);
+        } catch {
+            alert('Error al agregar al carrito');
+            setIsAddingToCart(false); 
+        }
+    };
+
+    const handleBuyNow = async (e: React.MouseEvent<HTMLButtonElement>) => {
+        e.stopPropagation();
+        if (!auth?.user) { Inertia.visit('/login'); return; }
+        // Reconciliar stock justo antes de continuar
+        let finalStock = currentDisponibility;
+        try {
+            const r = await fetch(`/api/products/${id_product}/reconcile-stock`, { credentials: 'include' });
+            if (r.ok) {
+                const d = await r.json();
+                if (d && d.success && typeof d.local_stock === 'number') {
+                    finalStock = d.local_stock;
+                    setCurrentDisponibility(d.local_stock);
+                }
+            }
+        } catch {  }
+        const pd = { id_product, name, price, description, disponibility: finalStock, image, quantity: 1 };
+        Inertia.visit(`/confirmation?product=${encodeURIComponent(JSON.stringify(pd))}`, { replace: true });
+    };
+
+    return (
+        <AppLayout>
+            <div className="relative bg-white dark:bg-gray-900 flex flex-col max-w-full min-h-screen overflow-x-hidden overflow-y-auto pt-12 pb-16" style={{minHeight: '100vh'}}>
+                {/* Regresar */}
+                <button
+                    onClick={onClose}
+                    className="absolute top-2 sm:top-4 left-2 sm:left-4 z-20 bg-white dark:bg-gray-900 p-1 sm:p-2 rounded-full shadow hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+                    aria-label="Regresar"
+                >
+                    <IoMdArrowRoundBack className="w-5 h-5 sm:w-6 sm:h-6 text-gray-700 dark:text-gray-200" />
+                </button>
+
+                
+                <div className="flex-1 flex lg:flex-row flex-col gap-3 lg:gap-6 p-2 sm:p-3 overflow-y-auto overflow-x-hidden pb-24 max-w-screen">
+                    
+                    <div className="w-full lg:w-1/4 mt-2 md:ml-5 mx-auto">
+                        <div
+                            ref={imageContainerRef}
+                            className="relative w-full aspect-square max-w-xs mx-auto bg-gradient-to-br from-blue-50 via-white to-blue-100 dark:from-gray-800 dark:via-gray-900 dark:to-gray-800 rounded-xl overflow-hidden cursor-zoom-in shadow-lg border border-blue-100 dark:border-gray-700 group"
+                            onMouseMove={handleImageMouseMove}
+                            onMouseEnter={() => setZoomLevel(1.5)}
+                            onMouseLeave={() => setZoomLevel(1)}
+                            onClick={() => setLightboxOpen(true)}
+                        >
+                            <div className="absolute top-2 right-2 bg-white dark:bg-gray-800 rounded-full p-2 opacity-70 hover:opacity-100 z-10 transition-all">
+                                <FiZoomIn className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                            </div>
+                            <img
+                                src={image}
+                                alt={name}
+                                className="absolute w-full h-full object-contain transition-transform duration-200 transform-gpu"
+                                style={{
+                                    transform: `scale(${zoomLevel})`,
+                                    transformOrigin: `${zoomPosition.x}% ${zoomPosition.y}%`,
+                                }}
+                            />
+                            <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-5 transition-opacity"></div>
+                        </div>
+                    </div>
+
+                    
+                    <div className="w-full lg:flex-1 flex justify-start items-start mt-4 lg:mt-2 px-2 sm:px-4">
+                        <div className="bg-white dark:bg-gray-800 p-3 sm:p-4 rounded-xl shadow-md border border-gray-100 dark:border-gray-700 w-full flex flex-col">
+                            <div className="flex flex-wrap gap-2 mb-2">
+                                {disponibility > 0 && disponibility < 5 && (
+                                    <span className="px-3 py-1 bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200 text-xs font-medium rounded-full">
+                                        ¡Últimas unidades!
+                                    </span>
+                                )}
+                            </div>
+                            <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-black dark:text-white mb-2 sm:mb-3">{name}</h1>
+                            <p className="text-xl sm:text-2xl md:text-3xl text-green-700 dark:text-green-400 font-bold mb-3 sm:mb-4">{formatPrice(price)}</p>
+                            <p className="border-t border-b border-gray-200 dark:border-gray-700 py-3 sm:py-4 mb-3 sm:mb-4 text-gray-700 dark:text-gray-300 max-h-[15vh] sm:max-h-[20vh] overflow-y-auto overflow-x-hidden text-sm sm:text-base">{description}</p>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-3 sm:mb-4">
+                                <div className="flex flex-col gap-2 text-sm sm:text-base">
+                                    {type && <div className="flex items-center gap-2 sm:gap-3"><span className="w-3 h-3 sm:w-4 sm:h-4 rounded-full bg-purple-500" /><span className="font-medium text-gray-700 dark:text-gray-300">Tipo:</span><span className="font-semibold text-gray-900 dark:text-gray-100">{type}</span></div>}
+                                    {code && <div className="flex items-center gap-2 sm:gap-3"><span className="w-3 h-3 sm:w-4 sm:h-4 rounded-full bg-yellow-500" /><span className="font-medium text-gray-700 dark:text-gray-300">Código:</span><span className="font-semibold text-gray-900 dark:text-gray-100">{code}</span></div>}
+                                    <div className="flex items-center gap-2 sm:gap-3"><span className="w-3 h-3 sm:w-4 sm:h-4 rounded-full bg-blue-500" /><span className="font-medium text-gray-700 dark:text-gray-300">Stock:</span><span className="font-semibold text-gray-900 dark:text-gray-100">{reconciling ? 'Calculando…' : currentDisponibility} unidades</span></div>
+                                    
+                                </div>
+                                <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-3 sm:p-4">
+                                    <h3 className="flex items-center font-bold mb-2 sm:mb-3 text-gray-800 dark:text-gray-200 text-sm sm:text-base"><TbTruckDelivery className="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2 text-blue-600 dark:text-blue-400" />Información de envío</h3>
+                                    <div className="space-y-2 sm:space-y-3 text-gray-700 dark:text-gray-300 text-xs sm:text-sm">
+                                        <p className="flex justify-between"><span className="font-medium">Envío estimado:</span>{loadingShipping ? <span className="inline-flex items-center px-2 py-0.5 bg-blue-50 dark:bg-blue-900 text-blue-500 dark:text-blue-300 rounded-full text-xs"><svg className="animate-spin h-3 w-3 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" /></svg>Calculando...</span> : shipping ? <span className="font-bold px-3 py-1 bg-blue-50 dark:bg-blue-900 text-blue-500 dark:text-blue-300 rounded-full text-sm">{formatEta(shipping.eta)}</span> : <span className="text-gray-400">Selecciona dirección</span>}</p>
+                                        <p className="flex justify-between"><span className="font-medium">Costo de envío:</span>{loadingShipping ? <span className="inline-flex items-center px-2 py-0.5 bg-blue-50 dark:bg-blue-900 text-blue-500 dark:text-blue-300 rounded-full text-xs"><svg className="animate-spin h-3 w-3 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" /></svg>Calculando...</span> : shipping ? <span className="font-bold px-3 py-1 bg-blue-50 dark:bg-blue-900 text-blue-500 dark:text-blue-300 rounded-full text-sm">{formatPrice(shipping.price)}</span> : <span className="text-gray-400">Selecciona dirección</span>}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="mt-auto">
+                                <div className="relative">
+                                    {loadingAddresses ? (
+                                        <div className="flex items-center justify-center py-2 text-sm"><svg className="animate-spin h-4 w-4 mr-2 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" /></svg><span className="text-gray-600 dark:text-gray-400">Cargando direcciones...</span></div>
+                                    ) : addresses.length === 0 ? (
+                                        <div className="bg-blue-50 dark:bg-blue-900 border-l-4 border-blue-500 p-2 rounded text-xs"><p className="text-blue-700 dark:text-blue-300">No tienes direcciones registradas.</p></div>
+                                    ) : (
+                                        <div className="flex items-center">
+                                            <select className="w-full p-2 sm:p-3 text-xs sm:text-sm border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 transition shadow-sm appearance-none" value={selectedAddress} onChange={handleAddressChange}>
+                                                <option value="" className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">Selecciona dirección...</option>
+                                                {addresses.map(a => <option key={a.id_direccion} value={a.id_direccion} className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">{a.codigo_postal} — {a.calle}, {a.ciudad}</option>)}
+                                            </select>
+                                            <div className="pointer-events-none absolute right-0 flex items-center px-2 text-gray-700 dark:text-gray-300 h-full"><FiChevronDown className="h-4 w-4" /></div>
+                                        </div>
+                                    )}
+                                    {shippingError && <div className="bg-red-50 dark:bg-red-900 border-l-4 border-red-500 p-2 mt-2 rounded text-xs"><p className="text-red-700 dark:text-red-300">{shippingError}</p></div>}
+                                </div>
+
+                                {/* Botones de acción - ubicados justo después de la sección de direcciones */}
+                                {(disponibility > 0 || currentDisponibility > 0 || reconciling) && (
+                                    <div className="w-full flex gap-2 sm:gap-4 mt-6">
+                                        <button
+                                            onClick={!isAddingToCart && !isInCart && !reconciling ? handleAddToCart : undefined}
+                                            disabled={isAddingToCart || isInCart || reconciling || currentDisponibility <= 0}
+                                            className={`w-full py-2 sm:py-3 ${
+                                                isAddingToCart || reconciling 
+                                                    ? 'bg-gray-400 cursor-not-allowed text-white' 
+                                                    : isInCart 
+                                                    ? 'bg-green-600 pointer-events-none text-white' 
+                                                    : currentDisponibility > 0
+                                                    ? 'bg-green-600 hover:bg-green-700 text-white'
+                                                    : 'bg-gray-300 cursor-not-allowed text-gray-500'
+                                            } font-bold text-sm sm:text-base rounded-lg shadow transition-all duration-300 hover:shadow-lg flex items-center justify-center relative overflow-hidden`}
+                                        >
+                                            {reconciling ? (
+                                                <>
+                                                    <svg className="animate-spin h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                                                    </svg>
+                                                    Verificando stock...
+                                                </>
+                                            ) : isAddingToCart ? (
+                                                <>
+                                                    <svg className="animate-spin h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                                                    </svg>
+                                                    Agregando...
+                                                </>
+                                            ) : isInCart ? (
+                                                <>
+                                                    <svg className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                                    </svg>
+                                                    Producto en el carrito
+                                                </>
+                                            ) : currentDisponibility > 0 ? (
+                                                <>
+                                                    <FiShoppingCart className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2" /> Agregar al carrito
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <FiShoppingCart className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2" /> Sin stock
+                                                </>
+                                            )}
+                                        </button>
+                                        <button
+                                            onClick={!reconciling && currentDisponibility > 0 ? handleBuyNow : undefined}
+                                            disabled={reconciling || currentDisponibility <= 0}
+                                            className={`w-full py-2 cursor-pointer sm:py-3 ${
+                                                reconciling || currentDisponibility <= 0
+                                                    ? 'bg-gray-300 cursor-not-allowed text-gray-500'
+                                                    : 'bg-[#FBCC13] hover:bg-blue-700 hover:text-white text-black'
+                                            } font-bold text-sm sm:text-base rounded-lg shadow transition-all duration-300 hover:shadow-lg flex items-center justify-center gap-1 sm:gap-2`}
+                                        >
+                                            {reconciling ? (
+                                                <>
+                                                    <svg className="animate-spin h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                                                    </svg>
+                                                    Verificando...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <FiCreditCard className="h-4 w-4 sm:h-5 sm:w-5" /> 
+                                                    {currentDisponibility > 0 ? 'Comprar ahora' : 'Sin stock'}
+                                                </>
+                                            )}
+                                        </button>
+                                    </div>
+                                )}
+
+                                {/* Mensaje cuando no hay stock disponible */}
+                                {!reconciling && currentDisponibility <= 0 && disponibility <= 0 && (
+                                    <div className="w-full mt-6 bg-red-50 dark:bg-red-900 border border-red-200 dark:border-red-700 rounded-lg p-4">
+                                        <div className="flex items-center justify-center text-red-600 dark:text-red-300">
+                                            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.502 0L4.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                                            </svg>
+                                            <span className="font-medium">Producto agotado</span>
+                                        </div>
+                                        <p className="text-red-600 dark:text-red-300 text-center mt-2 text-sm">
+                                            Este producto actualmente no tiene stock disponible.
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Lightbox para zoom de imagen */}
+                {lightboxOpen && (
+                    <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-30" onClick={() => setLightboxOpen(false)}>
+                        <div onClick={e => e.stopPropagation()} className="relative max-w-5xl w-full mx-auto">
+                            <button onClick={e => { e.stopPropagation(); setLightboxOpen(false); }} className="absolute top-4 right-4 bg-white bg-opacity-80 hover:bg-opacity-100 rounded-full p-3 text-gray-800 shadow-lg z-10" aria-label="Cerrar">
+                                <IoMdClose className="w-8 h-8" />
+                            </button>
+                            <div className="absolute top-4 left-4 bg-white bg-opacity-80 rounded-full p-2 z-10">
+                                <FiZoomIn className="w-6 h-6 text-gray-800" />
+                                <span className="text-xs font-medium bg-black bg-opacity-70 text-white px-2 py-1 rounded absolute top-full left-0 mt-1">
+                                    Mueve el cursor para hacer zoom
+                                </span>
+                            </div>
+                            <div ref={lightboxImageRef} className="cursor-zoom-in overflow-hidden" onMouseMove={handleLightboxMouseMove} onMouseEnter={() => setLightboxZoomLevel(2)} onMouseLeave={() => setLightboxZoomLevel(1)}>
+                                <div className="relative overflow-hidden rounded-lg shadow-2xl max-h-[85vh] max-w-[90vw]">
+                                    <img
+                                        src={image}
+                                        alt={name}
+                                        className="object-contain transition-transform duration-200 transform-gpu"
+                                        style={{
+                                            transform: `scale(${lightboxZoomLevel})`,
+                                            transformOrigin: `${lightboxZoomPosition.x}% ${lightboxZoomPosition.y}%`,
+                                        }}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </div>
+        </AppLayout>
+    );
+}

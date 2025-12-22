@@ -1,0 +1,315 @@
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from "react";
+import { Inertia } from "@inertiajs/inertia";
+
+// Interfaz para los ítems del carrito
+interface CartItem {
+    id_product: number;
+    name: string;
+    price: number;
+    disponibility: number; // Cantidad total del artículo disponible en la base de datos
+    quantity: number; // Cantidad seleccionada por el usuario en el carrito
+    image: string
+}
+
+// Interfaz para las propiedades del contexto
+interface ShoppingCartContextProps {
+    cartItems: CartItem[]; // Lista de ítems en el carrito
+    addToCart: (item: CartItem) => Promise<void>; // Función para agregar ítems al carrito
+    removeFromCart: (id_product: number) => Promise<void>; // Función para eliminar ítems del carrito
+    updateItem: (id_product: number, quantity: number) => Promise<void>; // Función para actualizar la cantidad seleccionada
+    totalItems: number; // Total de ítems en el carrito
+    totalPrice: number; // Precio total del carrito
+    fetchCart: () => Promise<void>; // Función para forzar la carga del carrito
+    isProductInCart: (id_product: number) => boolean; // Función para verificar si un producto ya está en el carrito
+}
+
+const toInt = (v: unknown, fallback = 0) => {
+    const n = Number.parseInt(String(v), 10);
+    return Number.isFinite(n) ? n : fallback;
+};
+const toFloat = (v: unknown, fallback = 0) => {
+    const n = Number.parseFloat(String(v));
+    return Number.isFinite(n) ? n : fallback;
+};
+
+const ShoppingCartContext = createContext<ShoppingCartContextProps | undefined>(undefined);
+
+export const ShoppingCartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+    const [cartItems, setCartItems] = useState<CartItem[]>([]);
+    const [isLoading, setIsLoading] = useState(false);
+    const [authStatus, setAuthStatus] = useState<string | null>(null);
+
+    // Función para cargar el carrito desde el backend
+    const fetchCart = async (force = false) => {
+        // Evitar múltiples solicitudes simultáneas
+        if (isLoading && !force) return;
+
+        const isLoginPage = window.location.pathname.includes('login');
+        if (isLoginPage) return;
+
+        setIsLoading(true);
+
+        try {
+            if (force) {
+                await new Promise(resolve => setTimeout(resolve, 300));
+            }
+
+            // Evitar problemas de caché
+            const timestamp = new Date().getTime();
+            const response = await fetch(`/cart?t=${timestamp}`, {
+                method: 'GET',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json',
+                    'Cache-Control': 'no-cache, no-store'
+                },
+                credentials: 'include'
+            });
+
+            if (!response.ok) {
+                return;
+            }
+
+            const data = await response.json();
+
+            if (data.items) {
+                setCartItems(
+                    data.items.map((it: any) => ({
+                        id_product: toInt(it.id_product),
+                        name: String(it.name ?? ''),
+                        price: toFloat(it.price),
+                        disponibility: toInt(it.disponibility),
+                        quantity: toInt(it.quantity, 1),
+                        image: String(it.image ?? '')
+                    }))
+                );
+            } else {
+                setCartItems([]);
+            }
+        } catch (error) {
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        const isLoginPage = window.location.pathname.includes('login');
+
+        if (!isLoginPage) {
+            fetchCart();
+
+            const timer = setTimeout(() => {
+                fetchCart(true);
+            }, 1000);
+
+            return () => clearTimeout(timer);
+        }
+    }, []);
+    // Referencias para evitar dependencias en useEffect
+    const authStatusRef = useRef(authStatus);
+    const cartItemsRef = useRef(cartItems);
+    
+    // Actualizar referencias cuando cambien los valores
+    useEffect(() => {
+        authStatusRef.current = authStatus;
+    }, [authStatus]);
+    
+    useEffect(() => {
+        cartItemsRef.current = cartItems;
+    }, [cartItems]);
+
+    useEffect(() => {
+        const handleRouteChange = () => {
+            const currentPath = window.location.pathname;
+            if (!currentPath.includes('login') && authStatusRef.current === 'login') {
+                setTimeout(() => fetchCart(true), 500);
+            }
+
+            if (currentPath.includes('login')) {
+                setAuthStatus('login');
+            } else if (currentPath === '/') {
+                setAuthStatus('logout');
+            } else {
+                setAuthStatus('other');
+
+                if (authStatusRef.current === 'login' || !cartItemsRef.current.length) {
+                    setTimeout(() => fetchCart(true), 800);
+                }
+            }
+        };
+
+        const handleLogin = () => {
+            setTimeout(() => fetchCart(true), 1500);
+        };
+
+        document.addEventListener('user-logged-in', handleLogin);
+
+        const originalPushState = window.history.pushState;
+        const originalReplaceState = window.history.replaceState;
+
+        window.history.pushState = function () {
+            originalPushState.apply(this, arguments as any);
+            handleRouteChange();
+        };
+
+        window.history.replaceState = function () {
+            originalReplaceState.apply(this, arguments as any);
+            handleRouteChange();
+        };
+
+        window.addEventListener('popstate', handleRouteChange);
+        handleRouteChange();
+
+        return () => {
+            document.removeEventListener('user-logged-in', handleLogin);
+            window.removeEventListener('popstate', handleRouteChange);
+            window.history.pushState = originalPushState;
+            window.history.replaceState = originalReplaceState;
+        };
+    }, []); // Sin dependencias para evitar bucle infinito
+
+    // Función para agregar un ítem al carrito
+    const addToCart = async (item: CartItem) => {
+        try {
+            // Normaliza antes de enviar y guardar
+            const normalized = {
+                ...item,
+                id_product: toInt(item.id_product),
+                quantity: toInt(item.quantity, 1),
+                price: toFloat(item.price),
+                disponibility: toInt(item.disponibility),
+                image: String(item.image ?? '')
+            };
+
+            const response = await fetch('/cart/add', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                },
+                body: JSON.stringify({
+                    id_product: normalized.id_product,
+                    quantity: normalized.quantity,
+                }),
+                credentials: 'include'
+            });
+
+            if (!response.ok) {
+                throw new Error('Error al agregar el producto al carrito');
+            }
+
+            await response.json();
+
+            // Actualiza el estado del carrito 
+            setCartItems((prevItems) => {
+                const existingItem = prevItems.find((cartItem) => cartItem.id_product === normalized.id_product);
+                if (existingItem) {
+                    return prevItems.map((cartItem) =>
+                        cartItem.id_product === normalized.id_product
+                            ? { ...cartItem, quantity: toInt(cartItem.quantity) + normalized.quantity }
+                            : cartItem
+                    );
+                }
+                return [...prevItems, normalized];
+            });
+        } catch (error) {
+        }
+    };
+
+    // Función para eliminar un ítem del carrito
+    const removeFromCart = async (id_product: number) => {
+        try {
+            const response = await fetch(`/cart/remove/${id_product}`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                },
+                credentials: 'include'
+            });
+
+            if (!response.ok) {
+                throw new Error('Error al eliminar el producto del carrito');
+            }
+
+            // Actualiza el estado del carrito eliminando el producto
+            setCartItems((prevItems) => prevItems.filter((cartItem) => cartItem.id_product !== id_product));
+        } catch (error) {
+        }
+    };
+
+    // Función para actualizar la cantidad seleccionada de un ítem en el carrito
+    const updateItem = async (id_product: number, quantity: number) => {
+        try {
+            const response = await fetch('/cart/update', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                },
+                body: JSON.stringify({
+                    id_product,
+                    quantity: toInt(quantity, 1),
+                }),
+                credentials: 'include'
+            });
+
+            if (!response.ok) {
+                let errorData;
+                try {
+                    errorData = await response.json();
+                } catch {
+                    throw new Error('Error inesperado del servidor.');
+                }
+
+                throw new Error(errorData.message || 'Error al actualizar la cantidad del producto');
+            }
+
+            // Actualiza el estado del carrito con la nueva cantidad
+            setCartItems((prevItems) =>
+                prevItems.map((item) =>
+                    item.id_product === id_product ? { ...item, quantity: toInt(quantity, 1) } : item
+                )
+            );
+
+        } catch (error) {
+            alert('No se pudo actualizar la cantidad del producto. Inténtalo de nuevo.');
+        }
+    };
+
+    // Calcular el total de ítems en el carrito 
+    const totalItems = cartItems.reduce((sum, item) => sum + toInt(item.quantity), 0);
+
+    // Calcular el precio total del carrito 
+    const totalPrice = cartItems.reduce((sum, item) => sum + toFloat(item.price) * toInt(item.quantity), 0);
+
+    // Verificar si un producto está en el carrito
+    const isProductInCart = (id_product: number): boolean => {
+        return cartItems.some(item => item.id_product === id_product);
+    };
+
+    return (
+        <ShoppingCartContext.Provider
+            value={{
+                cartItems,
+                addToCart,
+                removeFromCart,
+                updateItem,
+                totalItems,
+                totalPrice,
+                fetchCart: () => fetchCart(true),
+                isProductInCart
+            }}
+        >
+            {children}
+        </ShoppingCartContext.Provider>
+    );
+};
+
+export const useShoppingCart = () => {
+    const context = useContext(ShoppingCartContext);
+    if (!context) {
+        throw new Error("useShoppingCart must be used within a ShoppingCartProvider");
+    }
+    return context;
+};
