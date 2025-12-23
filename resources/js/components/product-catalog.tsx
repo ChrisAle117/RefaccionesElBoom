@@ -174,7 +174,7 @@ export function ProductCatalog() {
             if (type) url.searchParams.set('type', type); else url.searchParams.delete('type');
             url.searchParams.set('view', 'grid');
             window.history.pushState(window.history.state, '', url.toString());
-        } catch (_err) {
+        } catch {
             const url = new URL(window.location.href);
             if (type) url.searchParams.set('type', type); else url.searchParams.delete('type');
             url.searchParams.set('view', 'grid');
@@ -252,7 +252,7 @@ export function ProductCatalog() {
             const url = new URL(window.location.href);
             const v = (url.searchParams.get('view') || '').toLowerCase();
             if (v === 'grid') return 'grid';
-        } catch (_err) { /* ignore */ }
+        } catch { /* ignore */ }
         return 'selector';
     };
     const [viewMode, setViewMode] = useState<'selector' | 'grid'>(getInitialView());
@@ -264,7 +264,7 @@ export function ProductCatalog() {
             const href = url.toString();
             if (replace) window.history.replaceState(window.history.state, '', href);
             else window.history.pushState(window.history.state, '', href);
-        } catch (_err) { /* ignore */ }
+        } catch { /* ignore */ }
     };
 
     // Vista: mostrar selector si viewMode = 'selector'

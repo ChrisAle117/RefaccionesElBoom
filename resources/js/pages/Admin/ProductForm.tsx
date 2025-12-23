@@ -340,7 +340,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, types }) => {
                                     value={data.image || ''}
                                     onChange={(e) => {
                                         // Obtener la URL ingresada
-                                        let url = e.target.value;
+                                        const url = e.target.value;
                                         
                                         const normalized = normalizeImagePath(url);
                                         setData('image', normalized);

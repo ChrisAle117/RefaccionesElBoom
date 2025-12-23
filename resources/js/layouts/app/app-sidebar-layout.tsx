@@ -1,6 +1,5 @@
 import { AppContent } from '@/components/app-content';
 import { AppShell } from '@/components/app-shell';
-import { type BreadcrumbItem } from '@/types';
 import { type PropsWithChildren } from 'react';
 import { NavUser } from '@/components/nav-user';
 import React from 'react';
@@ -9,20 +8,17 @@ import { Link, usePage } from '@inertiajs/react';
 import { Cart } from '@/components/shopping-car';
 import { ShoppingCarView } from '@/components/shopping-car-view';
 import { Menu, X } from 'lucide-react';
-import { TabNavigation } from '@/components/TabNavigation';
-import { LocationSelector } from '@/components/location-selector';
 import CoachmarkTutorial from '@/components/CoachmarkTutorial';
 import WhatsAppWidget from '@/components/WhatsAppWidget';
 
 export default function AppSidebarLayout({
     children,
-    breadcrumbs = [],
-}: PropsWithChildren<{ breadcrumbs?: BreadcrumbItem[] }>) {
+}: PropsWithChildren) {
     const [isCartOpen, setIsCartOpen] = React.useState(false);
     const [showMobileSearch, setShowMobileSearch] = React.useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
 
-    const pageProps = usePage().props as any;
+    const pageProps = usePage<{ auth?: unknown }>().props;
     const auth = pageProps?.auth ?? {};
 
     const toggleCart = () => setIsCartOpen(!isCartOpen);
@@ -284,7 +280,7 @@ export default function AppSidebarLayout({
                                         try {
                                             return <ShoppingCarView />;
                                         } catch (error) {
-                                            // console.error("Error rendering ShoppingCarView:", error);
+                                            console.error("Error rendering ShoppingCarView:", error);
                                             return <p>Error al cargar el carrito de compras.</p>;
                                         }
                                     })()}

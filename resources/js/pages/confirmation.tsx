@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react';
 import { Head, usePage } from '@inertiajs/react';
 import { DetailsPurchase, ProductData } from '@/components/details-purchase';
-import { BreadcrumbItem } from '@/types';
 
 
 /*
@@ -63,8 +62,8 @@ const Confirmation: React.FC = () => {
     if (productParam) {
         try {
             product = JSON.parse(productParam);
-        } catch (_e) {
-            // console.error('Error al parsear el producto:', _e);
+        } catch {
+            // console.error('Error al parsear el producto');
         }
     }
     return (

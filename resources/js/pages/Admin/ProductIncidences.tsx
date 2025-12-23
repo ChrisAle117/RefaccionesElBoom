@@ -150,9 +150,12 @@ const ProductIncidences: React.FC<PageProps> = ({ incidences, total }) => {
                                         credentials: 'include',
                                         body: JSON.stringify({ password: syncPassword, json: true })
                                     })
-                                        .then(async r => { let data: any=null; try { data = await r.json(); } catch { }
-                                            if (!r.ok || !data?.success) { setSyncSuccess(null); setSyncError(data?.error || 'Error al sincronizar incidencias'); }
-                                            else { setSyncError(null); setSyncSuccess(data.message || 'Incidencias sincronizadas'); refresh(true); }
+                                        .then(async r => {
+                                            let data: unknown = null;
+                                            try { data = await r.json(); } catch (err) { console.error('No se pudo parsear respuesta de incidencias', err); }
+                                            const parsed = data as { success?: boolean; error?: string; message?: string } | null;
+                                            if (!r.ok || !parsed?.success) { setSyncSuccess(null); setSyncError(parsed?.error || 'Error al sincronizar incidencias'); }
+                                            else { setSyncError(null); setSyncSuccess(parsed.message || 'Incidencias sincronizadas'); refresh(true); }
                                         })
                                         .catch(() => { setSyncSuccess(null); setSyncError('Error de red'); })
                                         .finally(() => setSyncLoading(false));

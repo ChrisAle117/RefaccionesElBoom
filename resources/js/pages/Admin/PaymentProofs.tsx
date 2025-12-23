@@ -25,9 +25,9 @@ const PaymentProofs: React.FC<PaymentProofsProps> = ({ pendingProofs }) => {
     const [approvingProofId, setApprovingProofId] = useState<number | null>(null);
     const [approving, setApproving] = useState(false);
 
-    // Estado para las opciones de PDF
-    const [generatePdfAfterApproval, setGeneratePdfAfterApproval] = useState(true);
-    const [pdfAction, setPdfAction] = useState<'download' | 'email'>('download');
+    // Estado para las opciones de PDF (fijos por ahora)
+    const generatePdfAfterApproval = true;
+    const pdfAction: 'download' | 'email' = 'download';
 
     // Estado para guardar la URL del PDF generado
     const [generatedPdfUrl, setGeneratedPdfUrl] = useState<string | null>(null);
@@ -68,8 +68,8 @@ const PaymentProofs: React.FC<PaymentProofsProps> = ({ pendingProofs }) => {
                 setApproving(false);
 
                 // Acceder a la URL del PDF
-                const flashData = response.props.flash as Record<string, any> || {};
-                const pdfUrl = flashData.pdfUrl;
+                const flashData = (response.props as { flash?: Record<string, unknown> }).flash || {};
+                const pdfUrl = typeof flashData.pdfUrl === 'string' ? flashData.pdfUrl : null;
 
                 if (generatePdfAfterApproval) {
                     if (pdfAction === 'download' && pdfUrl) {

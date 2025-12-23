@@ -1,11 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { useShoppingCart } from './shopping-car-context';
-import { Trash2, ShoppingCart, CreditCard, ChevronDown, X, Sparkles } from 'lucide-react';
+import { Trash2, ShoppingCart, CreditCard, ChevronDown, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { TbTruckDelivery } from 'react-icons/tb';
 import { router } from '@inertiajs/react';
 import { Address } from './address';
 import { Button } from './ui/button';
+
+type AddressDto = {
+    id_direccion: number;
+    calle: string;
+    colonia: string;
+    codigo_postal: string;
+    ciudad: string;
+    estado: string;
+};
 
 const toInt = (v: unknown, fallback = 0) => {
     const n = Number.parseInt(String(v), 10);
@@ -73,7 +82,7 @@ export function ShoppingCarView() {
     const [showMaxAlert, setShowMaxAlert] = useState<boolean>(false);
     const [showShippingOptions, setShowShippingOptions] = useState(false);
     const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
-    const [addresses, setAddresses] = useState<any[]>([]);
+    const [addresses, setAddresses] = useState<AddressDto[]>([]);
     const [loadingAddresses, setLoadingAddresses] = useState(true);
     const [selectedAddress, setSelectedAddress] = useState('');
     const [shipping, setShipping] = useState<{ price: number; eta: string, free_shipping?: boolean, original_price?: number } | null>(null);
@@ -121,7 +130,7 @@ export function ShoppingCarView() {
         })
             .then(res => res.json())
             .then(body => {
-                const mapped = body.map((a: any) => ({
+                const mapped = body.map((a: AddressDto) => ({
                     id: a.id_direccion,
                     street: a.calle,
                     colony: a.colonia,
@@ -150,7 +159,7 @@ export function ShoppingCarView() {
         })
             .then(res => res.json())
             .then(body => {
-                const mapped = body.map((a: any) => ({ id: a.id_direccion, street: a.calle, colony: a.colonia, postalCode: a.codigo_postal, city: a.ciudad, state: a.estado }));
+                const mapped = body.map((a: AddressDto) => ({ id: a.id_direccion, street: a.calle, colony: a.colonia, postalCode: a.codigo_postal, city: a.ciudad, state: a.estado }));
                 setAddresses(mapped);
                 // Seleccionar la dirección recién agregada (la última de la lista)
                 if (mapped.length > 0) {
@@ -393,7 +402,7 @@ export function ShoppingCarView() {
                                                         ...inputValues,
                                                         [item.id_product]: newQuantity.toString()
                                                     });
-                                                    updateItem(item.id_product, newQuantity).catch(error => {
+                                                    updateItem(item.id_product, newQuantity).catch(() => {
                                                         alert('No se pudo actualizar la cantidad del producto. Inténtalo de nuevo.');
                                                         setQuantities({
                                                             ...quantities,
@@ -480,7 +489,7 @@ export function ShoppingCarView() {
                                                         ...inputValues,
                                                         [item.id_product]: newQuantity.toString()
                                                     });
-                                                    updateItem(item.id_product, newQuantity).catch(error => {
+                                                    updateItem(item.id_product, newQuantity).catch(() => {
                                                         alert('No se pudo actualizar la cantidad del producto. Inténtalo de nuevo.');
                                                         setQuantities({
                                                             ...quantities,
@@ -542,7 +551,7 @@ export function ShoppingCarView() {
                                                         ...inputValues,
                                                         [item.id_product]: newQuantity.toString()
                                                     });
-                                                    updateItem(item.id_product, newQuantity).catch(error => {
+                                                    updateItem(item.id_product, newQuantity).catch(() => {
                                                         alert('No se pudo actualizar la cantidad del producto. Inténtalo de nuevo.');
                                                         setQuantities({
                                                             ...quantities,
@@ -635,7 +644,7 @@ export function ShoppingCarView() {
                                                         ...inputValues,
                                                         [item.id_product]: newQuantity.toString()
                                                     });
-                                                    updateItem(item.id_product, newQuantity).catch(error => {
+                                                    updateItem(item.id_product, newQuantity).catch(() => {
                                                         alert('No se pudo actualizar la cantidad del producto. Inténtalo de nuevo.');
                                                         setQuantities({
                                                             ...quantities,

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { router, usePage } from '@inertiajs/react';
+import { usePage } from '@inertiajs/react';
 import { MapPin } from 'lucide-react';
 import { SharedData } from '@/types';
 
@@ -23,8 +23,9 @@ export function LocationSelector({ className = '' }: LocationSelectorProps) {
                 }
 
                 // Intentar obtener la dirección primero mediante la relación
-                if ((auth?.user as any)?.address?.codigo_postal) {
-                    setPostalCode((auth.user as any).address.codigo_postal);
+                const userWithAddress = auth?.user as (SharedData['auth']['user'] & { address?: { codigo_postal?: string } }) | undefined;
+                if (userWithAddress?.address?.codigo_postal) {
+                    setPostalCode(userWithAddress.address.codigo_postal ?? "");
                     setLoading(false);
                     return;
                 }

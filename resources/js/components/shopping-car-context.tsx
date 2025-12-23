@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { router } from "@inertiajs/react";
 
 // Interfaz para los ítems del carrito
@@ -32,6 +32,15 @@ const toFloat = (v: unknown, fallback = 0) => {
     return Number.isFinite(n) ? n : fallback;
 };
 
+type RawCartItem = {
+    id_product?: unknown;
+    name?: unknown;
+    price?: unknown;
+    disponibility?: unknown;
+    quantity?: unknown;
+    image?: unknown;
+};
+
 const ShoppingCartContext = createContext<ShoppingCartContextProps | undefined>(undefined);
 
 export const ShoppingCartProvider: React.FC<{ children: React.ReactNode; isAuthenticated?: boolean }> = ({ children, isAuthenticated = false }) => {
@@ -44,8 +53,8 @@ export const ShoppingCartProvider: React.FC<{ children: React.ReactNode; isAuthe
         }
     }, [isAuthenticated]);
 
-    const mapItems = (items: any[]) => {
-        return items.map((it: any) => ({
+    const mapItems = (items: RawCartItem[]) => {
+        return items.map((it) => ({
             id_product: toInt(it.id_product),
             name: String(it.name ?? ''),
             price: toFloat(it.price),
@@ -56,7 +65,7 @@ export const ShoppingCartProvider: React.FC<{ children: React.ReactNode; isAuthe
     };
 
     // Función para cargar el carrito desde el backend
-    const fetchCart = async (force = false) => {
+    const fetchCart = useCallback(async (force = false) => {
         // Skip if user is not logged in
         if (!isAuthenticated) {
             setCartItems([]);
@@ -103,7 +112,7 @@ export const ShoppingCartProvider: React.FC<{ children: React.ReactNode; isAuthe
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [isAuthenticated, isLoading]);
 
     // Initial load handling
     useEffect(() => {
@@ -111,7 +120,7 @@ export const ShoppingCartProvider: React.FC<{ children: React.ReactNode; isAuthe
         if (!isLoginPage && isAuthenticated && cartItems.length === 0) {
             fetchCart();
         }
-    }, [isAuthenticated]);
+    }, [isAuthenticated, cartItems.length, fetchCart]);
 
     // Función para agregar un ítem al carrito
     const addToCart = async (item: CartItem) => {

@@ -1,7 +1,7 @@
 import React from 'react';
 import { X } from 'lucide-react';
 import { usePage } from '@inertiajs/react';
-import { motion, AnimatePresence, Variants } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const Typewriter: React.FC<{ text: string; className?: string; delay?: number; speed?: number; onComplete?: () => void }> = ({
     text,

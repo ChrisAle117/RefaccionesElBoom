@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useState } from 'react';
 import { Head, router, useForm } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { useCountdown } from '@/hooks/use-countdown';
@@ -100,7 +100,7 @@ const OrderSummary: React.FC<OrderProps> = ({ order }) => {
     const subtotalProductos = React.useMemo(() => {
         try {
             return (order.items || []).reduce((sum, it) => sum + (it.price * it.quantity), 0);
-        } catch (_e) {
+        } catch {
             return 0;
         }
     }, [order.items]);

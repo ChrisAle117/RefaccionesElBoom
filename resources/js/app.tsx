@@ -17,7 +17,7 @@ createInertiaApp({
 
         // Global listener for auth changes
         // When the user logs in or out, we force a full page reload to sync CSRF tokens and cart state
-        let lastUserId = (props.initialPage.props as unknown as PageProps).auth?.user?.id || null;
+        const lastUserId = (props.initialPage.props as unknown as PageProps).auth?.user?.id || null;
 
         router.on('success', (event) => {
             const userId = (event.detail.page.props as unknown as PageProps).auth?.user?.id || null;

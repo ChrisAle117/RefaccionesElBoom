@@ -24,16 +24,6 @@ export default function ProductFamilies({ families, typeOptions = [], filters }:
     const [type, setType] = useState(filters?.type ?? '');
     const [toDelete, setToDelete] = useState<Family | null>(null);
 
-    const assign = (product_id: number, family: string) => {
-        router.post(route('admin.product-families.assign'), { product_id, family }, { preserveScroll: true });
-    };
-    const clear = (product_id: number) => {
-        router.post(route('admin.product-families.clear'), { product_id }, { preserveScroll: true });
-    };
-    const toggleOpt = (product_id: number, current: boolean) => {
-        router.post(route('admin.product-families.opt-out'), { product_id, opt_out: !current }, { preserveScroll: true });
-    };
-
     return (
         <AdminLayout fullWidth title="Familias de productos">
             <Head title="Familias de productos" />

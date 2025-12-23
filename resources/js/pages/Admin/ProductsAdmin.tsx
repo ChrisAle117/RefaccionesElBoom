@@ -129,7 +129,9 @@ const ProductsAdmin: React.FC<ProductsProps> = ({ products, filters, types, pagi
             },
             onError: (errors) => {
                 setIsDeleting(null);
-                const errorMsg = (errors as Record<string, any>).message || 'Error desconocido al eliminar el producto';
+                const errorMsg = (typeof errors === 'object' && errors && 'message' in errors)
+                    ? String((errors as { message?: unknown }).message ?? 'Error desconocido al eliminar el producto')
+                    : 'Error desconocido al eliminar el producto';
                 setDeleteError(errorMsg);
                 // console.error('Error al eliminar producto:', errors);
             }
@@ -149,7 +151,7 @@ const ProductsAdmin: React.FC<ProductsProps> = ({ products, filters, types, pagi
         router.put(route('admin.products.toggle-status', id), {}, {
             preserveScroll: true,
             onSuccess: () => setIsStatusChanging(null),
-            onError: (_errors) => {
+            onError: () => {
                 setIsStatusChanging(null);
                 // console.error('Error al cambiar estado del producto:', _errors);
             },

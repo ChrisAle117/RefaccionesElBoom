@@ -1,6 +1,5 @@
 import React from "react";
 import { Compass, Eye } from 'lucide-react';
-import { CollapsibleSection } from "./collapsible-section";
 
 
 

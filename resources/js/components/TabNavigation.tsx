@@ -153,7 +153,7 @@ export function TabNavigation({
 
 
     const tabs = customTabs || (() => {
-        let standardTabs = [...defaultTabs];
+        const standardTabs = [...defaultTabs];
         if (showPurchases) {
             standardTabs.splice(3, 0);
         }

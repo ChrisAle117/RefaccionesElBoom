@@ -1,6 +1,5 @@
 import { SidebarInset } from '@/components/ui/sidebar';
 import * as React from 'react';
-import { PlaceholderPattern } from '@/components/ui/placeholder-pattern';
 
 interface AppContentProps extends React.ComponentProps<'main'> {
     variant?: 'header' | 'sidebar';

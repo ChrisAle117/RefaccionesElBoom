@@ -9,8 +9,10 @@ interface AdminLayoutProps {
     fullWidth?: boolean;
 }
 
+type AdminPageProps = { auth: unknown };
+
 const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title = 'Admin', fullWidth = false }) => {
-    const { auth } = usePage().props as any;
+    const { auth } = usePage<AdminPageProps>().props;
     const [incidenceCount, setIncidenceCount] = useState<number | null>(null);
 
     useEffect(() => {

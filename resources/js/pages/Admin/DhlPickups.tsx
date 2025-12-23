@@ -38,42 +38,6 @@ const DhlPickups: React.FC<Props> = ({ pickups, filters, pagination }) => {
         router.get(route('admin.dhl-pickups.index'), { search, date }, { preserveState: true, replace: true });
     };
 
-    const formatCdmx = (iso?: string) => {
-        if (!iso) return '—';
-        try {
-            const d = new Date(iso);
-            return new Intl.DateTimeFormat('es-MX', {
-                year: 'numeric', month: '2-digit', day: '2-digit',
-                hour: '2-digit', minute: '2-digit', second: '2-digit',
-                hour12: false, timeZone: 'America/Mexico_City'
-            }).format(d);
-        } catch { return '—'; }
-    };
-
-    const formatTimeCdmx = (iso?: string) => {
-        if (!iso) return '—';
-        try {
-            const d = new Date(iso);
-            return new Intl.DateTimeFormat('es-MX', {
-                hour: '2-digit', minute: '2-digit',
-                hour12: false, timeZone: 'America/Mexico_City'
-            }).format(d);
-        } catch { return '—'; }
-    };
-
-    const buildCloseDateISO = (startIso?: string, closeTime?: string) => {
-        if (!startIso || !closeTime) return undefined;
-        try {
-            const start = new Date(startIso);
-            const [hh, mm] = closeTime.split(':');
-            const dt = new Date(start);
-            dt.setHours(parseInt(hh || '0'), parseInt(mm || '0'), 0, 0);
-            return dt.toISOString();
-        } catch {
-            return undefined;
-        }
-    };
-
     return (
         <AdminLayout>
             <Head title="Recolecciones DHL" />

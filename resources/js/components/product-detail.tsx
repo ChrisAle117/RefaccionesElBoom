@@ -192,7 +192,7 @@ export function ProductDetails({
                         setCurrentDisponibility(d.local_stock);
                     }
                 }
-            } catch (_err: unknown) { /* ignore */ }
+            } catch { /* ignore */ }
             await addToCart({ id_product, name, price, quantity: selectedQuantity, disponibility: finalStock, image });
 
 
@@ -200,7 +200,7 @@ export function ProductDetails({
                 setIsAddingToCart(false);
 
             }, 2000);
-        } catch (_err: unknown) {
+        } catch {
             alert('Error al agregar al carrito');
             setIsAddingToCart(false);
         }
@@ -220,7 +220,7 @@ export function ProductDetails({
                     setCurrentDisponibility(d.local_stock);
                 }
             }
-        } catch (_err: unknown) { /* ignore */ }
+        } catch { /* ignore */ }
         const pd = { id_product, name, price, description, disponibility: finalStock, image, quantity: selectedQuantity };
         router.visit(`/confirmation?product=${encodeURIComponent(JSON.stringify(pd))}`, { replace: true });
     };
@@ -305,7 +305,9 @@ export function ProductDetails({
                                         <div className="flex items-center">
                                             <select className="w-full p-2 sm:p-3 text-xs sm:text-sm border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 transition shadow-sm appearance-none" value={selectedAddress} onChange={handleAddressChange}>
                                                 <option value="" className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">Selecciona dirección...</option>
-                                                {addresses.map((a: any) => <option key={a.id_direccion} value={a.id_direccion} className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">{a.codigo_postal} — {a.calle}, {a.ciudad}</option>)}
+                                                {addresses.map((a: { id_direccion: number; codigo_postal: string; calle: string; ciudad: string }) => (
+                                                    <option key={a.id_direccion} value={a.id_direccion} className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">{a.codigo_postal} — {a.calle}, {a.ciudad}</option>
+                                                ))}
                                             </select>
                                             <div className="pointer-events-none absolute right-0 flex items-center px-2 text-gray-700 dark:text-gray-300 h-full"><FiChevronDown className="h-4 w-4" /></div>
                                         </div>

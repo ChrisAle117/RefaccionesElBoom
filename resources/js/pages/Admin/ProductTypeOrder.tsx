@@ -4,10 +4,9 @@ import AdminLayout from '@/layouts/admin-layout';
 
 interface Props {
     types: string[];
-    savedOrder: string[];
 }
 
-const ProductTypeOrder: React.FC<Props> = ({ types, savedOrder }) => {
+const ProductTypeOrder: React.FC<Props> = ({ types }) => {
     const [items, setItems] = useState<string[]>(types);
     const [dragIndex, setDragIndex] = useState<number | null>(null);
     const [saving, setSaving] = useState(false);

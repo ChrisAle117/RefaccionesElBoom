@@ -1,5 +1,4 @@
 import React from "react";
-import { CollapsibleSection } from "./collapsible-section";
 
 export default function Ubication() {
 

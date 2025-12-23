@@ -2,7 +2,6 @@ import { useShoppingCart } from "./shopping-car-context";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import React, { useState, useEffect } from "react";
 import { Address } from "@/components/address";
-import { router } from "@inertiajs/react";
 import { Button } from "./ui/button";
 import { Label } from "./ui/label";
 
@@ -142,8 +141,7 @@ export function DetailsPurchase({ product }: DetailsPurchaseProps) {
     // Estado para controlar si la sección de productos está desplegada
     const [isProductsExpanded, setIsProductsExpanded] = useState<boolean>(false);
 
-    // Estado para manejar errores
-    const [error, setError] = useState<React.ReactNode | null>(null);
+    // ...existing code...
 
     // Estado para el botón de pago con tarjeta
     const [isRedirecting, setIsRedirecting] = useState<boolean>(false);
@@ -217,7 +215,7 @@ export function DetailsPurchase({ product }: DetailsPurchaseProps) {
                     try {
                         sessionStorage.setItem('boom_openpay_expect_back', '1');
                         sessionStorage.setItem('boom_openpay_order_id', String(data.order_id));
-                    } catch (_e) { /* ignore */ }
+                    } catch { /* ignore */ }
                 }
                 window.location.href = data.checkout_url;
             } else {
@@ -226,7 +224,7 @@ export function DetailsPurchase({ product }: DetailsPurchaseProps) {
                 );
                 setIsRedirecting(false);
             }
-        } catch (_err) {
+        } catch {
             setPaymentError("Ocurrió un error al iniciar el proceso de pago");
             setIsRedirecting(false);
         }
@@ -237,7 +235,7 @@ export function DetailsPurchase({ product }: DetailsPurchaseProps) {
             try {
                 const ref = document.referrer || '';
                 return /openpay\./i.test(ref) || /openpay\b/i.test(ref);
-            } catch (_e) { return false; }
+            } catch { return false; }
         };
         const redirectIfExpectBack = () => {
             try {
@@ -267,7 +265,7 @@ export function DetailsPurchase({ product }: DetailsPurchaseProps) {
                     if (nav && nav.type === 'back_forward') {
                         redirectIfExpectBack();
                     }
-                } catch (_e) { /* ignore */ }
+                } catch { /* ignore */ }
             }
         };
         window.addEventListener('pageshow', onPageShow);
@@ -394,25 +392,6 @@ export function DetailsPurchase({ product }: DetailsPurchaseProps) {
             setInvoicePreviewUrl('');
         }
     };
-
-    const handleRemoveFromCart = React.useCallback(async (productId: number) => {
-        try {
-            const response = await fetch(`/cart/${productId}`, {
-                method: "DELETE",
-                headers: {
-                    "Content-Type": "application/json",
-                    "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]')?.getAttribute("content") || "",
-                },
-            });
-            if (response.ok) {
-                window.location.reload();
-            } else {
-                /* silent fail */
-            }
-        } catch {
-            /* silent fail */
-        }
-    }, []);
 
     // Fetch direcciones
     useEffect(() => {

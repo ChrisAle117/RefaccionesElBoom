@@ -209,7 +209,7 @@ export function ProductCard({
         : '/images/logotipo.png';
 
 
-    const computeInitialSrc = () => {
+    const computeInitialSrc = React.useCallback(() => {
         const trimmed = (image || '').trim();
         if (trimmed) {
             // If it's just a filename, assume it's in /images/
@@ -220,9 +220,9 @@ export function ProductCard({
         }
         if (base && id_product) return `${base}/${id_product}.webp`;
         return logoSrc;
-    };
+    }, [image, base, id_product, logoSrc]);
 
-    const [imgSrc, setImgSrc] = useState<string>(computeInitialSrc());
+    const [imgSrc, setImgSrc] = useState<string>(() => computeInitialSrc());
     const [retryCount, setRetryCount] = useState<number>(0);
 
     // Variant selection state (default to representative if exists in variants)
@@ -436,7 +436,7 @@ export function ProductCard({
                     setIsInCart(true);
                 }, 300);
             }, 3000);
-        } catch (_err: unknown) {
+        } catch {
             alert('Hubo un problema al agregar el producto al carrito.');
             setIsAddingToCart(false);
         }
@@ -477,7 +477,7 @@ export function ProductCard({
             const productData = { id_product: effectiveId, name: effectiveName, price: effectivePrice, description, disponibility: finalStock, image: effectiveImage, quantity: 1 };
             const encoded = encodeURIComponent(JSON.stringify(productData));
             router.visit(`/confirmation?product=${encoded}`, { replace: true });
-        } catch (_err: unknown) {
+        } catch {
             alert('Hubo un problema al procesar la compra.');
         }
     };
@@ -670,9 +670,9 @@ export function ProductCard({
                                 <option value="" className="text-gray-500 dark:text-gray-400">
                                     Selecciona un C.P.
                                 </option>
-                                {addresses.map((a: unknown) => (
-                                    <option key={(a as any).id_direccion} value={(a as any).id_direccion.toString()} className="text-gray-700 dark:text-gray-200">
-                                        {(a as any).codigo_postal}: {(a as any).calle}, {(a as any).ciudad}
+                                {addresses.map((a: { id_direccion: number; codigo_postal: string; calle: string; ciudad: string }) => (
+                                    <option key={a.id_direccion} value={a.id_direccion.toString()} className="text-gray-700 dark:text-gray-200">
+                                        {a.codigo_postal}: {a.calle}, {a.ciudad}
                                     </option>
                                 ))}
                             </select>
