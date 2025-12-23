@@ -645,13 +645,6 @@ export function DetailsPurchase({ product }: DetailsPurchaseProps) {
                 </div>
             )}
 
-            {/* Mostrar mensaje de error si existe */}
-            {error && (
-                <div className="mb-4 text-xs sm:text-sm lg:text-base transform transition-all hover:scale-[1.01] focus:outline-none">
-                    {error}
-                </div>
-            )}
-
             {/* Mostrar errores del proceso de pago */}
             {paymentError && (
                 <div className="mb-4 p-4 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 rounded-lg border-l-4 border-red-500 shadow-sm text-xs sm:text-sm lg:text-base flex items-start">
