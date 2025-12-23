@@ -32,12 +32,12 @@ const ProductsAdmin: React.FC<ProductsProps> = ({ products, filters, types, pagi
     const [typeFilter, setTypeFilter] = useState(filters.type || '');
     const [isDeleting, setIsDeleting] = useState<number | null>(null);
 
-    const [availabilityFilter, setAvailabilityFilter] = useState(filters as any && (filters as any).availability ? (filters as any).availability : 'all');
+    const [availabilityFilter, setAvailabilityFilter] = useState(filters?.availability ? filters.availability : 'all');
     const [priceRangeFilter, setPriceRangeFilter] = useState({
-        min: (filters as any && (filters as any).min_price != null ? String((filters as any).min_price) : ''),
-        max: (filters as any && (filters as any).max_price != null ? String((filters as any).max_price) : ''),
+        min: (filters?.min_price != null ? String(filters.min_price) : ''),
+        max: (filters?.max_price != null ? String(filters.max_price) : ''),
     });
-    const [activeStatusFilter, setActiveStatusFilter] = useState(filters as any && (filters as any).active_status ? (filters as any).active_status : 'all');
+    const [activeStatusFilter, setActiveStatusFilter] = useState(filters?.active_status ? filters.active_status : 'all');
 
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [productToDelete, setProductToDelete] = useState<Product | null>(null);
@@ -65,7 +65,7 @@ const ProductsAdmin: React.FC<ProductsProps> = ({ products, filters, types, pagi
             fetch(route('admin.products.incidences-count'), { credentials: 'include' })
                 .then(r => r.ok ? r.json() : null)
                 .then(data => { if (!aborted && data && data.success) setIncidenceCount(data.count); })
-                .catch(() => {  })
+                .catch(() => { })
                 .finally(() => { if (!aborted) setIncidenceLoading(false); });
         };
         fetchCount();
@@ -73,7 +73,7 @@ const ProductsAdmin: React.FC<ProductsProps> = ({ products, filters, types, pagi
         return () => { aborted = true; clearInterval(id); };
     }, []);
 
-    
+
     // console.log('ProductsAdmin props example:', products?.[0]);
 
     const handleSearch = (e: React.FormEvent) => {
@@ -121,35 +121,37 @@ const ProductsAdmin: React.FC<ProductsProps> = ({ products, filters, types, pagi
             onSuccess: (page) => {
                 setIsDeleting(null);
                 closeDeleteModal();
-                const flash = page.props.flash as Record<string, any>;
+                const flash = page.props.flash as Record<string, string | null>;
                 if (flash && flash.error) {
-                    setDeleteError(flash.error);
+                    setDeleteError(flash.error || null);
                     setShowDeleteModal(true);
                 }
             },
             onError: (errors) => {
                 setIsDeleting(null);
-                const errorMsg = (errors as any).message || 'Error desconocido al eliminar el producto';
+                const errorMsg = (errors as Record<string, any>).message || 'Error desconocido al eliminar el producto';
                 setDeleteError(errorMsg);
                 // console.error('Error al eliminar producto:', errors);
             }
         });
     };
 
+    /*
     const confirmDelete = (id: number) => {
         const p = products.find(x => x.id_product === id);
         if (p) openDeleteModal(p);
     };
+    */
 
-    const toggleProductStatus = (id: number, _newStatusValue: boolean) => {
+    const toggleProductStatus = (id: number) => {
         // Llamada directa al backend para alternar el estado
         setIsStatusChanging(id);
         router.put(route('admin.products.toggle-status', id), {}, {
             preserveScroll: true,
             onSuccess: () => setIsStatusChanging(null),
-            onError: (errors) => {
+            onError: (_errors) => {
                 setIsStatusChanging(null);
-                // console.error('Error al cambiar estado del producto:', errors);
+                // console.error('Error al cambiar estado del producto:', _errors);
             },
             onFinish: () => {
                 setIsStatusChanging(null);
@@ -157,7 +159,7 @@ const ProductsAdmin: React.FC<ProductsProps> = ({ products, filters, types, pagi
         });
     };
 
-    const { flash }: any = usePage().props as any;
+    const { flash } = usePage().props as unknown as { flash: Record<string, string | null> };
 
     return (
         <AdminLayout>
@@ -253,7 +255,7 @@ const ProductsAdmin: React.FC<ProductsProps> = ({ products, filters, types, pagi
                             </div>
                         </div>
 
-                        
+
                         <div className="flex flex-col md:flex-row gap-4">
                             <div className="w-full md:w-1/3">
                                 <label htmlFor="availability" className="block text-sm font-medium text-gray-700 mb-1">Existencia</label>
@@ -449,7 +451,7 @@ const ProductsAdmin: React.FC<ProductsProps> = ({ products, filters, types, pagi
                                                                     className="sr-only"
                                                                     checked={product.active}
                                                                     disabled={isStatusChanging === product.id_product}
-                                                                    onChange={() => toggleProductStatus(product.id_product, !product.active)}
+                                                                    onChange={() => toggleProductStatus(product.id_product)}
                                                                 />
                                                                 <div className={`block w-9 h-5 rounded-full transition ${product.active ? 'bg-green-500' : 'bg-gray-300'}`}></div>
                                                                 <div className={`absolute left-1 top-1 bg-white w-3 h-3 rounded-full transition-transform duration-300 ${product.active ? 'transform translate-x-4' : ''}`}></div>
@@ -620,80 +622,80 @@ const ProductsAdmin: React.FC<ProductsProps> = ({ products, filters, types, pagi
                 </div>
             )}
             {showSyncModal && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-white/30 p-4">
-                <div className="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 relative border border-gray-200">
-                    <h2 className="text-xl font-semibold mb-2">Confirmar actualización de existencias</h2>
-                    <p className="text-sm text-gray-600 mb-4 leading-relaxed">Esta acción sincronizará las existencias desde el almacén para <strong>todos los productos activos</strong>. Ingresa tu contraseña para continuar.</p>
-                    {syncError && <div className="mb-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded p-2">{syncError}</div>}
-                    {syncSuccess && <div className="mb-3 text-sm text-green-600 bg-green-50 border border-green-200 rounded p-2">{syncSuccess}</div>}
-                    <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="sync-password">Contraseña</label>
-                    <input
-                        id="sync-password"
-                        type="password"
-                        className="w-full h-10 px-3 border rounded border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 mb-4"
-                        placeholder="Ingresa tu contraseña"
-                        value={syncPassword}
-                        onChange={(e) => setSyncPassword(e.target.value)}
-                        disabled={syncLoading}
-                    />
-                    <div className="flex justify-end gap-3">
-                        <button
-                            type="button"
-                            className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 text-gray-800 cursor-pointer"
-                            onClick={() => { if (!syncLoading) setShowSyncModal(false); }}
+                <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-white/30 p-4">
+                    <div className="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 relative border border-gray-200">
+                        <h2 className="text-xl font-semibold mb-2">Confirmar actualización de existencias</h2>
+                        <p className="text-sm text-gray-600 mb-4 leading-relaxed">Esta acción sincronizará las existencias desde el almacén para <strong>todos los productos activos</strong>. Ingresa tu contraseña para continuar.</p>
+                        {syncError && <div className="mb-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded p-2">{syncError}</div>}
+                        {syncSuccess && <div className="mb-3 text-sm text-green-600 bg-green-50 border border-green-200 rounded p-2">{syncSuccess}</div>}
+                        <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="sync-password">Contraseña</label>
+                        <input
+                            id="sync-password"
+                            type="password"
+                            className="w-full h-10 px-3 border rounded border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 mb-4"
+                            placeholder="Ingresa tu contraseña"
+                            value={syncPassword}
+                            onChange={(e) => setSyncPassword(e.target.value)}
                             disabled={syncLoading}
-                        >Cancelar</button>
-                        <button
-                            type="button"
-                            onClick={() => {
-                                if (!syncPassword) { setSyncError('Ingresa tu contraseña'); return; }
-                                setSyncError(null); setSyncSuccess(null); setSyncLoading(true);
-                                fetch(route('admin.products.sync-stock'), {
-                                    method: 'POST',
-                                    headers: {
-                                        'Content-Type': 'application/json',
-                                        'Accept': 'application/json',
-                                        'X-Requested-With': 'XMLHttpRequest',
-                                        'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || ''
-                                    },
-                                    credentials: 'include',
-                                    body: JSON.stringify({ password: syncPassword, json: true })
-                                })
-                                    .then(async r => {
-                                        let data: any = null;
-                                        try { data = await r.json(); } catch { }
-                                        if (!r.ok || !data?.success) {
+                        />
+                        <div className="flex justify-end gap-3">
+                            <button
+                                type="button"
+                                className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 text-gray-800 cursor-pointer"
+                                onClick={() => { if (!syncLoading) setShowSyncModal(false); }}
+                                disabled={syncLoading}
+                            >Cancelar</button>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    if (!syncPassword) { setSyncError('Ingresa tu contraseña'); return; }
+                                    setSyncError(null); setSyncSuccess(null); setSyncLoading(true);
+                                    fetch(route('admin.products.sync-stock'), {
+                                        method: 'POST',
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                            'Accept': 'application/json',
+                                            'X-Requested-With': 'XMLHttpRequest',
+                                            'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || ''
+                                        },
+                                        credentials: 'include',
+                                        body: JSON.stringify({ password: syncPassword, json: true })
+                                    })
+                                        .then(async r => {
+                                            let data: Record<string, unknown> | null = null;
+                                            try { data = await r.json(); } catch { /* ignore */ }
+                                            if (!r.ok || !data?.success) {
+                                                setSyncSuccess(null);
+                                                setSyncError(String(data?.error || 'Error al sincronizar'));
+                                            } else {
+                                                setSyncError(null);
+                                                setSyncSuccess(String(data.message || 'Existencias sincronizadas correctamente'));
+                                                router.reload({ only: ['products', 'pagination', 'totalOutOfStock'] });
+                                            }
+                                        })
+                                        .catch(() => {
                                             setSyncSuccess(null);
-                                            setSyncError(data?.error || 'Error al sincronizar');
-                                        } else {
-                                            setSyncError(null);
-                                            setSyncSuccess(data.message || 'Existencias sincronizadas correctamente');
-                                            router.reload({ only: ['products','pagination','totalOutOfStock'] });
-                                        }
-                                    })
-                                    .catch(() => {
-                                        setSyncSuccess(null);
-                                        setSyncError('Error de red');
-                                    })
-                                    .finally(() => setSyncLoading(false));
-                            }}
-                            className={`px-4 py-2 rounded text-white flex items-center font-medium cursor-pointer shadow ${syncLoading ? 'bg-blue-600/60' : 'bg-blue-600 hover:bg-blue-700'}`}
-                            disabled={syncLoading}
+                                            setSyncError('Error de red');
+                                        })
+                                        .finally(() => setSyncLoading(false));
+                                }}
+                                className={`px-4 py-2 rounded text-white flex items-center font-medium cursor-pointer shadow ${syncLoading ? 'bg-blue-600/60' : 'bg-blue-600 hover:bg-blue-700'}`}
+                                disabled={syncLoading}
+                            >
+                                {syncLoading && <svg className="animate-spin h-4 w-4 mr-2 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" /></svg>}
+                                Confirmar
+                            </button>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={() => { if (!syncLoading) setShowSyncModal(false); }}
+                            className="absolute top-2 right-2 text-gray-400 hover:text-gray-600"
+                            aria-label="Cerrar"
                         >
-                            {syncLoading && <svg className="animate-spin h-4 w-4 mr-2 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" /></svg>}
-                            Confirmar
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                         </button>
                     </div>
-                    <button
-                        type="button"
-                        onClick={() => { if (!syncLoading) setShowSyncModal(false); }}
-                        className="absolute top-2 right-2 text-gray-400 hover:text-gray-600"
-                        aria-label="Cerrar"
-                    >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-                    </button>
                 </div>
-            </div>
             )}
         </AdminLayout>
     );

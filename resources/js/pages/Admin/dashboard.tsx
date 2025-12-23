@@ -19,7 +19,7 @@ const Dashboard: React.FC = () => {
                             <div className="bg-blue-100 dark:bg-blue-800 p-6 rounded-lg shadow">
                                 <h2 className="text-lg font-semibold mb-2">Comprobantes pendientes</h2>
                                 <p className="mb-4">
-                                    Revisa y aprueba los comprobantes de pago subidos por los clientes.
+                                    Revisa y aprueba los comprobantes de pago subidos por los clientes.
                                 </p>
                                 <a
                                     href={route('admin.payment-proofs.pending')}

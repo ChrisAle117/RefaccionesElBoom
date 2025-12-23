@@ -51,7 +51,7 @@ interface OrderProps {
 
 const OrderSummary: React.FC<OrderProps> = ({ order }) => {
     const { hours, minutes, seconds } = useCountdown(order.time_left);
-    const { setData, post } = useForm({
+    const { post } = useForm({
         payment_proof: null as File | null,
         notes: '',
     });
@@ -59,7 +59,6 @@ const OrderSummary: React.FC<OrderProps> = ({ order }) => {
     // Estados para el diálogo de cancelación
     const [showCancelDialog, setShowCancelDialog] = useState(false);
     const [cancelProcessing, setCancelProcessing] = useState(false);
-    const fileInputRef = useRef<HTMLInputElement>(null);
 
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {

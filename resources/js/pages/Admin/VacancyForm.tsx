@@ -3,6 +3,12 @@ import React, { useMemo, useState } from 'react';
 import { Head, useForm } from '@inertiajs/react';
 import AdminLayout from '@/layouts/admin-layout';
 
+// Tipos de entrada: item simple o grupo con subitems
+type Group = { title: string; items: string[] };
+type Item = string | Group;
+
+const isGroup = (x: Item): x is Group => typeof x === 'object' && x !== null && 'title' in x && Array.isArray((x as Group).items);
+
 interface VacancyFormProps {
     vacancy?: {
         id: number;
@@ -10,8 +16,8 @@ interface VacancyFormProps {
         department: string;
         location: string;
         description: string;
-        requirements: Array<string | { title: string; items: string[] }>;
-        benefits: Array<string | { title: string; items: string[] }>;
+        requirements: Item[];
+        benefits: Item[];
         contact_email: string;
         active: boolean;
     };
@@ -20,16 +26,10 @@ interface VacancyFormProps {
 }
 
 const VacancyForm: React.FC<VacancyFormProps> = ({ vacancy, departments, locations }) => {
-    const isEditMode = !!vacancy;
-    
     const [inputMode, setInputMode] = useState({
         department: false,
         location: false
     });
-    // Tipos de entrada: item simple o grupo con subitems
-    type Group = { title: string; items: string[] };
-    type Item = string | Group;
-    const isGroup = (x: Item): x is Group => typeof x === 'object' && x !== null && 'title' in x && Array.isArray((x as any).items);
 
     // Estado para manejar arrastre
     const [dragging, setDragging] = useState<
@@ -37,21 +37,23 @@ const VacancyForm: React.FC<VacancyFormProps> = ({ vacancy, departments, locatio
         | { type: 'req-sub' | 'ben-sub'; index: number; subIndex: number }
         | null
     >(null);
-    
+
+    const isEditMode = !!vacancy;
+
     const { data, setData, errors, post, put, processing } = useForm({
         title: vacancy?.title || '',
         department: vacancy?.department || '',
         location: vacancy?.location || '',
         description: vacancy?.description || '',
-    requirements: (vacancy?.requirements as any) || [''],
-    benefits: (vacancy?.benefits as any) || [''],
+        requirements: vacancy?.requirements || [''],
+        benefits: vacancy?.benefits || [''],
         contact_email: vacancy?.contact_email || 'capitalhumano@refaccioneselboom.com',
         active: vacancy?.active ?? true
     });
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        
+
         if (isEditMode) {
             put(route('admin.vacancies.update', vacancy.id));
         } else {
@@ -61,47 +63,47 @@ const VacancyForm: React.FC<VacancyFormProps> = ({ vacancy, departments, locatio
 
     // Manejar requisitos como array dinámico
     const handleRequirementChange = (index: number, value: string) => {
-        const arr = [...(data.requirements as Item[])];
+        const arr = [...data.requirements];
         const current = arr[index];
         arr[index] = isGroup(current) ? { ...current, title: value } : value;
-        setData('requirements', arr as any);
+        setData('requirements', arr);
     };
 
     const addRequirement = () => {
-        setData('requirements', ([...(data.requirements as Item[]), '' ] as any));
+        setData('requirements', [...data.requirements, '']);
     };
 
     const removeRequirement = (index: number) => {
-        const arr = [...(data.requirements as Item[])];
+        const arr = [...data.requirements];
         if (arr.length <= 1) return;
         arr.splice(index, 1);
-        setData('requirements', arr as any);
+        setData('requirements', arr);
     };
 
     const convertRequirementToGroup = (index: number) => {
-        const arr = [...(data.requirements as Item[])];
+        const arr = [...data.requirements];
         const val = arr[index];
         const title = isGroup(val) ? val.title : (typeof val === 'string' ? val : '');
         arr[index] = { title, items: [] } as Group;
-        setData('requirements', arr as any);
+        setData('requirements', arr);
     };
 
     const assignRequirementToGroup = (index: number, groupIndex: number) => {
-        const arr = [...(data.requirements as Item[])];
+        const arr = [...data.requirements];
         const val = arr[index];
         const grp = arr[groupIndex];
         if (typeof val !== 'string' || !isGroup(grp)) return;
         grp.items = [...grp.items, val];
         arr.splice(index, 1);
-        setData('requirements', arr as any);
+        setData('requirements', arr);
     };
 
     const flattenRequirementGroup = (index: number) => {
-        const arr = [...(data.requirements as Item[])];
+        const arr = [...data.requirements];
         const grp = arr[index];
         if (!isGroup(grp)) return;
         arr.splice(index, 1, grp.title, ...grp.items);
-        setData('requirements', arr as any);
+        setData('requirements', arr);
     };
 
     // Drag & Drop helpers - requisitos/beneficios
@@ -123,145 +125,145 @@ const VacancyForm: React.FC<VacancyFormProps> = ({ vacancy, departments, locatio
     const dropOnRequirement = (toIndex: number) => {
         if (!dragging || dragging.type !== 'requirements') return;
         if (dragging.index === toIndex) return setDragging(null);
-        setData('requirements', moveItem(data.requirements as any, dragging.index, toIndex));
+        setData('requirements', moveItem(data.requirements, dragging.index, toIndex));
         setDragging(null);
     };
 
     const dropOnBenefit = (toIndex: number) => {
         if (!dragging || dragging.type !== 'benefits') return;
         if (dragging.index === toIndex) return setDragging(null);
-        setData('benefits', moveItem(data.benefits as any, dragging.index, toIndex));
+        setData('benefits', moveItem(data.benefits, dragging.index, toIndex));
         setDragging(null);
     };
 
     // Subitems de requisitos
     const handleReqSubChange = (groupIndex: number, subIndex: number, value: string) => {
-        const arr = [...(data.requirements as Item[])];
+        const arr = [...data.requirements];
         const grp = arr[groupIndex];
         if (!isGroup(grp)) return;
         const items = [...grp.items];
         items[subIndex] = value;
         arr[groupIndex] = { ...grp, items };
-        setData('requirements', arr as any);
+        setData('requirements', arr);
     };
 
     const addReqSub = (groupIndex: number) => {
-        const arr = [...(data.requirements as Item[])];
+        const arr = [...data.requirements];
         const grp = arr[groupIndex];
         if (!isGroup(grp)) return;
         arr[groupIndex] = { ...grp, items: [...grp.items, ''] };
-        setData('requirements', arr as any);
+        setData('requirements', arr);
     };
 
     const removeReqSub = (groupIndex: number, subIndex: number) => {
-        const arr = [...(data.requirements as Item[])];
+        const arr = [...data.requirements];
         const grp = arr[groupIndex];
         if (!isGroup(grp)) return;
         const items = [...grp.items];
         if (items.length <= 1) items[0] = '';
         else items.splice(subIndex, 1);
         arr[groupIndex] = { ...grp, items };
-        setData('requirements', arr as any);
+        setData('requirements', arr);
     };
 
     const dropOnReqSub = (groupIndex: number, toSubIndex: number) => {
         if (!dragging || dragging.type !== 'req-sub') return;
         if (dragging.index !== groupIndex) return;
-        const arr = [...(data.requirements as Item[])];
+        const arr = [...data.requirements];
         const grp = arr[groupIndex] as Group;
-        const items = moveItem(grp.items, dragging.subIndex!, toSubIndex);
+        const items = moveItem(grp.items, dragging.subIndex, toSubIndex);
         arr[groupIndex] = { ...grp, items };
-        setData('requirements', arr as any);
+        setData('requirements', arr);
         setDragging(null);
     };
 
     // Manejar beneficios como array dinámico
     const handleBenefitChange = (index: number, value: string) => {
-        const arr = [...(data.benefits as Item[])];
+        const arr = [...data.benefits];
         const current = arr[index];
         arr[index] = isGroup(current) ? { ...current, title: value } : value;
-        setData('benefits', arr as any);
+        setData('benefits', arr);
     };
 
     const addBenefit = () => {
-        setData('benefits', ([...(data.benefits as Item[]), '' ] as any));
+        setData('benefits', [...data.benefits, '']);
     };
 
     const removeBenefit = (index: number) => {
-        const arr = [...(data.benefits as Item[])];
+        const arr = [...data.benefits];
         if (arr.length <= 1) return;
         arr.splice(index, 1);
-        setData('benefits', arr as any);
+        setData('benefits', arr);
     };
 
     const convertBenefitToGroup = (index: number) => {
-        const arr = [...(data.benefits as Item[])];
+        const arr = [...data.benefits];
         const val = arr[index];
         const title = isGroup(val) ? val.title : (typeof val === 'string' ? val : '');
         arr[index] = { title, items: [] } as Group;
-        setData('benefits', arr as any);
+        setData('benefits', arr);
     };
 
     const assignBenefitToGroup = (index: number, groupIndex: number) => {
-        const arr = [...(data.benefits as Item[])];
+        const arr = [...data.benefits];
         const val = arr[index];
         const grp = arr[groupIndex];
         if (typeof val !== 'string' || !isGroup(grp)) return;
         grp.items = [...grp.items, val];
         arr.splice(index, 1);
-        setData('benefits', arr as any);
+        setData('benefits', arr);
     };
 
     const flattenBenefitGroup = (index: number) => {
-        const arr = [...(data.benefits as Item[])];
+        const arr = [...data.benefits];
         const grp = arr[index];
         if (!isGroup(grp)) return;
         arr.splice(index, 1, grp.title, ...grp.items);
-        setData('benefits', arr as any);
+        setData('benefits', arr);
     };
 
     const handleBenSubChange = (groupIndex: number, subIndex: number, value: string) => {
-        const arr = [...(data.benefits as Item[])];
+        const arr = [...data.benefits];
         const grp = arr[groupIndex];
         if (!isGroup(grp)) return;
         const items = [...grp.items];
         items[subIndex] = value;
         arr[groupIndex] = { ...grp, items };
-        setData('benefits', arr as any);
+        setData('benefits', arr);
     };
 
     const addBenSub = (groupIndex: number) => {
-        const arr = [...(data.benefits as Item[])];
+        const arr = [...data.benefits];
         const grp = arr[groupIndex];
         if (!isGroup(grp)) return;
         arr[groupIndex] = { ...grp, items: [...grp.items, ''] };
-        setData('benefits', arr as any);
+        setData('benefits', arr);
     };
 
     const removeBenSub = (groupIndex: number, subIndex: number) => {
-        const arr = [...(data.benefits as Item[])];
+        const arr = [...data.benefits];
         const grp = arr[groupIndex];
         if (!isGroup(grp)) return;
         const items = [...grp.items];
         if (items.length <= 1) items[0] = '';
         else items.splice(subIndex, 1);
         arr[groupIndex] = { ...grp, items };
-        setData('benefits', arr as any);
+        setData('benefits', arr);
     };
 
     const dropOnBenSub = (groupIndex: number, toSubIndex: number) => {
         if (!dragging || dragging.type !== 'ben-sub') return;
         if (dragging.index !== groupIndex) return;
-        const arr = [...(data.benefits as Item[])];
+        const arr = [...data.benefits];
         const grp = arr[groupIndex] as Group;
-        const items = moveItem(grp.items, dragging.subIndex!, toSubIndex);
+        const items = moveItem(grp.items, dragging.subIndex, toSubIndex);
         arr[groupIndex] = { ...grp, items };
-        setData('benefits', arr as any);
+        setData('benefits', arr);
         setDragging(null);
     };
 
-    const requirementGroupOptions = useMemo(() => (data.requirements as Item[]).map((x, i) => ({ i, g: isGroup(x) ? (x as Group) : null })).filter(x => x.g), [data.requirements]);
-    const benefitGroupOptions = useMemo(() => (data.benefits as Item[]).map((x, i) => ({ i, g: isGroup(x) ? (x as Group) : null })).filter(x => x.g), [data.benefits]);
+    const requirementGroupOptions = useMemo(() => (data.requirements).map((x, i) => ({ i, g: isGroup(x) ? x : null })).filter(x => x.g), [data.requirements]);
+    const benefitGroupOptions = useMemo(() => (data.benefits).map((x, i) => ({ i, g: isGroup(x) ? x : null })).filter(x => x.g), [data.benefits]);
 
     return (
         <AdminLayout>
@@ -301,7 +303,7 @@ const VacancyForm: React.FC<VacancyFormProps> = ({ vacancy, departments, locatio
                                             type="radio"
                                             className="form-radio h-4 w-4 text-[#006CFA]"
                                             checked={!inputMode.department}
-                                            onChange={() => setInputMode({...inputMode, department: false})}
+                                            onChange={() => setInputMode({ ...inputMode, department: false })}
                                         />
                                         <span className="ml-1">Seleccionar existente</span>
                                     </label>
@@ -310,7 +312,7 @@ const VacancyForm: React.FC<VacancyFormProps> = ({ vacancy, departments, locatio
                                             type="radio"
                                             className="form-radio h-4 w-4 text-[#006CFA]"
                                             checked={inputMode.department}
-                                            onChange={() => setInputMode({...inputMode, department: true})}
+                                            onChange={() => setInputMode({ ...inputMode, department: true })}
                                         />
                                         <span className="ml-1">Nuevo departamento</span>
                                     </label>
@@ -353,7 +355,7 @@ const VacancyForm: React.FC<VacancyFormProps> = ({ vacancy, departments, locatio
                                             type="radio"
                                             className="form-radio h-4 w-4 text-[#006CFA]"
                                             checked={!inputMode.location}
-                                            onChange={() => setInputMode({...inputMode, location: false})}
+                                            onChange={() => setInputMode({ ...inputMode, location: false })}
                                         />
                                         <span className="ml-1">Seleccionar existente</span>
                                     </label>
@@ -362,7 +364,7 @@ const VacancyForm: React.FC<VacancyFormProps> = ({ vacancy, departments, locatio
                                             type="radio"
                                             className="form-radio h-4 w-4 text-[#006CFA]"
                                             checked={inputMode.location}
-                                            onChange={() => setInputMode({...inputMode, location: true})}
+                                            onChange={() => setInputMode({ ...inputMode, location: true })}
                                         />
                                         <span className="ml-1">Nueva ubicación</span>
                                     </label>
@@ -417,7 +419,7 @@ const VacancyForm: React.FC<VacancyFormProps> = ({ vacancy, departments, locatio
                             <label className="block text-sm font-medium text-gray-700 mb-1">
                                 Requisitos *
                             </label>
-                            {(data.requirements as Item[]).map((requirement: Item, index: number) => (
+                            {data.requirements.map((requirement: Item, index: number) => (
                                 <div key={index} className="mb-2" onDragOver={onDragOver} onDrop={() => dropOnRequirement(index)}>
                                     {isGroup(requirement) ? (
                                         <div className="border rounded-md p-2 bg-gray-50">
@@ -425,7 +427,7 @@ const VacancyForm: React.FC<VacancyFormProps> = ({ vacancy, departments, locatio
                                                 <span className="cursor-move text-gray-400 hover:text-gray-600 mr-2 px-1" draggable onDragStart={() => startDrag('requirements', index)}>☰</span>
                                                 <input type="text" className="w-full rounded-md border border-gray-300 focus:border-[#006CFA] focus:ring focus:ring-blue-200 focus:ring-opacity-50 px-3 py-2" value={requirement.title} onChange={(e) => handleRequirementChange(index, e.target.value)} placeholder="Título del grupo (ej. Conocimiento básico en áreas como:)" required />
                                                 <button type="button" className="ml-2 bg-gray-200 text-gray-800 text-xs px-2 py-1 rounded border border-gray-300 hover:bg-gray-300" onClick={() => flattenRequirementGroup(index)}>Desagrupar</button>
-                                                <button type="button" className="ml-2 bg-red-500 text-white text-sm px-2 py-1 rounded border border-red-600 hover:bg-red-600" onClick={() => removeRequirement(index)} disabled={(data.requirements as Item[]).length <= 1}>-</button>
+                                                <button type="button" className="ml-2 bg-red-500 text-white text-sm px-2 py-1 rounded border border-red-600 hover:bg-red-600" onClick={() => removeRequirement(index)} disabled={data.requirements.length <= 1}>-</button>
                                             </div>
                                             {(requirement.items || []).map((sub: string, sidx: number) => (
                                                 <div key={sidx} className="flex items-center mb-2 ml-6" onDragOver={onDragOver} onDrop={() => dropOnReqSub(index, sidx)}>
@@ -469,7 +471,7 @@ const VacancyForm: React.FC<VacancyFormProps> = ({ vacancy, departments, locatio
                             <label className="block text-sm font-medium text-gray-700 mb-1">
                                 Beneficios *
                             </label>
-                            {(data.benefits as Item[]).map((benefit: Item, index: number) => (
+                            {data.benefits.map((benefit: Item, index: number) => (
                                 <div key={index} className="mb-2" onDragOver={onDragOver} onDrop={() => dropOnBenefit(index)}>
                                     {isGroup(benefit) ? (
                                         <div className="border rounded-md p-2 bg-gray-50">
@@ -477,7 +479,7 @@ const VacancyForm: React.FC<VacancyFormProps> = ({ vacancy, departments, locatio
                                                 <span className="cursor-move text-gray-400 hover:text-gray-600 mr-2 px-1" draggable onDragStart={() => startDrag('benefits', index)}>☰</span>
                                                 <input type="text" className="w-full rounded-md border border-gray-300 focus:border-[#006CFA] focus:ring focus:ring-blue-200 focus:ring-opacity-50 px-3 py-2" value={benefit.title} onChange={(e) => handleBenefitChange(index, e.target.value)} placeholder="Título del grupo" required />
                                                 <button type="button" className="ml-2 bg-gray-200 text-gray-800 text-xs px-2 py-1 rounded border border-gray-300 hover:bg-gray-300" onClick={() => flattenBenefitGroup(index)}>Desagrupar</button>
-                                                <button type="button" className="ml-2 bg-red-500 text-white text-sm px-2 py-1 rounded border border-red-600 hover:bg-red-600" onClick={() => removeBenefit(index)} disabled={(data.benefits as Item[]).length <= 1}>-</button>
+                                                <button type="button" className="ml-2 bg-red-500 text-white text-sm px-2 py-1 rounded border border-red-600 hover:bg-red-600" onClick={() => removeBenefit(index)} disabled={data.benefits.length <= 1}>-</button>
                                             </div>
                                             {(benefit.items || []).map((sub: string, sidx: number) => (
                                                 <div key={sidx} className="flex items-center mb-2 ml-6" onDragOver={onDragOver} onDrop={() => dropOnBenSub(index, sidx)}>

@@ -9,7 +9,7 @@ import { FaWhatsapp } from 'react-icons/fa';
 import { SiTiktok } from 'react-icons/si';
 
 export default function Welcome() {
-    const { auth } = usePage<SharedData>().props;
+    usePage<SharedData>();
 
     const carouselImages = [
         '/images/c1-21x9.webp',

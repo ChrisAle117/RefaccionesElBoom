@@ -4,12 +4,14 @@ import { DetailsPurchase, ProductData } from '@/components/details-purchase';
 import { BreadcrumbItem } from '@/types';
 
 
+/*
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Confirmación de compra',
         href: '/confirmation',
     },
 ];
+*/
 const Confirmation: React.FC = () => {
     const { url } = usePage();
     useEffect(() => {
@@ -28,24 +30,24 @@ const Confirmation: React.FC = () => {
                     const url = `${window.location.origin}/payment-back-handler?order_id=${encodeURIComponent(orderId)}`;
                     window.location.replace(url);
                 }
-            } catch {}
+            } catch { /* ignore */ }
         };
         redirectIfExpectBack();
         if (isFromOpenpay()) {
             redirectIfExpectBack();
         }
         const onPageShow = (ev: PageTransitionEvent) => {
-            if ((ev as any).persisted) redirectIfExpectBack();
+            if (ev.persisted) redirectIfExpectBack();
         };
         const onVisibility = () => {
             if (!document.hidden) {
                 try {
-                    const navEntries: any = (performance as any).getEntriesByType?.('navigation') || [];
+                    const navEntries = performance.getEntriesByType('navigation') as PerformanceNavigationTiming[];
                     const nav = navEntries[0];
                     if (nav && nav.type === 'back_forward') {
                         redirectIfExpectBack();
                     }
-                } catch {}
+                } catch { /* ignore */ }
             }
         };
         window.addEventListener('pageshow', onPageShow);
@@ -61,8 +63,8 @@ const Confirmation: React.FC = () => {
     if (productParam) {
         try {
             product = JSON.parse(productParam);
-        } catch (e) {
-            // console.error('Error al parsear el producto:', e);
+        } catch (_e) {
+            // console.error('Error al parsear el producto:', _e);
         }
     }
     return (
