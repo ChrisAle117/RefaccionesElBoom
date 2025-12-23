@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from "react";
-import { Inertia } from "@inertiajs/inertia";
+import { router } from "@inertiajs/react";
 
 // Interfaz para los ítems del carrito
 interface CartItem {
@@ -34,13 +34,31 @@ const toFloat = (v: unknown, fallback = 0) => {
 
 const ShoppingCartContext = createContext<ShoppingCartContextProps | undefined>(undefined);
 
-export const ShoppingCartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const ShoppingCartProvider: React.FC<{ children: React.ReactNode; isAuthenticated?: boolean }> = ({ children, isAuthenticated = false }) => {
     const [cartItems, setCartItems] = useState<CartItem[]>([]);
     const [isLoading, setIsLoading] = useState(false);
-    const [authStatus, setAuthStatus] = useState<string | null>(null);
+    const [isLoggedIn, setIsLoggedIn] = useState(isAuthenticated);
+
+    // Sync isLoggedIn with isAuthenticated prop on mount
+    useEffect(() => {
+        setIsLoggedIn(isAuthenticated);
+    }, [isAuthenticated]);
+
+    // Clear cart when user is not logged in
+    useEffect(() => {
+        if (!isLoggedIn) {
+            setCartItems([]);
+        }
+    }, [isLoggedIn]);
 
     // Función para cargar el carrito desde el backend
     const fetchCart = async (force = false) => {
+        // Skip if user is not logged in
+        if (!isLoggedIn) {
+            setCartItems([]);
+            return;
+        }
+
         // Evitar múltiples solicitudes simultáneas
         if (isLoading && !force) return;
 
@@ -68,6 +86,11 @@ export const ShoppingCartProvider: React.FC<{ children: React.ReactNode }> = ({ 
             });
 
             if (!response.ok) {
+                // If 401, user session expired
+                if (response.status === 401) {
+                    setIsLoggedIn(false);
+                    setCartItems([]);
+                }
                 return;
             }
 
@@ -88,89 +111,69 @@ export const ShoppingCartProvider: React.FC<{ children: React.ReactNode }> = ({ 
                 setCartItems([]);
             }
         } catch (error) {
+            console.error('Error fetching cart:', error);
         } finally {
             setIsLoading(false);
         }
     };
 
+    // Initial load and navigation handling
     useEffect(() => {
         const isLoginPage = window.location.pathname.includes('login');
-
-        if (!isLoginPage) {
+        if (!isLoginPage && isLoggedIn && cartItems.length === 0) {
             fetchCart();
-
-            const timer = setTimeout(() => {
-                fetchCart(true);
-            }, 1000);
-
-            return () => clearTimeout(timer);
         }
-    }, []);
-    // Referencias para evitar dependencias en useEffect
-    const authStatusRef = useRef(authStatus);
-    const cartItemsRef = useRef(cartItems);
-    
-    // Actualizar referencias cuando cambien los valores
-    useEffect(() => {
-        authStatusRef.current = authStatus;
-    }, [authStatus]);
-    
-    useEffect(() => {
-        cartItemsRef.current = cartItems;
-    }, [cartItems]);
 
-    useEffect(() => {
-        const handleRouteChange = () => {
-            const currentPath = window.location.pathname;
-            if (!currentPath.includes('login') && authStatusRef.current === 'login') {
-                setTimeout(() => fetchCart(true), 500);
-            }
+        const handleInertiaNavigate = (event: any) => {
+            if (!event?.detail?.page?.props) return;
 
-            if (currentPath.includes('login')) {
-                setAuthStatus('login');
-            } else if (currentPath === '/') {
-                setAuthStatus('logout');
-            } else {
-                setAuthStatus('other');
+            const newAuth = !!event.detail.page.props?.auth?.user;
+            const wasLoggedIn = isLoggedIn;
 
-                if (authStatusRef.current === 'login' || !cartItemsRef.current.length) {
-                    setTimeout(() => fetchCart(true), 800);
+            if (wasLoggedIn !== newAuth) {
+                setIsLoggedIn(newAuth);
+
+                if (!wasLoggedIn && newAuth) {
+                    // Just logged in, fetch immediately
+                    setTimeout(() => fetchCart(true), 100);
+                } else {
+                    // Just logged out
+                    setCartItems([]);
                 }
             }
         };
 
+        const handleInertiaFinish = () => {
+            // Always check after navigation finishes
+            if (isLoggedIn && cartItems.length === 0 && !window.location.pathname.includes('login')) {
+                fetchCart(true);
+            }
+        };
+
         const handleLogin = () => {
-            setTimeout(() => fetchCart(true), 1500);
+            setIsLoggedIn(true);
+            setTimeout(() => fetchCart(true), 100);
         };
 
         document.addEventListener('user-logged-in', handleLogin);
-
-        const originalPushState = window.history.pushState;
-        const originalReplaceState = window.history.replaceState;
-
-        window.history.pushState = function () {
-            originalPushState.apply(this, arguments as any);
-            handleRouteChange();
-        };
-
-        window.history.replaceState = function () {
-            originalReplaceState.apply(this, arguments as any);
-            handleRouteChange();
-        };
-
-        window.addEventListener('popstate', handleRouteChange);
-        handleRouteChange();
+        document.addEventListener('inertia:navigate', handleInertiaNavigate);
+        document.addEventListener('inertia:finish', handleInertiaFinish);
 
         return () => {
             document.removeEventListener('user-logged-in', handleLogin);
-            window.removeEventListener('popstate', handleRouteChange);
-            window.history.pushState = originalPushState;
-            window.history.replaceState = originalReplaceState;
+            document.removeEventListener('inertia:navigate', handleInertiaNavigate);
+            document.removeEventListener('inertia:finish', handleInertiaFinish);
         };
-    }, []); // Sin dependencias para evitar bucle infinito
+    }, [isLoggedIn]); // Removido cartItems.length para evitar refrescos redundantes y race conditions
 
     // Función para agregar un ítem al carrito
     const addToCart = async (item: CartItem) => {
+        // Check authentication before allowing cart operations
+        if (!isLoggedIn) {
+            router.visit('/login');
+            return;
+        }
+
         try {
             // Normaliza antes de enviar y guardar
             const normalized = {
@@ -187,6 +190,7 @@ export const ShoppingCartProvider: React.FC<{ children: React.ReactNode }> = ({ 
                 headers: {
                     'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                    'X-Requested-With': 'XMLHttpRequest',
                 },
                 body: JSON.stringify({
                     id_product: normalized.id_product,
@@ -214,6 +218,7 @@ export const ShoppingCartProvider: React.FC<{ children: React.ReactNode }> = ({ 
                 return [...prevItems, normalized];
             });
         } catch (error) {
+            console.error('Error adding to cart:', error);
         }
     };
 
@@ -224,6 +229,7 @@ export const ShoppingCartProvider: React.FC<{ children: React.ReactNode }> = ({ 
                 method: 'DELETE',
                 headers: {
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                    'X-Requested-With': 'XMLHttpRequest',
                 },
                 credentials: 'include'
             });
@@ -235,6 +241,7 @@ export const ShoppingCartProvider: React.FC<{ children: React.ReactNode }> = ({ 
             // Actualiza el estado del carrito eliminando el producto
             setCartItems((prevItems) => prevItems.filter((cartItem) => cartItem.id_product !== id_product));
         } catch (error) {
+            console.error('Error removing from cart:', error);
         }
     };
 
@@ -246,6 +253,7 @@ export const ShoppingCartProvider: React.FC<{ children: React.ReactNode }> = ({ 
                 headers: {
                     'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                    'X-Requested-With': 'XMLHttpRequest',
                 },
                 body: JSON.stringify({
                     id_product,
@@ -273,6 +281,7 @@ export const ShoppingCartProvider: React.FC<{ children: React.ReactNode }> = ({ 
             );
 
         } catch (error) {
+            console.error('Error updating cart item:', error);
             alert('No se pudo actualizar la cantidad del producto. Inténtalo de nuevo.');
         }
     };
@@ -285,6 +294,10 @@ export const ShoppingCartProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
     // Verificar si un producto está en el carrito
     const isProductInCart = (id_product: number): boolean => {
+        // Always return false if user is not logged in
+        if (!isLoggedIn) {
+            return false;
+        }
         return cartItems.some(item => item.id_product === id_product);
     };
 

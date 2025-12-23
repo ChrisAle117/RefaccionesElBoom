@@ -5,7 +5,7 @@ import { useShoppingCart } from './shopping-car-context';
 import React, { useState, useEffect, useRef } from 'react';
 import { ProductDetails } from './product-detail';
 import { TbTruckDelivery } from 'react-icons/tb';
-import { Inertia } from '@inertiajs/inertia';
+import { router } from '@inertiajs/react';
 import { usePage } from '@inertiajs/react';
 import { es } from 'date-fns/locale';
 
@@ -331,9 +331,18 @@ export function ProductCard({
             headers: { 'Accept': 'application/json' },
             credentials: 'include'
         })
-            .then(res => res.json())
+            .then(res => {
+                // Silently ignore 401 errors (user not authenticated)
+                if (res.status === 401) {
+                    return { success: false, addresses: [] };
+                }
+                return res.json();
+            })
             .then(body => {
                 if (body.success) setAddresses(body.addresses);
+            })
+            .catch(() => {
+                // Silently catch any errors
             })
             .finally(() => setLoadingAddresses(false));
     }, [auth?.user]);
@@ -382,7 +391,7 @@ export function ProductCard({
                 alertDiv.style.top = '-100px';
                 setTimeout(() => document.body.removeChild(alertDiv), 500);
             }, 4000);
-            Inertia.visit('/login');
+            router.visit('/login');
             return;
         }
 
@@ -450,7 +459,7 @@ export function ProductCard({
                 alertDiv.style.top = '-100px';
                 setTimeout(() => document.body.removeChild(alertDiv), 500);
             }, 4000);
-            Inertia.visit('/login');
+            router.visit('/login');
             return;
         }
         try {
@@ -469,7 +478,7 @@ export function ProductCard({
 
             const productData = { id_product: effectiveId, name: effectiveName, price: effectivePrice, description, disponibility: finalStock, image: effectiveImage, quantity: 1 };
             const encoded = encodeURIComponent(JSON.stringify(productData));
-            Inertia.visit(`/confirmation?product=${encoded}`, { replace: true });
+            router.visit(`/confirmation?product=${encoded}`, { replace: true });
         } catch {
             alert('Hubo un problema al procesar la compra.');
         }

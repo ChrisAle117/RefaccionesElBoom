@@ -10,7 +10,7 @@ import {
 } from 'react-icons/fi';
 import { useShoppingCart } from './shopping-car-context';
 import { usePage } from '@inertiajs/react';
-import { Inertia } from '@inertiajs/inertia';
+import { router } from '@inertiajs/react';
 import type { SharedProps } from './product-card';
 
 interface ProductDetailsProps {
@@ -36,12 +36,19 @@ export function ProductDetails({
     code,
     onClose,
 }: ProductDetailsProps) {
-    const { addToCart, isProductInCart } = useShoppingCart();
+    const { cartItems, addToCart, isProductInCart } = useShoppingCart();
     const { props } = usePage<SharedProps>();
     const { auth } = props;
 
-    
+
+    const [currentDisponibility, setCurrentDisponibility] = useState(disponibility);
+    const [reconciling, setReconciling] = useState(false);
+    const [selectedQuantity, setSelectedQuantity] = useState(1);
+
     const isInCart = isProductInCart(id_product);
+    const cartItem = cartItems.find(item => item.id_product === id_product);
+    const quantityInCart = cartItem ? cartItem.quantity : 0;
+    const remainingStock = Math.max(0, currentDisponibility - quantityInCart);
 
     const [lightboxOpen, setLightboxOpen] = useState(false);
     const [zoomLevel, setZoomLevel] = useState(1);
@@ -120,24 +127,23 @@ export function ProductDetails({
     };
 
     const [isAddingToCart, setIsAddingToCart] = useState(false);
-    
-    
+
+
     useEffect(() => {
         setShowAddedAnimation(isInCart);
     }, [isInCart]);
-    
-    const [currentDisponibility, setCurrentDisponibility] = useState(disponibility);
-    const [reconciling, setReconciling] = useState(false);
+
+
 
     // Reconciliar al montar la vista de detalle
     useEffect(() => {
         let aborted = false;
-        
+
         // Solo iniciar reconciliación si no es cero inicial
         if (disponibility > 0) {
             setReconciling(true);
         }
-        
+
         fetch(`/api/products/${id_product}/reconcile-stock`, { credentials: 'include' })
             .then(r => r.ok ? r.json() : null)
             .then(data => {
@@ -151,18 +157,33 @@ export function ProductDetails({
                     setCurrentDisponibility(disponibility);
                 }
             })
-            .finally(() => { 
+            .finally(() => {
                 if (!aborted) {
-                    setReconciling(false); 
+                    setReconciling(false);
                 }
             });
         return () => { aborted = true; };
     }, [id_product]);
 
+    // Asegurar que selectedQuantity no sea mayor que el stock disponible restante
+    useEffect(() => {
+        if (currentDisponibility > 0) {
+            if (selectedQuantity > remainingStock && remainingStock > 0) {
+                setSelectedQuantity(remainingStock);
+            } else if (selectedQuantity === 0 && remainingStock > 0) {
+                setSelectedQuantity(1);
+            } else if (remainingStock === 0) {
+                setSelectedQuantity(0);
+            }
+        } else if (!reconciling) {
+            setSelectedQuantity(0);
+        }
+    }, [currentDisponibility, remainingStock, reconciling]);
+
     const handleAddToCart = async (e: React.MouseEvent<HTMLButtonElement>) => {
         e.stopPropagation();
-        if (!auth?.user) { Inertia.visit('/login'); return; }
-        if (isAddingToCart || isInCart) return; 
+        if (!auth?.user) { router.visit('/login'); return; }
+        if (isAddingToCart || remainingStock <= 0) return;
         try {
             setIsAddingToCart(true);
             let finalStock = currentDisponibility;
@@ -175,23 +196,23 @@ export function ProductDetails({
                         setCurrentDisponibility(d.local_stock);
                     }
                 }
-            } catch {}
-            await addToCart({ id_product, name, price, quantity: 1, disponibility: finalStock, image });
-            
-            
+            } catch { }
+            await addToCart({ id_product, name, price, quantity: selectedQuantity, disponibility: finalStock, image });
+
+
             setTimeout(() => {
                 setIsAddingToCart(false);
-                
+
             }, 2000);
         } catch {
             alert('Error al agregar al carrito');
-            setIsAddingToCart(false); 
+            setIsAddingToCart(false);
         }
     };
 
     const handleBuyNow = async (e: React.MouseEvent<HTMLButtonElement>) => {
         e.stopPropagation();
-        if (!auth?.user) { Inertia.visit('/login'); return; }
+        if (!auth?.user) { router.visit('/login'); return; }
         // Reconciliar stock justo antes de continuar
         let finalStock = currentDisponibility;
         try {
@@ -203,14 +224,14 @@ export function ProductDetails({
                     setCurrentDisponibility(d.local_stock);
                 }
             }
-        } catch {  }
-        const pd = { id_product, name, price, description, disponibility: finalStock, image, quantity: 1 };
-        Inertia.visit(`/confirmation?product=${encodeURIComponent(JSON.stringify(pd))}`, { replace: true });
+        } catch { }
+        const pd = { id_product, name, price, description, disponibility: finalStock, image, quantity: selectedQuantity };
+        router.visit(`/confirmation?product=${encodeURIComponent(JSON.stringify(pd))}`, { replace: true });
     };
 
     return (
         <AppLayout>
-            <div className="relative bg-white dark:bg-gray-900 flex flex-col max-w-full min-h-screen overflow-x-hidden overflow-y-auto pt-12 pb-16" style={{minHeight: '100vh'}}>
+            <div className="relative bg-white dark:bg-gray-900 flex flex-col max-w-full min-h-screen overflow-x-hidden overflow-y-auto pt-12 pb-16" style={{ minHeight: '100vh' }}>
                 {/* Regresar */}
                 <button
                     onClick={onClose}
@@ -220,9 +241,9 @@ export function ProductDetails({
                     <IoMdArrowRoundBack className="w-5 h-5 sm:w-6 sm:h-6 text-gray-700 dark:text-gray-200" />
                 </button>
 
-                
+
                 <div className="flex-1 flex lg:flex-row flex-col gap-3 lg:gap-6 p-2 sm:p-3 overflow-y-auto overflow-x-hidden pb-24 max-w-screen">
-                    
+
                     <div className="w-full lg:w-1/4 mt-2 md:ml-5 mx-auto">
                         <div
                             ref={imageContainerRef}
@@ -248,7 +269,7 @@ export function ProductDetails({
                         </div>
                     </div>
 
-                    
+
                     <div className="w-full lg:flex-1 flex justify-start items-start mt-4 lg:mt-2 px-2 sm:px-4">
                         <div className="bg-white dark:bg-gray-800 p-3 sm:p-4 rounded-xl shadow-md border border-gray-100 dark:border-gray-700 w-full flex flex-col">
                             <div className="flex flex-wrap gap-2 mb-2">
@@ -267,7 +288,7 @@ export function ProductDetails({
                                     {type && <div className="flex items-center gap-2 sm:gap-3"><span className="w-3 h-3 sm:w-4 sm:h-4 rounded-full bg-purple-500" /><span className="font-medium text-gray-700 dark:text-gray-300">Tipo:</span><span className="font-semibold text-gray-900 dark:text-gray-100">{type}</span></div>}
                                     {code && <div className="flex items-center gap-2 sm:gap-3"><span className="w-3 h-3 sm:w-4 sm:h-4 rounded-full bg-yellow-500" /><span className="font-medium text-gray-700 dark:text-gray-300">Código:</span><span className="font-semibold text-gray-900 dark:text-gray-100">{code}</span></div>}
                                     <div className="flex items-center gap-2 sm:gap-3"><span className="w-3 h-3 sm:w-4 sm:h-4 rounded-full bg-blue-500" /><span className="font-medium text-gray-700 dark:text-gray-300">Stock:</span><span className="font-semibold text-gray-900 dark:text-gray-100">{reconciling ? 'Calculando…' : currentDisponibility} unidades</span></div>
-                                    
+
                                 </div>
                                 <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-3 sm:p-4">
                                     <h3 className="flex items-center font-bold mb-2 sm:mb-3 text-gray-800 dark:text-gray-200 text-sm sm:text-base"><TbTruckDelivery className="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2 text-blue-600 dark:text-blue-400" />Información de envío</h3>
@@ -293,24 +314,68 @@ export function ProductDetails({
                                             <div className="pointer-events-none absolute right-0 flex items-center px-2 text-gray-700 dark:text-gray-300 h-full"><FiChevronDown className="h-4 w-4" /></div>
                                         </div>
                                     )}
-                                    {shippingError && <div className="bg-red-50 dark:bg-red-900 border-l-4 border-red-500 p-2 mt-2 rounded text-xs"><p className="text-red-700 dark:text-red-300">{shippingError}</p></div>}
+                                    {shippingError && <div className="bg-red-50 dark:bg-red-900 border-l-4 border-red-500 p-2 mt-2 rounded text-xs"><p className="text-red-700 dark:text-gray-300">{shippingError}</p></div>}
                                 </div>
+
+                                {/* Selector de cantidad */}
+                                {remainingStock > 0 && (
+                                    <div className="mt-6 flex items-center gap-4">
+                                        <span className="text-sm font-bold text-gray-700 dark:text-gray-300">Cantidad:</span>
+                                        <div className="flex items-center border border-gray-300 dark:border-gray-700 rounded-lg overflow-hidden shadow-sm bg-gray-50 dark:bg-gray-900">
+                                            <button
+                                                onClick={() => setSelectedQuantity(prev => Math.max(1, prev - 1))}
+                                                className="px-4 py-2 hover:bg-red-100 dark:hover:bg-red-900 text-gray-600 dark:text-gray-400 font-bold transition-colors cursor-pointer"
+                                            >
+                                                -
+                                            </button>
+                                            <input
+                                                type="number"
+                                                min="1"
+                                                max={remainingStock}
+                                                value={selectedQuantity}
+                                                onChange={(e) => {
+                                                    const val = parseInt(e.target.value);
+                                                    if (!isNaN(val)) {
+                                                        setSelectedQuantity(Math.min(remainingStock, Math.max(1, val)));
+                                                    }
+                                                }}
+                                                className="w-16 text-center border-none bg-white dark:bg-gray-800 text-gray-900 dark:text-white font-bold focus:ring-0"
+                                            />
+                                            <button
+                                                onClick={() => setSelectedQuantity(prev => Math.min(remainingStock, prev + 1))}
+                                                className="px-4 py-2 hover:bg-green-100 dark:hover:bg-green-900 text-gray-600 dark:text-gray-400 font-bold transition-colors cursor-pointer"
+                                            >
+                                                +
+                                            </button>
+                                        </div>
+                                        <span className="text-xs text-gray-500 dark:text-gray-400">
+                                            ({remainingStock} más disponibles)
+                                        </span>
+                                    </div>
+                                )}
+                                {isInCart && remainingStock === 0 && (
+                                    <div className="mt-4 p-2 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-lg text-sm border border-blue-100 dark:border-blue-800 flex items-center gap-2">
+                                        <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        <span>Ya tienes todas las unidades disponibles en tu carrito ({quantityInCart}).</span>
+                                    </div>
+                                )}
 
                                 {/* Botones de acción - ubicados justo después de la sección de direcciones */}
                                 {(disponibility > 0 || currentDisponibility > 0 || reconciling) && (
                                     <div className="w-full flex gap-2 sm:gap-4 mt-6">
                                         <button
-                                            onClick={!isAddingToCart && !isInCart && !reconciling ? handleAddToCart : undefined}
-                                            disabled={isAddingToCart || isInCart || reconciling || currentDisponibility <= 0}
-                                            className={`w-full py-2 sm:py-3 ${
-                                                isAddingToCart || reconciling 
-                                                    ? 'bg-gray-400 cursor-not-allowed text-white' 
-                                                    : isInCart 
-                                                    ? 'bg-green-600 pointer-events-none text-white' 
+                                            onClick={!isAddingToCart && !reconciling && remainingStock > 0 ? handleAddToCart : undefined}
+                                            disabled={isAddingToCart || reconciling || currentDisponibility <= 0 || (isInCart && remainingStock <= 0)}
+                                            className={`w-full py-2 sm:py-3 ${isAddingToCart || reconciling
+                                                ? 'bg-gray-400 cursor-not-allowed text-white'
+                                                : isInCart && remainingStock <= 0
+                                                    ? 'bg-blue-600 pointer-events-none text-white opacity-80'
                                                     : currentDisponibility > 0
-                                                    ? 'bg-green-600 hover:bg-green-700 text-white'
-                                                    : 'bg-gray-300 cursor-not-allowed text-gray-500'
-                                            } font-bold text-sm sm:text-base rounded-lg shadow transition-all duration-300 hover:shadow-lg flex items-center justify-center relative overflow-hidden`}
+                                                        ? 'bg-green-600 hover:bg-green-700 text-white'
+                                                        : 'bg-gray-300 cursor-not-allowed text-gray-500'
+                                                } font-bold text-sm sm:text-base rounded-lg shadow transition-all duration-300 hover:shadow-lg flex items-center justify-center relative overflow-hidden`}
                                         >
                                             {reconciling ? (
                                                 <>
@@ -328,12 +393,16 @@ export function ProductDetails({
                                                     </svg>
                                                     Agregando...
                                                 </>
-                                            ) : isInCart ? (
+                                            ) : isInCart && remainingStock > 0 ? (
+                                                <>
+                                                    <FiShoppingCart className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2" /> Agregar más
+                                                </>
+                                            ) : isInCart && remainingStock <= 0 ? (
                                                 <>
                                                     <svg className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" viewBox="0 0 20 20" fill="currentColor">
                                                         <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                                                     </svg>
-                                                    Producto en el carrito
+                                                    En el carrito ({quantityInCart})
                                                 </>
                                             ) : currentDisponibility > 0 ? (
                                                 <>
@@ -348,11 +417,10 @@ export function ProductDetails({
                                         <button
                                             onClick={!reconciling && currentDisponibility > 0 ? handleBuyNow : undefined}
                                             disabled={reconciling || currentDisponibility <= 0}
-                                            className={`w-full py-2 cursor-pointer sm:py-3 ${
-                                                reconciling || currentDisponibility <= 0
-                                                    ? 'bg-gray-300 cursor-not-allowed text-gray-500'
-                                                    : 'bg-[#FBCC13] hover:bg-blue-700 hover:text-white text-black'
-                                            } font-bold text-sm sm:text-base rounded-lg shadow transition-all duration-300 hover:shadow-lg flex items-center justify-center gap-1 sm:gap-2`}
+                                            className={`w-full py-2 cursor-pointer sm:py-3 ${reconciling || currentDisponibility <= 0
+                                                ? 'bg-gray-300 cursor-not-allowed text-gray-500'
+                                                : 'bg-[#FBCC13] hover:bg-blue-700 hover:text-white text-black'
+                                                } font-bold text-sm sm:text-base rounded-lg shadow transition-all duration-300 hover:shadow-lg flex items-center justify-center gap-1 sm:gap-2`}
                                         >
                                             {reconciling ? (
                                                 <>
@@ -360,11 +428,11 @@ export function ProductDetails({
                                                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                                                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
                                                     </svg>
-                                                    Verificando...
+                                                    Verificando stock...
                                                 </>
                                             ) : (
                                                 <>
-                                                    <FiCreditCard className="h-4 w-4 sm:h-5 sm:w-5" /> 
+                                                    <FiCreditCard className="h-4 w-4 sm:h-5 sm:w-5" />
                                                     {currentDisponibility > 0 ? 'Comprar ahora' : 'Sin stock'}
                                                 </>
                                             )}
@@ -421,6 +489,6 @@ export function ProductDetails({
                     </div>
                 )}
             </div>
-        </AppLayout>
+        </AppLayout >
     );
 }

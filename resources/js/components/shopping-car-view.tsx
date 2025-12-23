@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useShoppingCart } from './shopping-car-context';
-import { Trash2, ShoppingCart, CreditCard, ChevronDown, X } from 'lucide-react';
+import { Trash2, ShoppingCart, CreditCard, ChevronDown, X, Sparkles } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { TbTruckDelivery } from 'react-icons/tb';
-import { Inertia } from '@inertiajs/inertia';
+import { router } from '@inertiajs/react';
 import { Address } from './address';
 import { Button } from './ui/button';
 
@@ -30,6 +31,40 @@ const AddressModal: React.FC<{ isOpen: boolean; onClose: () => void; onAddressAd
     );
 };
 
+const Confetti: React.FC = () => {
+    const colors = ['#FBCC13', '#006CFA', '#FF5733', '#33FF57', '#5733FF'];
+    const particles = Array.from({ length: 40 });
+
+    return (
+        <div className="fixed inset-0 pointer-events-none z-[100] overflow-hidden">
+            {particles.map((_, i) => (
+                <motion.div
+                    key={i}
+                    initial={{
+                        opacity: 1,
+                        x: '50vw',
+                        y: '50vh',
+                        scale: Math.random() * 0.5 + 0.5,
+                        rotate: 0
+                    }}
+                    animate={{
+                        x: `${Math.random() * 100}vw`,
+                        y: `${Math.random() * 100}vh`,
+                        rotate: Math.random() * 360,
+                        opacity: 0
+                    }}
+                    transition={{
+                        duration: Math.random() * 2 + 1,
+                        ease: "easeOut"
+                    }}
+                    className="absolute w-2 h-2 sm:w-3 sm:h-3 rounded-sm"
+                    style={{ backgroundColor: colors[Math.floor(Math.random() * colors.length)] }}
+                />
+            ))}
+        </div>
+    );
+};
+
 export function ShoppingCarView() {
     const { cartItems, totalPrice, removeFromCart, updateItem } = useShoppingCart();
     const [showDeleteMsg, setShowDeleteMsg] = useState(false);
@@ -44,6 +79,8 @@ export function ShoppingCarView() {
     const [shipping, setShipping] = useState<{ price: number; eta: string, free_shipping?: boolean, original_price?: number } | null>(null);
     const [loadingShipping, setLoadingShipping] = useState(false);
     const [shippingError, setShippingError] = useState<string | null>(null);
+    const [showConfetti, setShowConfetti] = useState(false);
+    const [hasReachedThreshold, setHasReachedThreshold] = useState(false);
 
     const finalTotal = totalPrice + (shipping?.price || 0);
 
@@ -62,12 +99,22 @@ export function ShoppingCarView() {
 
         setQuantities(newQuantities);
         setInputValues(newInputValues);
-    }, [cartItems]);
 
-    useEffect(() => {   
+        // Lógica de confeti por primera vez al llegar al umbral
+        if (totalPrice >= MIN_PURCHASE_FOR_FREE_SHIPPING && !hasReachedThreshold && cartItems.length > 0) {
+            setHasReachedThreshold(true);
+            setShowConfetti(true);
+            setTimeout(() => setShowConfetti(false), 3000);
+        } else if (totalPrice < MIN_PURCHASE_FOR_FREE_SHIPPING) {
+            setHasReachedThreshold(false);
+        }
+    }, [cartItems, totalPrice, hasReachedThreshold]);
+
+    useEffect(() => {
         fetch('/addresses', {
             headers: {
                 'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
             },
             credentials: 'include'
@@ -84,13 +131,23 @@ export function ShoppingCarView() {
                 }));
                 setAddresses(mapped);
             })
+            .catch(err => {
+                console.error('Error fetching addresses:', err);
+            })
             .finally(() => setLoadingAddresses(false));
     }, []);
 
     const handleAddressAdded = () => {
         // Recargar la lista de direcciones desde el servidor
         setLoadingAddresses(true);
-        fetch('/addresses', { headers: { 'Accept': 'application/json' }, credentials: 'include' })
+        fetch('/addresses', {
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+            },
+            credentials: 'include'
+        })
             .then(res => res.json())
             .then(body => {
                 const mapped = body.map((a: any) => ({ id: a.id_direccion, street: a.calle, colony: a.colonia, postalCode: a.codigo_postal, city: a.ciudad, state: a.estado }));
@@ -118,6 +175,7 @@ export function ShoppingCarView() {
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
             },
             credentials: 'include',
@@ -147,6 +205,9 @@ export function ShoppingCarView() {
 
     return (
         <div className="relative w-full mx-auto bg-white dark:bg-gray-900 min-h-screen pb-20">
+            <AnimatePresence>
+                {showConfetti && <Confetti />}
+            </AnimatePresence>
             {/* Mensaje de producto eliminado */}
             {showDeleteMsg && (
                 <div className={`fixed top-6 left-1/2 transform -translate-x-1/2 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-6 py-3 rounded-xl shadow-lg z-50 pointer-events-none transition-opacity duration-700 ${showDeleteMsg ? 'opacity-100' : 'opacity-0'}`}>
@@ -211,7 +272,7 @@ export function ShoppingCarView() {
                 </div>
 
                 {/* Barra de progreso para envío gratis*/}
-                <div className="mt-4 w-full">
+                <div className="mt-16 w-full">
                     {/* Camión sobre la barra */}
                     <div className="relative w-full mb-6">
                         <div
@@ -224,11 +285,11 @@ export function ShoppingCarView() {
                         >
                             <img
                                 src="/images/trailer.png"
-                                width="150"
-                                height="150"
+                                width="100"
+                                height="100"
                                 alt="Camión de entrega"
                                 className={`${totalPrice >= MIN_PURCHASE_FOR_FREE_SHIPPING ? 'animate-bounce' : ''}`}
-                                style={{ marginBottom: '8px' }}
+                                style={{ marginBottom: '4px' }}
                             />
                         </div>
                         <div className="w-full h-4 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
@@ -623,7 +684,7 @@ export function ShoppingCarView() {
             {cartItems.length > 0 && (
                 <div className="fixed bottom-0 left-0 right-0 z-20 px-4 py-2 bg-gradient-to-t from-white via-white to-white/90 dark:from-gray-900 dark:via-gray-900 dark:to-gray-900/90 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
                     <button
-                        onClick={() => Inertia.visit('/confirmation')} // This will now use the cart context
+                        onClick={() => router.visit('/confirmation')} // This will now use the cart context
                         className="bg-[#006CFA] dark:bg-[#FBCC13] text-white dark:text-black font-bold py-3 px-6 rounded-lg hover:bg-[#0055c8] dark:hover:bg-[#e0b610] transition-all duration-300 cursor-pointer shadow-md text-base w-full flex items-center justify-center gap-2"
                     >
                         <CreditCard className="h-5 w-5" /> Continuar

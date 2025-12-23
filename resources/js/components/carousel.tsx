@@ -21,9 +21,9 @@ function useMediaQuery(query: string) {
 }
 
 interface CarouselProps {
-    images: string[];         
-    imagesMobile?: string[];  
-    interval?: number;        
+    images: string[];
+    imagesMobile?: string[];
+    interval?: number;
     className?: string;
 }
 
@@ -60,8 +60,8 @@ const Carousel: React.FC<CarouselProps> = ({
 
     if (!count) return null;
 
-    const MAX_VH_DESKTOP = 42; 
-    const MAX_VH_MOBILE = 50; 
+    const MAX_VH_DESKTOP = 42;
+    const MAX_VH_MOBILE = 50;
 
     const containerHeight = isDesktop
         ? `min(calc(100vw * 9 / 21), ${MAX_VH_DESKTOP}vh)`
@@ -80,7 +80,7 @@ const Carousel: React.FC<CarouselProps> = ({
                         <img
                             src={src}
                             alt={`Imagen ${index + 1}`}
-                            className="w-full h-full object-cover object-center"
+                            className="w-full h-full object-contain object-center"
                             loading={index === 0 ? 'eager' : 'lazy'}
                             decoding="async"
                             fetchPriority={index === 0 ? 'high' : undefined}

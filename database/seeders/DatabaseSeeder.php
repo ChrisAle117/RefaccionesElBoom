@@ -23,6 +23,7 @@ class DatabaseSeeder extends Seeder
         // Ejecutar el seeder de catálogos
         $this->call([
             CatalogSeeder::class,
+            AddressSeeder::class,
         ]);
     }
 }

@@ -26,10 +26,15 @@ class ShoppingCartController extends Controller
         $cart = ShoppingCart::firstOrCreate(['user_id' => $userId]);
 
         // Agregar o actualizar el producto en el carrito
-        $item = $cart->items()->updateOrCreate(
-            ['id_product' => $request->id_product],
-            ['quantity' => $request->quantity]
-        );
+        $item = $cart->items()->where('id_product', $request->id_product)->first();
+        if ($item) {
+            $item->increment('quantity', $request->quantity);
+        } else {
+            $item = $cart->items()->create([
+                'id_product' => $request->id_product,
+                'quantity' => $request->quantity
+            ]);
+        }
 
         return response()->json([
             'message' => 'Item added to cart', 

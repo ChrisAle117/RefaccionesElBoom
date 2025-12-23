@@ -2,7 +2,7 @@ import { useShoppingCart } from "./shopping-car-context";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import React, { useState, useEffect } from "react";
 import { Address } from "@/components/address";
-import { Inertia } from "@inertiajs/inertia";
+import { router } from "@inertiajs/react";
 import { Button } from "./ui/button";
 import { Label } from "./ui/label";
 
@@ -116,7 +116,7 @@ export function DetailsPurchase({ product }: DetailsPurchaseProps) {
     const [invoiceRfc, setInvoiceRfc] = useState<string>('');
     const [invoiceFile, setInvoiceFile] = useState<File | null>(null);
     const [invoicePreviewUrl, setInvoicePreviewUrl] = useState<string>('');
-    const [invoicePath, setInvoicePath] = useState<string>(''); 
+    const [invoicePath, setInvoicePath] = useState<string>('');
     const [invoiceError, setInvoiceError] = useState<string | null>(null);
     const [invoiceUploading, setInvoiceUploading] = useState<boolean>(false);
 
@@ -262,7 +262,7 @@ export function DetailsPurchase({ product }: DetailsPurchaseProps) {
                     try {
                         sessionStorage.setItem('boom_openpay_expect_back', '1');
                         sessionStorage.setItem('boom_openpay_order_id', String(data.order_id));
-                    } catch {}
+                    } catch { }
                 }
                 window.location.href = data.checkout_url;
             } else {
@@ -293,7 +293,7 @@ export function DetailsPurchase({ product }: DetailsPurchaseProps) {
                     const url = `${window.location.origin}/payment-back-handler?order_id=${encodeURIComponent(orderId)}`;
                     window.location.replace(url);
                 }
-            } catch {}
+            } catch { }
         };
 
         redirectIfExpectBack();
@@ -312,7 +312,7 @@ export function DetailsPurchase({ product }: DetailsPurchaseProps) {
                     if (nav && nav.type === 'back_forward') {
                         redirectIfExpectBack();
                     }
-                } catch {}
+                } catch { }
             }
         };
         window.addEventListener('pageshow', onPageShow);
@@ -373,6 +373,7 @@ export function DetailsPurchase({ product }: DetailsPurchaseProps) {
                 method: 'POST',
                 headers: {
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                    'X-Requested-With': 'XMLHttpRequest',
                     'Accept': 'application/json',
                 },
                 body: form,
@@ -466,6 +467,7 @@ export function DetailsPurchase({ product }: DetailsPurchaseProps) {
                 const response = await fetch("/addresses", {
                     headers: {
                         "Content-Type": "application/json",
+                        "X-Requested-With": "XMLHttpRequest",
                         "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]')?.getAttribute("content") || "",
                     },
                 });
@@ -487,7 +489,7 @@ export function DetailsPurchase({ product }: DetailsPurchaseProps) {
                 }));
                 setAddresses(mapped);
             } catch (err) {
-                
+
             }
         };
         fetchAddresses();
@@ -508,7 +510,13 @@ export function DetailsPurchase({ product }: DetailsPurchaseProps) {
             if (product) {
                 const res = await fetch(
                     `/dhl/rate?address_id=${addressId}&product_id=${product.id_product}&quantity=1`,
-                    { headers: { Accept: "application/json" }, credentials: "include" }
+                    {
+                        headers: {
+                            Accept: "application/json",
+                            "X-Requested-With": "XMLHttpRequest",
+                        },
+                        credentials: "include"
+                    }
                 );
                 const body = await res.json();
                 if (body.success) {
@@ -525,6 +533,7 @@ export function DetailsPurchase({ product }: DetailsPurchaseProps) {
                     headers: {
                         "Content-Type": "application/json",
                         Accept: "application/json",
+                        "X-Requested-With": "XMLHttpRequest",
                         "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]')?.getAttribute("content") || "",
                     },
                     credentials: "include",
@@ -573,6 +582,7 @@ export function DetailsPurchase({ product }: DetailsPurchaseProps) {
                 const response = await fetch("/addresses", {
                     headers: {
                         "Content-Type": "application/json",
+                        "X-Requested-With": "XMLHttpRequest",
                         "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]')?.getAttribute("content") || "",
                     },
                 });

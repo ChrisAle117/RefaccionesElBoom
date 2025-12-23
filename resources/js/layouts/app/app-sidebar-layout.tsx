@@ -66,18 +66,22 @@ export default function AppSidebarLayout({
                 <div className="flex-1 flex  text-black items-center justify-end gap-35 px-4 max-sm:hidden">
 
                     {/* Mis pedidos */}
-                    <div>
-                        <Link
-                            href="/orders"
-                            className='cursor-pointer transition-colors'
-                        >
-                            Mis pedidos
-                        </Link>
-                    </div>
+                    {auth?.user && (
+                        <div>
+                            <Link
+                                href="/orders"
+                                className='cursor-pointer transition-colors hover:text-[#006CFA]'
+                            >
+                                Mis pedidos
+                            </Link>
+                        </div>
+                    )}
                     {/* Carrito */}
-                    <div className="cursor-pointer">
-                        <Cart onClick={toggleCart} />
-                    </div>
+                    {auth?.user && (
+                        <div className="cursor-pointer">
+                            <Cart onClick={toggleCart} />
+                        </div>
+                    )}
                     {/* Usuario */}
                     <div className="flex items-center cursor-pointer">
                         {auth?.user ? (
@@ -93,9 +97,11 @@ export default function AppSidebarLayout({
                 {/* Iconos y links para pantallas pequeñas */}
                 <div className={`flex items-center space-x-1 flex-1 justify-end sm:hidden ${showMobileSearch ? 'max-sm:hidden' : ''}`}>
                     {/* Carrito */}
-                    <div className="cursor-pointer">
-                        <Cart onClick={toggleCart} />
-                    </div>
+                    {auth?.user && (
+                        <div className="cursor-pointer">
+                            <Cart onClick={toggleCart} />
+                        </div>
+                    )}
                     {/* Lupa */}
                     <button
                         className="flex items-center justify-center ml-2 p-2 rounded-full hover:bg-[#0055b3] transition-colors"
