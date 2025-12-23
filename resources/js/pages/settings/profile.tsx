@@ -105,7 +105,7 @@ export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: 
                         )}
 
                         <div className="flex items-center gap-4">
-                            <Button disabled={processing} className="bg-[#006CFA] hover:bg-[#FBCC13] hover:text-black cursor-pointer">Guardar</Button>
+                            <Button disabled={processing} className="bg-slate-900 hover:bg-slate-800 text-white cursor-pointer transition-colors shadow-md">Guardar</Button>
 
                             <Transition
                                 show={recentlySuccessful}

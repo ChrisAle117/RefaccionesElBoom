@@ -1,5 +1,6 @@
-﻿import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
+﻿import React, { useState, useEffect, useRef, useLayoutEffect, useMemo } from 'react';
 import { usePage } from '@inertiajs/react';
+import { type SharedData } from '@/types';
 import { ProductCard } from './product-card';
 import { ProductDetails } from './product-detail';
 import { Pagination } from './pagination';
@@ -15,16 +16,25 @@ const slugifyType = (t: string) => (
 );
 
 const TYPE_IMAGE_MAP: Record<string, string> = {
-    'faro-led': '/images/faro.png',
-    'plafon': '/images/plafon.webp', 
-    'bocina': '/images/trailer.png',
-    'espejos': '/images/trailer.png',
-    'modulo-led': '/images/faro.png',
-    'cubretuerca': '/images/trailer.png',
-    'limpiaparabrisas': '/images/logotipo.png',
-    'otros': '/images/logotipo.png',
-
-    
+    'faro-led': '/images/modulos.png',
+    'faroled': '/images/modulos.png',
+    'faro': '/images/modulos.png',
+    'faros': '/images/modulos.png',
+    'faros-led': '/images/modulos.png',
+    'plafon': '/images/plafones.png',
+    'bocina': '/images/bocinas.png',
+    'espejos': '/images/espejos.png',
+    'modulo-led': '/images/modulos.png',
+    'modulos-led': '/images/modulos.png',
+    'modulos': '/images/modulos.png',
+    'leds': '/images/modulos.png',
+    'cubretuerca': '/images/cubretuercas.png',
+    'limpiaparabrisas': '/images/limpiaparabrisas.png',
+    'otros': '/images/otros.png',
+    'otro': '/images/otros.png',
+    'sin-clasificar': '/images/otros.png',
+    'default': '/images/otros.png',
+    '': '/images/otros.png',
 };
 
 const getTypeImage = (t: string) => {
@@ -86,23 +96,29 @@ const DEFAULT_FILTER_OPTIONS: FilterOption[] = [
 ];
 
 export function ProductCatalog() {
-    // Destructurar props ANTES de cualquier uso
-    let { products: initialProducts = [], search = '', type = '', productTypes = [] } = usePage().props as { 
-        products?: Product[], 
-        search?: string,
-        type?: string,
-        productTypes?: string[] 
+    // Define specific props for this page
+    type PageProps = SharedData & {
+        products?: Product[];
+        search?: string;
+        type?: string;
+        productTypes?: string[];
     };
-    // Ordenar: primero los que tienen stock
-    initialProducts = [...initialProducts].sort((a, b) => {
-        if ((a.disponibility > 0) === (b.disponibility > 0)) return 0;
-        return a.disponibility > 0 ? -1 : 1;
-    });
+
+    // Destructurar props ANTES de cualquier uso
+    const { products: rawProducts = [], search = '', type = '', productTypes = [] } = usePage<PageProps>().props;
+
+    // Use useMemo to ensure stable reference unless underlying data changes
+    const initialProducts = useMemo(() => {
+        return [...(rawProducts || [])].sort((a, b) => {
+            if ((a.disponibility > 0) === (b.disponibility > 0)) return 0;
+            return a.disponibility > 0 ? -1 : 1;
+        });
+    }, [rawProducts]);
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
     // Estado para manejar los productos filtrados
     const [filteredProducts, setFilteredProducts] = useState<Product[]>(initialProducts);
-    
+
     // Estado para el tipo de producto seleccionado
     const [selectedType, setSelectedType] = useState<string>(type);
 
@@ -113,7 +129,7 @@ export function ProductCatalog() {
     const gridRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => { window.scrollTo({ top: 0, behavior: 'smooth' }); }, [currentPage]);
-    
+
     // Detectar el número de columnas del grid y ajustar productos por página
     useLayoutEffect(() => {
         const updateGridLayout = () => {
@@ -149,7 +165,7 @@ export function ProductCatalog() {
     // Estado para mostrar/ocultar el menÃº de filtros
     const [showFilters, setShowFilters] = useState(false);
 
-        // Funcion para manejar el cambio de tipo de producto
+    // Funcion para manejar el cambio de tipo de producto
     const handleTypeFilter = (type: string) => {
         setSelectedType(type);
         setViewMode('grid');
@@ -184,7 +200,7 @@ export function ProductCatalog() {
     }, [initialProducts, filterOptions, selectedType]);
 
     // Calcular índices de productos para la página actual
-        const indexOfLastProduct = currentPage * productsPerPage;
+    const indexOfLastProduct = currentPage * productsPerPage;
     const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
     let currentProducts = filteredProducts.slice(indexOfFirstProduct, indexOfLastProduct);
     if (columnsCount > 0 && currentProducts.length % columnsCount !== 0 && indexOfLastProduct < filteredProducts.length) {
@@ -239,7 +255,7 @@ export function ProductCatalog() {
             const url = new URL(window.location.href);
             const v = (url.searchParams.get('view') || '').toLowerCase();
             if (v === 'grid') return 'grid';
-        } catch {}
+        } catch { }
         return 'selector';
     };
     const [viewMode, setViewMode] = useState<'selector' | 'grid'>(getInitialView());
@@ -251,7 +267,7 @@ export function ProductCatalog() {
             const href = url.toString();
             if (replace) window.history.replaceState(window.history.state, '', href);
             else window.history.pushState(window.history.state, '', href);
-        } catch {}
+        } catch { }
     };
 
     // Vista: mostrar selector si viewMode = 'selector'
@@ -261,45 +277,81 @@ export function ProductCatalog() {
         // Información adicional por categoría (puedes personalizar)
         const CATEGORY_INFO: Record<string, { image: string; info: string }> = {
             'faro-led': {
-                image: '/images/faro.png',
+                image: '/images/modulos.png',
+                info: 'Faros LED de alta potencia para camiones y vehículos pesados.'
+            },
+            'faroled': {
+                image: '/images/modulos.png',
+                info: 'Faros LED de alta potencia para camiones y vehículos pesados.'
+            },
+            'faro': {
+                image: '/images/modulos.png',
                 info: 'Faros LED de alta potencia para camiones y vehículos pesados.'
             },
             'plafon': {
-                image: '/images/plafones.webp',
+                image: '/images/plafones.png',
                 info: 'Plafones LED resistentes para cabinas de camión.'
             },
             'bocina': {
-                image: '/images/trailer.png',
+                image: '/images/bocinas.png',
                 info: 'Bocinas de aire comprimido y eléctricas para camiones.'
             },
             'espejos': {
-                image: '/images/trailer.png',
+                image: '/images/espejos.png',
                 info: 'Espejos retrovisores laterales y panorámicos para camiones.'
             },
             'modulo-led': {
-                image: '/images/faro.png',
+                image: '/images/modulos.png',
+                info: 'Módulos LED para señalización y decoración de camiones.'
+            },
+            'modulos-led': {
+                image: '/images/modulos.png',
+                info: 'Módulos LED para señalización y decoración de camiones.'
+            },
+            'modulos': {
+                image: '/images/modulos.png',
+                info: 'Módulos LED para señalización y decoración de camiones.'
+            },
+            'leds': {
+                image: '/images/modulos.png',
                 info: 'Módulos LED para señalización y decoración de camiones.'
             },
             'cubretuerca': {
-                image: '/images/trailer.png',
+                image: '/images/cubretuercas.png',
                 info: 'Cubretuercos cromados y decorativos para llantas de camión.'
             },
             'limpiaparabrisas': {
-                image: '/images/logotipo.png',
+                image: '/images/limpiaparabrisas.png',
                 info: 'Plumillas y brazos limpiaparabrisas para camiones.'
             },
             'otros': {
-                image: '/images/logotipo.png',
+                image: '/images/otros.png',
+                info: 'Otras refacciones y accesorios para camiones.'
+            },
+            'otro': {
+                image: '/images/otros.png',
+                info: 'Otras refacciones y accesorios para camiones.'
+            },
+            'sin-clasificar': {
+                image: '/images/otros.png',
+                info: 'Otras refacciones y accesorios para camiones.'
+            },
+            'default': {
+                image: '/images/otros.png',
+                info: 'Otras refacciones y accesorios para camiones.'
+            },
+            '': {
+                image: '/images/otros.png',
                 info: 'Otras refacciones y accesorios para camiones.'
             },
         };
 
         return (
-            <div className="w-full bg-white dark:bg-white">
+            <div className="w-full bg-white dark:bg-gray-950">
                 {/* Header */}
-                <div className="relative w-full bg-white py-8 sm:py-12 px-4 sm:px-6 flex items-center justify-between">
-                    <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-black dark:text-black drop-shadow-lg">NUESTROS PRODUCTOS</h1>
-                
+                <div className="relative w-full bg-white dark:bg-gray-950 py-8 sm:py-12 px-4 sm:px-6 flex items-center justify-between">
+                    <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-black dark:text-white drop-shadow-lg">NUESTROS PRODUCTOS</h1>
+
                 </div>
 
                 {/* Categorías Hero */}
@@ -333,7 +385,7 @@ export function ProductCatalog() {
                                                     />
                                                     <div className="absolute inset-0 bg-black/20 transition-all z-10"></div>
                                                     <span className="absolute left-0 right-0 bottom-0 flex items-end justify-center pb-6 sm:pb-8 text-white text-xl sm:text-2xl md:text-3xl lg:text-4xl font-extrabold drop-shadow-xl z-20 text-center px-2 sm:px-4 bg-gradient-to-t from-black/70 via-black/10 to-transparent h-1/2">
-                                                        {t || 'Sin clasificar'}
+                                                        {t || 'Otros'}
                                                     </span>
                                                 </div>
                                                 {/* Back Side */}
@@ -364,9 +416,9 @@ export function ProductCatalog() {
                             })}
                         </div>
 
-                    
 
-                        
+
+
                         {/* Catalogos y donde comprar */}
                         <div className="w-full flex flex-col items-center justify-center mt-24 mb-6">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-xl justify-center">
@@ -393,7 +445,7 @@ export function ProductCatalog() {
                             </div>
                         </div>
 
-                        
+
                     </div>
                 ) : (
                     <p className="text-gray-400 text-center py-8">No hay tipos de producto disponibles.</p>
@@ -427,12 +479,12 @@ export function ProductCatalog() {
                             <><svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                             </svg>
-                            Ocultar filtros</>
+                                Ocultar filtros</>
                         ) : (
                             <><svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
                             </svg>
-                            Filtrar productos</>
+                                Filtrar productos</>
                         )}
                     </button>
                     <span className="text-gray-300 mx-1">|</span>
@@ -489,7 +541,7 @@ export function ProductCatalog() {
                             ))}
                         </div>
                     </div>
-                    
+
                     {/* Filtro por tipo de producto */}
                     {productTypes && productTypes.length > 0 && (
                         <div>
@@ -529,7 +581,7 @@ export function ProductCatalog() {
                 </div>
             )}
 
-            
+
 
             {/* Grid de productos */}
             {selectedProduct ? (
@@ -545,15 +597,15 @@ export function ProductCatalog() {
                     onClose={() => setSelectedProduct(null)}
                 />
             ) : (
-                <div 
+                <div
                     ref={gridRef}
                     className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 3xl:grid-cols-8 gap-3 sm:gap-4 md:gap-5 w-full p-2 product-grid-container"
                 >
                     {currentProducts.length > 0 ? (
-                        <> 
+                        <>
                             {currentProducts.map((product) => (
-                                <div 
-                                    key={product.id_product} 
+                                <div
+                                    key={product.id_product}
                                     onClick={() => {
                                         // Asegurar que se pasa toda la información del producto
                                         const fullProduct = {
@@ -563,7 +615,7 @@ export function ProductCatalog() {
                                             disponibility: product.disponibility || 0
                                         };
                                         setSelectedProduct(fullProduct);
-                                    }} 
+                                    }}
                                     className="cursor-pointer"
                                 >
                                     <ProductCard {...product} />
@@ -584,7 +636,7 @@ export function ProductCatalog() {
             {/* Paginación y selector de productos por página */}
             {filteredProducts.length > 0 && (
                 <div className="mt-5 bg-white rounded-md p-3 dark:bg-gray-800 shadow-sm">
-                    <Pagination 
+                    <Pagination
                         currentPage={currentPage}
                         totalPages={totalPages}
                         totalItems={filteredProducts.length}
@@ -597,9 +649,9 @@ export function ProductCatalog() {
                             setCurrentPage(1);
                         }}
                         itemsPerPageOptions={[
-                            columnsCount * 2,  
-                            columnsCount * 3,  
-                            columnsCount * 4   
+                            columnsCount * 2,
+                            columnsCount * 3,
+                            columnsCount * 4
                         ]}
                         showItemsPerPageSelector={true}
                     />

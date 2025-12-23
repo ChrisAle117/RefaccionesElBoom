@@ -95,8 +95,8 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                         <Label htmlFor="remember">Mantener mis datos</Label>
                     </div>
 
-                    <Button type="submit" className="cursor-pointer bg-[#006CFA] mt-4 w-full hover:bg-[#FBCC13] hover:text-black" tabIndex={4} disabled={processing}>
-                        {processing && <LoaderCircle className="h-4 w-4 animate-spin" />}
+                    <Button type="submit" className="w-full mt-4 bg-slate-900 hover:bg-slate-800 text-white font-semibold shadow-lg transition-all duration-200" tabIndex={4} disabled={processing}>
+                        {processing && <LoaderCircle className="h-4 w-4 animate-spin mr-2" />}
                         Acceder
                     </Button>
                 </div>

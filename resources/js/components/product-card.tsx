@@ -76,7 +76,7 @@ export function ProductCard({
     const [shipping, setShipping] = useState<{ price: number; eta: string } | null>(null);
     const [loadingShipping, setLoadingShipping] = useState(false);
     const [shippingError, setShippingError] = useState<string | null>(null);
-    
+
     const [showEtaInfo, setShowEtaInfo] = useState(false);
     const [isHoverDevice, setIsHoverDevice] = useState(false);
     const etaInfoRef = useRef<HTMLSpanElement | null>(null);
@@ -211,13 +211,19 @@ export function ProductCard({
 
     const computeInitialSrc = () => {
         const trimmed = (image || '').trim();
-        if (trimmed) return trimmed;
+        if (trimmed) {
+            // If it's just a filename, assume it's in /images/
+            if (!trimmed.startsWith('/') && !trimmed.startsWith('http')) {
+                return `/images/${trimmed}`;
+            }
+            return trimmed;
+        }
         if (base && id_product) return `${base}/${id_product}.webp`;
         return logoSrc;
     };
 
     const [imgSrc, setImgSrc] = useState<string>(computeInitialSrc());
-    const [triedPng, setTriedPng] = useState<boolean>(false);
+    const [retryCount, setRetryCount] = useState<number>(0);
 
     // Variant selection state (default to representative if exists in variants)
     const [selectedVariantId, setSelectedVariantId] = useState<number | null>(() => {
@@ -245,8 +251,13 @@ export function ProductCard({
     // When variant has image, update preview
     useEffect(() => {
         // Update preview image when variant changes
+        setRetryCount(0); // Reset retry on change
         if (currentVariant && currentVariant.image) {
-            setImgSrc(currentVariant.image);
+            let nextSrc = currentVariant.image.trim();
+            if (nextSrc && !nextSrc.startsWith('/') && !nextSrc.startsWith('http')) {
+                nextSrc = `/images/${nextSrc}`;
+            }
+            setImgSrc(nextSrc || computeInitialSrc());
         } else {
             setImgSrc(computeInitialSrc());
         }
@@ -258,17 +269,15 @@ export function ProductCard({
         }
         // Update cart flag for selected variant id
         setIsInCart(isProductInCart(effectiveId));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedVariantId]);
 
     useEffect(() => {
-
-        setTriedPng(false);
+        setRetryCount(0);
         setImgSrc(computeInitialSrc());
-
     }, [image, id_product, base]);
 
-    
+
     useEffect(() => {
         const check = () => {
             if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
@@ -293,7 +302,7 @@ export function ProductCard({
         }
     }, []);
 
-    
+
     useEffect(() => {
         if (!showEtaInfo) return;
         const onDocClick = (ev: MouseEvent) => {
@@ -390,7 +399,7 @@ export function ProductCard({
                         setLiveDisponibility(d.local_stock);
                     }
                 }
-            } catch {  }
+            } catch { }
 
             const product = { id_product: effectiveId, name: effectiveName, price: effectivePrice, quantity: 1, disponibility: finalStock, image: effectiveImage };
             await addToCart(product);
@@ -514,14 +523,23 @@ export function ProductCard({
                     className="object-contain h-full w-full"
                     loading="lazy"
                     decoding="async"
-                    onError={() => {
+                    onError={(e) => {
+                        const target = e.currentTarget as HTMLImageElement;
+                        // Avoid infinite loop if logo also fails, though unlikely
+                        if (target.src.includes('logotipo')) return;
 
-                        if (!triedPng && base && id_product && imgSrc.endsWith('.webp')) {
-                            setTriedPng(true);
-                            setImgSrc(`${base}/${id_product}.png`);
-                            return;
+                        if (retryCount === 0) {
+                            // First failure: Try fetching from production
+                            setRetryCount(1);
+                            // Extract filename from current src or use original image prop
+                            const filename = image ? image.split('/').pop() : '';
+                            if (filename) {
+                                setImgSrc(`https://refaccioneselboom.com/images/${filename}`);
+                                return;
+                            }
                         }
 
+                        // If production also fails (or we couldn't determine filename), show logo
                         setImgSrc(logoSrc);
                     }}
                 />
@@ -556,7 +574,7 @@ export function ProductCard({
                                             setLiveDisponibility(data.local_stock);
                                         }
                                     })
-                                    .catch(() => {  })
+                                    .catch(() => { })
                                     .finally(() => setReconcilingStock(false));
                             }
                         }}
@@ -595,8 +613,8 @@ export function ProductCard({
 
             <div
                 className={`mt-1 sm:mt-2 mb-2 sm:mb-4 px-1 sm:px-2 border-t pt-2 sm:pt-3 transition-all duration-300 ${showAdditionalInfo
-                        ? 'max-h-96 opacity-100 overflow-visible'
-                        : 'max-h-0 opacity-0 py-0 overflow-hidden'
+                    ? 'max-h-96 opacity-100 overflow-visible'
+                    : 'max-h-0 opacity-0 py-0 overflow-hidden'
                     }`}
             >
 
@@ -676,8 +694,8 @@ export function ProductCard({
                                     aria-controls={tooltipId}
                                     onClick={(e) => {
                                         e.stopPropagation();
-                                        if (isHoverDevice) return; 
-                                        setShowEtaInfo(v => !v);   
+                                        if (isHoverDevice) return;
+                                        setShowEtaInfo(v => !v);
                                     }}
                                     className={`w-4 h-4 leading-4 text-center rounded-full bg-blue-600 text-white text-[10px] font-bold select-none focus:outline-none focus:ring-2 focus:ring-blue-400 ${isHoverDevice ? 'cursor-help' : 'cursor-pointer'}`}
                                 >
@@ -687,11 +705,10 @@ export function ProductCard({
                                     id={tooltipId}
                                     role="tooltip"
                                     className={`absolute left-1/2 -translate-x-1/2 top-[130%] z-[999] w-72 max-w-xs rounded-md border border-gray-200 bg-white px-3 py-2 text-black text-sm leading-relaxed text-justify shadow-lg transition-opacity duration-200
-                                    ${
-                                        isHoverDevice
+                                    ${isHoverDevice
                                             ? 'invisible opacity-0 group-hover:visible group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto'
                                             : (showEtaInfo ? 'visible opacity-100 pointer-events-auto' : 'invisible opacity-0 pointer-events-none')
-                                    }
+                                        }
                                     dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200`}
                                     style={{ textAlign: 'justify' }}
                                     onClick={(e) => e.stopPropagation()}

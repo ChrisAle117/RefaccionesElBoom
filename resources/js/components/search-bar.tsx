@@ -1,64 +1,51 @@
 import React, { useState } from 'react';
 import { router } from '@inertiajs/react';
+import { Search } from 'lucide-react';
 
 interface SearchBarProps {
     placeholder?: string;
 }
 
-export function SearchBar({ placeholder = 'Buscar por nombre o tipo...' }: SearchBarProps) {
+export function SearchBar({ placeholder = 'Buscar por nombre, código o tipo...' }: SearchBarProps) {
     const [searchQuery, setSearchQuery] = useState('');
     const [error, setError] = useState('');
-    const [showError, setShowError] = useState(false);
-
-    // Función para manejar los errores con animación
-    const handleError = (message: string) => {
-        setError(message);
-        setShowError(true);
-        setTimeout(() => {
-            setShowError(false);
-            setError('');
-        }, 3500);
-    };
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-
         const query = searchQuery.trim();
 
-        // Validación: campo vacío
         if (!query) {
-            handleError('Para buscar algún producto, debe de ingresar una palabra.');
+            setError('Para buscar algún producto, debe de ingresar una palabra.');
+            // Clear error after 3.5s
+            setTimeout(() => setError(''), 3500);
             return;
         }
 
-        setShowError(false);
         setError('');
-
         router.get(window.location.pathname, { search: query });
     };
 
     return (
         <form onSubmit={handleSubmit} className="relative w-full max-w-xl">
-            <div className="absolute left-4 top-1/2 transform -translate-y-1/2 z-10">
-                <img
-                    src="https://images.icon-icons.com/561/PNG/512/search-circular-symbol_icon-icons.com_53800.png"
-                    alt="Buscar"
-                    className="h-6 w-auto opacity-60"
-                />
+            <div className="absolute left-4 top-1/2 transform -translate-y-1/2 z-10 text-gray-400">
+                <Search className="h-5 w-5" />
             </div>
             <div className="relative w-full">
                 <input
                     type="text"
                     placeholder={placeholder}
-                    className={`pl-14 w-full h-12 bg-white rounded-full text-black shadow-md focus:outline-none ${error ? 'border-2 border-red-500' : 'focus:border-[#006CFA]'} transition-colors duration-300`}
+                    className={`pl-12 w-full h-12 rounded-full shadow-sm text-gray-900 border transition-all duration-300
+                        ${error ? 'border-red-500 bg-red-50 focus:ring-red-200' : 'border-gray-200 bg-white focus:border-yellow-500 focus:ring-2 focus:ring-yellow-200 focus:outline-none'}
+                    `}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                 />
-                {error && showError && (
-                    <div className="absolute top-[calc(100%+1rem)] left-4 bg-white border-2 border-red-500 rounded-lg p-2 shadow-lg transform transition-all duration-500 animate-slideUpAndFade">
+
+                {error && (
+                    <div className="absolute top-full left-4 mt-2 bg-white border border-red-200 rounded-lg p-3 shadow-xl z-20 animate-in fade-in slide-in-from-top-2">
                         <div className="relative">
-                            <div className="absolute -top-4 left-4 w-0 h-0 border-l-8 border-r-8 border-b-8 border-l-transparent border-r-transparent border-b-red-500"></div>
-                            <p className="text-red-500 text-sm">
+                            <div className="absolute -top-5 left-4 border-8 border-transparent border-b-white"></div>
+                            <p className="text-red-500 text-sm font-medium">
                                 {error}
                             </p>
                         </div>
@@ -67,43 +54,5 @@ export function SearchBar({ placeholder = 'Buscar por nombre o tipo...' }: Searc
             </div>
         </form>
     );
-
-    
-    const style = document.createElement('style');
-    style.textContent = `
-        @keyframes slideUpAndFade {
-            0% { 
-                opacity: 0; 
-                transform: translateY(-5px);
-            }
-            5% {
-                opacity: 1;
-                transform: translateY(0);
-            }
-            75% {
-                opacity: 1;
-                transform: translateY(0);
-            }
-            85% {
-                opacity: 0.8;
-                transform: translateY(2px);
-            }
-            90% {
-                opacity: 0.6;
-                transform: translateY(3px);
-            }
-            95% {
-                opacity: 0.3;
-                transform: translateY(4px);
-            }
-            100% { 
-                opacity: 0;
-                transform: translateY(5px);
-            }
-        }
-        .animate-slideUpAndFade {
-            animation: slideUpAndFade 3s ease-in-out forwards;
-        }
-    `;
-    document.head.appendChild(style);
 }
+

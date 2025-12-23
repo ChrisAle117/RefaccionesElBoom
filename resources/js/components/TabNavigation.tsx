@@ -243,7 +243,7 @@ export function TabNavigation({
                 if (pathname === '/' || pathname === '/dashboard') {
                     pushTabToHistory(activeTab, true);
                 }
-            } catch {}
+            } catch { }
         }
 
         // 2) Solo escucha back/forward para actualizar el estado; no reescribe la URL si el slug falta
@@ -274,8 +274,8 @@ export function TabNavigation({
                             data-tab-id={tab.id}
                             href={typeof window !== 'undefined' ? makeUrlWithTab(tab.id) : '#'}
                             className={`px-6 py-4 font-medium text-sm whitespace-nowrap transition-colors cursor-pointer flex-1 basis-0 text-center ${activeTab === tab.id
-                                ? 'text-red-600 border-b-2 border-red-600 dark:text-[#FBCC13] dark:border-[#FBCC13]'
-                                : 'text-gray-600 hover:text-black dark:text-gray-300 dark:hover:text-[#FBCC13]'
+                                ? 'text-slate-900 border-b-2 border-yellow-500 dark:text-[#FBCC13] dark:border-[#FBCC13]'
+                                : 'text-gray-500 hover:text-black dark:text-gray-400 dark:hover:text-[#FBCC13]'
                                 }`}
                             onClick={(e) => {
                                 e.preventDefault();
@@ -317,6 +317,6 @@ export function TabNavigation({
                     </AnimatePresence>
                 </div>
             </div>
-        </div>
+        </div >
     );
 }

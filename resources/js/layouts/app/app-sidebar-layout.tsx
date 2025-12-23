@@ -47,16 +47,16 @@ export default function AppSidebarLayout({
             {/* Floating WhatsApp widget appears on all pages */}
             <WhatsAppWidget />
             {/* Barra superior fija */}
-            <header className="fixed top-0 left-0 z-50 w-full bg-[#FBCC13] text-white p-4 flex items-center border-b-2 border-red-600 h-[72px] min-h-[72px]">
+            <header className="fixed top-0 left-0 z-50 w-full bg-[#FBCC13] dark:bg-yellow-500 shadow-md text-slate-900 p-4 flex items-center h-[72px] min-h-[72px] transition-all duration-300">
                 {/* Logo */}
                 <div className="flex items-center flex-shrink-0">
-                    <a href="/dashboard">
+                    <Link href="/">
                         <img
                             src={document.documentElement.classList.contains('dark') ? '/images/logotipo.png' : '/images/logotipo.png'}
                             alt="Logo Refaccionaria El Boom"
                             className="h-17 w-auto object-contain cursor-pointer"
                         />
-                    </a>
+                    </Link>
                 </div>
                 {/* Barra de búsqueda */}
                 <div className="w-1/3 flex justify-start pl-10 max-sm:hidden">
@@ -64,7 +64,7 @@ export default function AppSidebarLayout({
                 </div>
                 {/* Contenedor flexible para los elementos restantes */}
                 <div className="flex-1 flex  text-black items-center justify-end gap-35 px-4 max-sm:hidden">
-                    
+
                     {/* Mis pedidos */}
                     <div>
                         <Link
