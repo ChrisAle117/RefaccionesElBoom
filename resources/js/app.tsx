@@ -1,4 +1,5 @@
 import '../css/app.css';
+import { PageProps } from '@/types';
 
 import { createInertiaApp, router } from '@inertiajs/react';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
@@ -16,16 +17,16 @@ createInertiaApp({
 
         // Global listener for auth changes
         // When the user logs in or out, we force a full page reload to sync CSRF tokens and cart state
-        let lastUserId = (props.initialPage.props as any).auth?.user?.id || null;
+        let lastUserId = (props.initialPage.props as unknown as PageProps).auth?.user?.id || null;
 
         router.on('success', (event) => {
-            const userId = (event.detail.page.props as any).auth?.user?.id || null;
+            const userId = (event.detail.page.props as unknown as PageProps).auth?.user?.id || null;
             if (userId !== lastUserId) {
                 window.location.reload();
             }
         });
 
-        const isAuthenticated = !!(props.initialPage.props as any)?.auth?.user;
+        const isAuthenticated = !!(props.initialPage.props as unknown as PageProps)?.auth?.user;
 
         root.render(
             <ShoppingCartProvider isAuthenticated={isAuthenticated}>

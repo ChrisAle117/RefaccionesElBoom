@@ -3,14 +3,19 @@ import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaWhatsapp } from 'react-icons/fa';
 
+type VacancyRequirement = string | {
+    title?: string;
+    items?: string[];
+};
+
 type Vacancy = {
     id: number;
     title: string;
     department: string;
     location: string;
     description: string;
-    requirements: any[]; 
-    benefits: any[];     
+    requirements: VacancyRequirement[];
+    benefits: VacancyRequirement[];
     contact_email: string;
     active: boolean;
 };
@@ -55,16 +60,17 @@ export function Vacancies() {
     const departments = Array.from(new Set(vacancies.map(v => v.department)));
 
     // Helpers para validar contenido real
-    const isNonEmptyText = (val: any) => typeof val === 'string' && val.trim() !== '';
-    const hasListContent = (list: any[]) =>
+    const isNonEmptyText = (val: unknown) => typeof val === 'string' && val.trim() !== '';
+    const hasListContent = (list: unknown[]) =>
         Array.isArray(list) &&
-        list.some((item: any) => {
+        list.some((item: unknown) => {
             if (isNonEmptyText(item)) return true;
             if (item && typeof item === 'object') {
-                const titleOk = isNonEmptyText(item.title);
+                const obj = item as { title?: string; items?: unknown[] };
+                const titleOk = isNonEmptyText(obj.title);
                 const itemsOk =
-                    Array.isArray(item.items) &&
-                    item.items.map((s: any) => String(s).trim()).filter(Boolean).length > 0;
+                    Array.isArray(obj.items) &&
+                    obj.items.map((s: unknown) => String(s).trim()).filter(Boolean).length > 0;
                 return titleOk || itemsOk;
             }
             return false;
@@ -190,7 +196,7 @@ export function Vacancies() {
                                 tabIndex={0}
                                 aria-expanded={expandedVacancy === vacancy.id}
                                 role="button"
-                            >   
+                            >
                                 <div className="flex justify-between items-start">
                                     <div>
                                         <h3 className="text-lg font-bold text-[#006CFA] dark:text-[#FBCC13]">
@@ -273,7 +279,7 @@ export function Vacancies() {
                                                                     Requisitos
                                                                 </h4>
                                                                 <ul className="list-disc list-inside space-y-0.5 text-sm text-gray-600 dark:text-gray-400">
-                                                                    {vacancy.requirements.map((req: any, index: number) => {
+                                                                    {vacancy.requirements.map((req: VacancyRequirement, index: number) => {
                                                                         if (isNonEmptyText(req)) return <li key={index}>{String(req)}</li>;
                                                                         if (req && typeof req === 'object') {
                                                                             const title = isNonEmptyText(req.title) ? req.title : null;
@@ -323,7 +329,7 @@ export function Vacancies() {
                                                                     Beneficios
                                                                 </h4>
                                                                 <ul className="list-disc list-inside space-y-0.5 text-sm text-gray-600 dark:text-gray-400">
-                                                                    {vacancy.benefits.map((b: any, index: number) => {
+                                                                    {vacancy.benefits.map((b: VacancyRequirement, index: number) => {
                                                                         if (isNonEmptyText(b)) return <li key={index}>{String(b)}</li>;
                                                                         if (b && typeof b === 'object') {
                                                                             const title = isNonEmptyText(b.title) ? b.title : null;

@@ -18,7 +18,7 @@ export default function CoachmarkTutorial() {
             if (typeof window !== 'undefined') {
                 window.localStorage.setItem('boomTutorialSeen', '1');
             }
-        } catch (_e) { /* ignore */ }
+        } catch { /* ignore */ }
     };
 
     React.useEffect(() => {
@@ -52,11 +52,11 @@ export default function CoachmarkTutorial() {
 
             const seen = window.localStorage.getItem('boomTutorialSeen');
             setShowTutorial(!seen);
-        } catch (_err) {
+        } catch {
             const isLoggedIn = !!(auth && auth.user);
             setShowTutorial(!isLoggedIn);
         }
-    }, [auth?.user]);
+    }, [auth]);
 
 
     React.useEffect(() => {
@@ -157,7 +157,6 @@ export default function CoachmarkTutorial() {
 
                         const navBottom = spotlightRect.top + spotlightRect.height;
                         const isSmall = window.innerWidth < 640;
-                        const isMedium = window.innerWidth >= 640 && window.innerWidth < 1024;
                         const margin = isSmall ? 6 : 8;
                         const mascotWidth = 200;
                         const rawLeft = productosRect

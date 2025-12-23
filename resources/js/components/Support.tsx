@@ -10,6 +10,7 @@ export default function Support() {
         whatsapp: '+52 (777)-180-7312',
     };
 
+    /*
     const faqs = [
         {
             question: '¿Cómo puedo realizar un seguimiento de mi pedido?',
@@ -28,6 +29,7 @@ export default function Support() {
             answer: 'Sí, todos nuestros productos cuentan con garantía. El período varía según el tipo de producto, desde 30 días hasta 1 año.'
         },
     ];
+    */
 
     // Animaciones para los elementos que aparecen
     const containerVariants = {

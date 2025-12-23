@@ -2,7 +2,7 @@ import { ProductCatalog } from '@/components/product-catalog';
 import { LegalDocuments } from '@/components/LegalDocuments';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Vacancies } from '@/components/Vacancies';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import Ubication from '@/components/ubication';
 import { Catalog } from '@/components/catalog';
 import AboutUs from '@/components/about-us';
@@ -177,7 +177,7 @@ export function TabNavigation({
     }), []);
     const slugToId: Record<string, string> = useMemo(() => Object.fromEntries(Object.entries(idToSlug).map(([k, v]) => [v, k])), [idToSlug]);
 
-    const getTabFromUrl = (): string | null => {
+    const getTabFromUrl = useCallback((): string | null => {
         try {
             const url = new URL(window.location.href);
 
@@ -191,9 +191,9 @@ export function TabNavigation({
         } catch {
             return null;
         }
-    };
+    }, [slugToId, validTabIds]);
 
-    const makeUrlWithTab = (tabId: string): string => {
+    const makeUrlWithTab = useCallback((tabId: string): string => {
         try {
             const url = new URL(window.location.href);
             const params = new URLSearchParams(url.search);
@@ -214,9 +214,9 @@ export function TabNavigation({
         } catch {
             return `?tab=${encodeURIComponent(tabId)}`;
         }
-    };
+    }, [idToSlug, slugToId]);
 
-    const pushTabToHistory = (tabId: string, replace = false) => {
+    const pushTabToHistory = useCallback((tabId: string, replace = false) => {
         const href = makeUrlWithTab(tabId);
         try {
             if (replace) {
@@ -224,11 +224,11 @@ export function TabNavigation({
             } else {
                 window.history.pushState(window.history.state, '', href);
             }
-        } catch (e) {
+        } catch {
             // Fallback seguro
             try { window.location.replace(href); } catch { window.location.href = href; }
         }
-    };
+    }, [makeUrlWithTab]);
 
 
     useEffect(() => {
@@ -243,7 +243,7 @@ export function TabNavigation({
                 if (pathname === '/' || pathname === '/dashboard') {
                     pushTabToHistory(activeTab, true);
                 }
-            } catch { }
+            } catch { /* ignore */ }
         }
 
         // 2) Solo escucha back/forward para actualizar el estado; no reescribe la URL si el slug falta
@@ -258,7 +258,7 @@ export function TabNavigation({
         return () => {
             window.removeEventListener('popstate', onPopState);
         };
-    }, [activeTab]);
+    }, [activeTab, getTabFromUrl, pushTabToHistory]);
 
     return (
         <div className={className}>
