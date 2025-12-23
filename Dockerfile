@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # Pin composer to PHP 8.2 to satisfy dependencies that require <=8.4
-FROM composer:2.7-php8.2-alpine AS vendor
+FROM composer:2-php8.2-alpine AS vendor
 WORKDIR /app
 COPY . /app
 RUN composer install --no-dev --prefer-dist --no-interaction --no-progress --optimize-autoloader --no-scripts
