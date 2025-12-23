@@ -37,8 +37,8 @@ class ShoppingCartController extends Controller
         }
 
         return response()->json([
-            'message' => 'Item added to cart', 
-            'item' => $item,
+            'message' => 'Item added to cart',
+            'items'   => $this->getCartItems(),
             'authenticated' => true,
             'user_id' => $userId
         ]);
@@ -72,8 +72,8 @@ class ShoppingCartController extends Controller
             $item->update(['quantity' => $request->quantity]);
 
             return response()->json([
-                'message' => 'Item quantity updated', 
-                'item' => $item,
+                'message' => 'Item quantity updated',
+                'items'   => $this->getCartItems(),
                 'authenticated' => true,
                 'user_id' => auth()->id()
             ]);
@@ -96,6 +96,7 @@ class ShoppingCartController extends Controller
 
         return response()->json([
             'message' => 'Item removed from cart',
+            'items'   => $this->getCartItems(),
             'authenticated' => true,
             'user_id' => auth()->id()
         ]);
@@ -114,38 +115,42 @@ class ShoppingCartController extends Controller
                 'message' => 'Usuario no autenticado'
             ], 401);
         }
-    
-        // Buscar el carrito del usuario autenticado con los productos relacionados
-        $cart = ShoppingCart::with('items.product')
-            ->where('user_id', auth()->id())
-            ->first();
-    
-        // Si el carrito no existe, devolver un carrito vacío
-        if (!$cart) {
-            return response()->json([
-                'items' => [],
-                'authenticated' => true,
-                'user_id' => auth()->id(),
-                'message' => 'Carrito vacío'
-            ]);
-        }
-    
-        // Mapear los ítems del carrito para devolverlos en el formato esperado
+
         return response()->json([
-            'items' => $cart->items->map(function ($item) {
-                return [
-                    'id_product'    => (int) ($item->id_product),
-                    'name'          => $item->product->name ?? 'Producto no disponible',
-                    'price'         => (float) ($item->product->price ?? 0),
-                    'quantity'      => (int) ($item->quantity),
-                    'disponibility' => (int) ($item->product->disponibility ?? 0),
-                    'image'         => $item->product->image ?? 'images/default.png',
-                ];
-            }),
+            'items' => $this->getCartItems(),
             'authenticated' => true,
             'user_id'       => auth()->id(),
             'timestamp'     => now()->toIso8601String()
         ]);
+    }
 
+    /**
+     * Helper para obtener los items del carrito formateados.
+     */
+    private function getCartItems()
+    {
+        $userId = auth()->id();
+        if (!$userId) {
+            return [];
+        }
+
+        $cart = ShoppingCart::with('items.product')
+            ->where('user_id', $userId)
+            ->first();
+
+        if (!$cart) {
+            return [];
+        }
+
+        return $cart->items->map(function ($item) {
+            return [
+                'id_product'    => (int) ($item->id_product),
+                'name'          => $item->product->name ?? 'Producto no disponible',
+                'price'         => (float) ($item->product->price ?? 0),
+                'quantity'      => (int) ($item->quantity),
+                'disponibility' => (int) ($item->product->disponibility ?? 0),
+                'image'         => $item->product->image ?? 'images/default.png',
+            ];
+        })->toArray();
     }
 }

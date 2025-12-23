@@ -17,7 +17,7 @@ export interface SharedProps {
             email: string;
         };
     };
-    [key: string]: any;
+    [key: string]: unknown;
 }
 
 interface ProductCardProps {
@@ -70,7 +70,7 @@ export function ProductCard({
         setIsInCart(isProductInCart(id_product));
     }, [isProductInCart, id_product]);
 
-    const [addresses, setAddresses] = useState<any[]>([]);
+    const [addresses, setAddresses] = useState<unknown[]>([]);
     const [loadingAddresses, setLoadingAddresses] = useState(false);
     const [selectedAddress, setSelectedAddress] = useState('');
     const [shipping, setShipping] = useState<{ price: number; eta: string } | null>(null);
@@ -143,7 +143,7 @@ export function ProductCard({
     const extractFromCode = (code?: string): string[] => {
         if (!code) return [];
         const up = code.toUpperCase();
-        const segs = up.split(/[\/-]/).filter(Boolean);
+        const segs = up.split(/[/-]/).filter(Boolean);
         const out: string[] = [];
         for (let i = segs.length - 1; i >= 0 && out.length < 2; i--) {
             const seg = segs[i];
@@ -245,7 +245,7 @@ export function ProductCard({
     const effectivePrice = currentVariant?.price ?? price;
     const effectiveImage = (currentVariant?.image && currentVariant.image.trim() !== '') ? currentVariant.image : image;
     const effectiveCode = currentVariant?.code ?? code;
-    const effectiveDescription = (currentVariant as any)?.description ?? description;
+    const effectiveDescription = (currentVariant as Record<string, unknown>)?.description as string || description;
     const effectiveAudioUrl = currentVariant?.audio_url ?? audio_url ?? null;
 
     // When variant has image, update preview
@@ -269,13 +269,12 @@ export function ProductCard({
         }
         // Update cart flag for selected variant id
         setIsInCart(isProductInCart(effectiveId));
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [selectedVariantId]);
+    }, [selectedVariantId, currentVariant, disponibility, isProductInCart, effectiveId, image]);
 
     useEffect(() => {
         setRetryCount(0);
         setImgSrc(computeInitialSrc());
-    }, [image, id_product, base]);
+    }, [image, id_product, base, logoSrc]);
 
 
     useEffect(() => {
@@ -293,11 +292,11 @@ export function ProductCard({
             mq = window.matchMedia('(hover: hover) and (pointer: fine)');
             const handler = () => setIsHoverDevice(!!mq!.matches);
             if (mq.addEventListener) mq.addEventListener('change', handler);
-            else if ((mq as any).addListener) (mq as any).addListener(handler);
+            else if ('addListener' in mq) (mq as unknown as { addListener: (h: (ev: MediaQueryListEvent) => void) => void }).addListener(handler);
             return () => {
                 if (!mq) return;
                 if (mq.removeEventListener) mq.removeEventListener('change', handler);
-                else if ((mq as any).removeListener) (mq as any).removeListener(handler);
+                else if ('removeListener' in mq) (mq as unknown as { removeListener: (h: (ev: MediaQueryListEvent) => void) => void }).removeListener(handler);
             };
         }
     }, []);
@@ -437,9 +436,8 @@ export function ProductCard({
                     setIsInCart(true);
                 }, 300);
             }, 3000);
-        } catch (error) {
+        } catch (_err: unknown) {
             alert('Hubo un problema al agregar el producto al carrito.');
-
             setIsAddingToCart(false);
         }
     };
@@ -479,7 +477,7 @@ export function ProductCard({
             const productData = { id_product: effectiveId, name: effectiveName, price: effectivePrice, description, disponibility: finalStock, image: effectiveImage, quantity: 1 };
             const encoded = encodeURIComponent(JSON.stringify(productData));
             router.visit(`/confirmation?product=${encoded}`, { replace: true });
-        } catch {
+        } catch (_err: unknown) {
             alert('Hubo un problema al procesar la compra.');
         }
     };
@@ -583,7 +581,7 @@ export function ProductCard({
                                             setLiveDisponibility(data.local_stock);
                                         }
                                     })
-                                    .catch(() => { })
+                                    .catch(() => { /* silent fail */ })
                                     .finally(() => setReconcilingStock(false));
                             }
                         }}
@@ -672,7 +670,7 @@ export function ProductCard({
                                 <option value="" className="text-gray-500 dark:text-gray-400">
                                     Selecciona un C.P.
                                 </option>
-                                {addresses.map(a => (
+                                {addresses.map((a: any) => (
                                     <option key={a.id_direccion} value={a.id_direccion.toString()} className="text-gray-700 dark:text-gray-200">
                                         {a.codigo_postal}: {a.calle}, {a.ciudad}
                                     </option>

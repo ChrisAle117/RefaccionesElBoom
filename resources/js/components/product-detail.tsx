@@ -55,12 +55,11 @@ export function ProductDetails({
     const [zoomPosition, setZoomPosition] = useState({ x: 0, y: 0 });
     const [lightboxZoomLevel, setLightboxZoomLevel] = useState(1);
     const [lightboxZoomPosition, setLightboxZoomPosition] = useState({ x: 0, y: 0 });
-    const [showAddedAnimation, setShowAddedAnimation] = useState(isInCart);
     const imageContainerRef = useRef<HTMLDivElement>(null);
     const lightboxImageRef = useRef<HTMLDivElement>(null);
 
     // Dirección y envío
-    const [addresses, setAddresses] = useState<any[]>([]);
+    const [addresses, setAddresses] = useState<unknown[]>([]);
     const [loadingAddresses, setLoadingAddresses] = useState(false);
     const [selectedAddress, setSelectedAddress] = useState('');
     const [shipping, setShipping] = useState<{ price: number; eta: string } | null>(null);
@@ -129,9 +128,6 @@ export function ProductDetails({
     const [isAddingToCart, setIsAddingToCart] = useState(false);
 
 
-    useEffect(() => {
-        setShowAddedAnimation(isInCart);
-    }, [isInCart]);
 
 
 
@@ -163,7 +159,7 @@ export function ProductDetails({
                 }
             });
         return () => { aborted = true; };
-    }, [id_product]);
+    }, [id_product, disponibility]);
 
     // Asegurar que selectedQuantity no sea mayor que el stock disponible restante
     useEffect(() => {
@@ -178,7 +174,7 @@ export function ProductDetails({
         } else if (!reconciling) {
             setSelectedQuantity(0);
         }
-    }, [currentDisponibility, remainingStock, reconciling]);
+    }, [currentDisponibility, remainingStock, reconciling, selectedQuantity]);
 
     const handleAddToCart = async (e: React.MouseEvent<HTMLButtonElement>) => {
         e.stopPropagation();
@@ -196,7 +192,7 @@ export function ProductDetails({
                         setCurrentDisponibility(d.local_stock);
                     }
                 }
-            } catch { }
+            } catch (_err: unknown) { /* ignore */ }
             await addToCart({ id_product, name, price, quantity: selectedQuantity, disponibility: finalStock, image });
 
 
@@ -204,7 +200,7 @@ export function ProductDetails({
                 setIsAddingToCart(false);
 
             }, 2000);
-        } catch {
+        } catch (_err: unknown) {
             alert('Error al agregar al carrito');
             setIsAddingToCart(false);
         }
@@ -224,7 +220,7 @@ export function ProductDetails({
                     setCurrentDisponibility(d.local_stock);
                 }
             }
-        } catch { }
+        } catch (_err: unknown) { /* ignore */ }
         const pd = { id_product, name, price, description, disponibility: finalStock, image, quantity: selectedQuantity };
         router.visit(`/confirmation?product=${encodeURIComponent(JSON.stringify(pd))}`, { replace: true });
     };
@@ -309,7 +305,7 @@ export function ProductDetails({
                                         <div className="flex items-center">
                                             <select className="w-full p-2 sm:p-3 text-xs sm:text-sm border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 transition shadow-sm appearance-none" value={selectedAddress} onChange={handleAddressChange}>
                                                 <option value="" className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">Selecciona dirección...</option>
-                                                {addresses.map(a => <option key={a.id_direccion} value={a.id_direccion} className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">{a.codigo_postal} — {a.calle}, {a.ciudad}</option>)}
+                                                {addresses.map((a: any) => <option key={a.id_direccion} value={a.id_direccion} className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">{a.codigo_postal} — {a.calle}, {a.ciudad}</option>)}
                                             </select>
                                             <div className="pointer-events-none absolute right-0 flex items-center px-2 text-gray-700 dark:text-gray-300 h-full"><FiChevronDown className="h-4 w-4" /></div>
                                         </div>

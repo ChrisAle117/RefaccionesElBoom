@@ -20,6 +20,19 @@ interface DetailsPurchaseProps {
     product?: ProductData;
 }
 
+interface AddressData {
+    id: number;
+    street: string;
+    colony: string;
+    exteriorNumber: string;
+    interiorNumber: string | null;
+    postalCode: string;
+    phone: string;
+    reference: string;
+    city: string;
+    state: string;
+}
+
 const isValidRFC = (rfc: string) => /^[A-ZÑ&]{3,4}\d{6}[A-Z0-9]{3}$/i.test(rfc.trim());
 // Valida teléfonos mexicanos de 10 dígitos (ignora caracteres no numéricos)
 const isValidPhone10 = (phone?: string | null): boolean => {
@@ -28,13 +41,6 @@ const isValidPhone10 = (phone?: string | null): boolean => {
     return digits.length >= 10;
 };
 
-// Función de utilidad para formatear precios de forma segura
-const safeFormatPrice = (price: number | string | undefined): string => {
-    if (price === undefined || price === null) return '0.00';
-    const numPrice = typeof price === 'string' ? parseFloat(price) : price;
-    if (isNaN(numPrice)) return '0.00';
-    return numPrice.toFixed(2);
-};
 
 // Función para formatear precios con separadores de miles
 const formatPrice = (price: number) => {
@@ -113,12 +119,9 @@ export function DetailsPurchase({ product }: DetailsPurchaseProps) {
         ? (typeof product.price === 'string' ? parseFloat(product.price) || 0 : (product.price || 0))
         : totalPrice;
 
-    const displayQuantity = product
-        ? 1
-        : validatedCartItems.reduce((sum, item) => sum + item.quantity, 0);
 
     // Estados para direcciones
-    const [addresses, setAddresses] = useState<any[]>([]);
+    const [addresses, setAddresses] = useState<AddressData[]>([]);
     const [selectedAddress, setSelectedAddress] = useState<string>("");
     const [showAddressForm, setShowAddressForm] = useState<boolean>(false);
     const [shipping, setShipping] = useState<{
@@ -164,7 +167,7 @@ export function DetailsPurchase({ product }: DetailsPurchaseProps) {
         }
         setError(null);
         try {
-            const requestBody: any = { address_id: selectedAddress };
+            const requestBody: Record<string, unknown> = { address_id: selectedAddress };
             if (product) {
                 requestBody.product_id = product.id_product;
                 requestBody.quantity = product.quantity || 1;
@@ -235,7 +238,7 @@ export function DetailsPurchase({ product }: DetailsPurchaseProps) {
                     );
                 }
             }
-        } catch (err: any) {
+        } catch (_err: unknown) {
             setError(
                 <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-4">
                     <p className="text-sm text-red-700">
@@ -255,7 +258,7 @@ export function DetailsPurchase({ product }: DetailsPurchaseProps) {
         setPaymentError(null);
 
         try {
-            const requestBody: any = {
+            const requestBody: Record<string, unknown> = {
                 amount: parseFloat((displayPrice + (pickupAtStore ? 0 : (shipping?.price || 0))).toString()),
                 description: product ? `Compra rápida - ${product.name}` : "Compra desde carrito",
                 return_url: `${window.location.origin}/payment-success`,
@@ -302,7 +305,7 @@ export function DetailsPurchase({ product }: DetailsPurchaseProps) {
                     try {
                         sessionStorage.setItem('boom_openpay_expect_back', '1');
                         sessionStorage.setItem('boom_openpay_order_id', String(data.order_id));
-                    } catch { }
+                    } catch (_e) { /* ignore */ }
                 }
                 window.location.href = data.checkout_url;
             } else {
@@ -311,7 +314,7 @@ export function DetailsPurchase({ product }: DetailsPurchaseProps) {
                 );
                 setIsRedirecting(false);
             }
-        } catch (err) {
+        } catch (_err) {
             setPaymentError("Ocurrió un error al iniciar el proceso de pago");
             setIsRedirecting(false);
         }
@@ -322,7 +325,7 @@ export function DetailsPurchase({ product }: DetailsPurchaseProps) {
             try {
                 const ref = document.referrer || '';
                 return /openpay\./i.test(ref) || /openpay\b/i.test(ref);
-            } catch { return false; }
+            } catch (_e) { return false; }
         };
         const redirectIfExpectBack = () => {
             try {
@@ -342,17 +345,17 @@ export function DetailsPurchase({ product }: DetailsPurchaseProps) {
         }
 
         const onPageShow = (ev: PageTransitionEvent) => {
-            if ((ev as any).persisted) redirectIfExpectBack();
+            if ((ev as { persisted?: boolean }).persisted) redirectIfExpectBack();
         };
         const onVisibility = () => {
             if (!document.hidden) {
                 try {
-                    const navEntries: any = (performance as any).getEntriesByType?.('navigation') || [];
-                    const nav = navEntries[0];
+                    const navEntries = (performance as unknown as { getEntriesByType?: (type: string) => PerformanceEntry[] }).getEntriesByType?.('navigation') || [];
+                    const nav = navEntries[0] as unknown as { type?: string };
                     if (nav && nav.type === 'back_forward') {
                         redirectIfExpectBack();
                     }
-                } catch { }
+                } catch (_e) { /* ignore */ }
             }
         };
         window.addEventListener('pageshow', onPageShow);
@@ -420,15 +423,15 @@ export function DetailsPurchase({ product }: DetailsPurchaseProps) {
                 credentials: 'include',
             });
 
-            const data = await res.json();
+            const data = await res.json() as { success: boolean; data: { path: string }; error?: string };
             if (!res.ok || !data.success) {
                 throw new Error(data.error || 'No se pudo subir la constancia');
             }
             // Guardamos SOLO la ruta para BD
             setInvoicePath(data.data.path);
             return data.data;
-        } catch (e: any) {
-            setInvoiceError(e.message || 'Error subiendo constancia');
+        } catch (e: unknown) {
+            setInvoiceError((e as Error).message || 'Error subiendo constancia');
             return null;
         } finally {
             setInvoiceUploading(false);
@@ -495,8 +498,10 @@ export function DetailsPurchase({ product }: DetailsPurchaseProps) {
             if (response.ok) {
                 window.location.reload();
             } else {
+                /* silent fail */
             }
-        } catch (err) {
+        } catch (_err) {
+            /* silent fail */
         }
     };
 
@@ -515,7 +520,18 @@ export function DetailsPurchase({ product }: DetailsPurchaseProps) {
                     throw new Error("Error al obtener las direcciones");
                 }
                 const data = await response.json();
-                const mapped = data.map((a: any) => ({
+                const mapped: AddressData[] = data.map((a: {
+                    id_direccion: number;
+                    calle: string;
+                    colonia: string;
+                    numero_exterior: string;
+                    numero_interior: string | null;
+                    codigo_postal: string;
+                    telefono: string;
+                    referencia: string;
+                    ciudad: string;
+                    estado: string;
+                }) => ({
                     id: a.id_direccion,
                     street: a.calle,
                     colony: a.colonia,
@@ -528,8 +544,8 @@ export function DetailsPurchase({ product }: DetailsPurchaseProps) {
                     state: a.estado,
                 }));
                 setAddresses(mapped);
-            } catch (err) {
-
+            } catch (_err) {
+                /* silent fail */
             }
         };
         fetchAddresses();
@@ -592,8 +608,8 @@ export function DetailsPurchase({ product }: DetailsPurchaseProps) {
                     });
                 }
             }
-        } catch (err) {
-
+        } catch (_err) {
+            /* silent fail */
         } finally {
             setLoadingShipping(false);
         }
@@ -609,7 +625,7 @@ export function DetailsPurchase({ product }: DetailsPurchaseProps) {
             setShipping(null);
         }
 
-    }, [pickupAtStore]);
+    }, [pickupAtStore, selectedAddress]);
 
     const handleRegisterClick = () => {
         setShowAddressForm(true);
@@ -627,7 +643,18 @@ export function DetailsPurchase({ product }: DetailsPurchaseProps) {
                     },
                 });
                 const data = await response.json();
-                setAddresses(data.map((a: any) => ({
+                setAddresses(data.map((a: {
+                    id_direccion: number;
+                    calle: string;
+                    colonia: string;
+                    numero_exterior: string;
+                    numero_interior: string | null;
+                    codigo_postal: string;
+                    telefono: string;
+                    referencia: string;
+                    ciudad: string;
+                    estado: string;
+                }) => ({
                     id: a.id_direccion,
                     street: a.calle,
                     colony: a.colonia,
@@ -639,7 +666,8 @@ export function DetailsPurchase({ product }: DetailsPurchaseProps) {
                     city: a.ciudad,
                     state: a.estado,
                 })));
-            } catch (err) {
+            } catch (_err) {
+                /* silent fail */
             }
         })();
     };

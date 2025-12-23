@@ -10,7 +10,7 @@ export default function CoachmarkTutorial() {
         top: number; left: number; width: number; height: number;
     } | null>(null);
 
-    const { auth } = usePage().props as any;
+    const { auth } = usePage().props as unknown as { auth: { user?: { id: number; name: string; email: string } } };
 
     const handleClose = () => {
         setShowTutorial(false);
@@ -18,7 +18,7 @@ export default function CoachmarkTutorial() {
             if (typeof window !== 'undefined') {
                 window.localStorage.setItem('boomTutorialSeen', '1');
             }
-        } catch { }
+        } catch (_e) { /* ignore */ }
     };
 
     React.useEffect(() => {
@@ -26,7 +26,7 @@ export default function CoachmarkTutorial() {
             if (typeof window === 'undefined') return;
             const isLoggedIn = !!(auth && auth.user);
             const params = new URLSearchParams(window.location.search);
-            const tutorialParam = params.get('tutorial'); 
+            const tutorialParam = params.get('tutorial');
 
             if (tutorialParam === 'reset') {
                 window.localStorage.removeItem('boomTutorialNeverShow');
@@ -52,13 +52,13 @@ export default function CoachmarkTutorial() {
 
             const seen = window.localStorage.getItem('boomTutorialSeen');
             setShowTutorial(!seen);
-        } catch {
+        } catch (_err) {
             const isLoggedIn = !!(auth && auth.user);
             setShowTutorial(!isLoggedIn);
         }
     }, [auth?.user]);
 
-    
+
     React.useEffect(() => {
         if (!showTutorial) return;
         const compute = () => {
@@ -68,7 +68,7 @@ export default function CoachmarkTutorial() {
                 return;
             }
             const r = el.getBoundingClientRect();
-            
+
             setSpotlightRect({
                 top: Math.max(0, r.top),
                 left: r.left,
@@ -76,7 +76,7 @@ export default function CoachmarkTutorial() {
                 height: r.height,
             });
 
-            
+
             const productosBtn = document.querySelector('[data-tab-id="productos"]') as HTMLElement | null;
             if (productosBtn) {
                 const pr = productosBtn.getBoundingClientRect();
@@ -152,16 +152,16 @@ export default function CoachmarkTutorial() {
             </svg>
 
             <div className="absolute inset-0 pointer-events-none">
-        {spotlightRect ? (
+                {spotlightRect ? (
                     (() => {
-            
-            const navBottom = spotlightRect.top + spotlightRect.height;
-                        const isSmall = window.innerWidth < 640; 
+
+                        const navBottom = spotlightRect.top + spotlightRect.height;
+                        const isSmall = window.innerWidth < 640;
                         const isMedium = window.innerWidth >= 640 && window.innerWidth < 1024;
-                        const margin = isSmall ? 6 : 8; 
-                        const mascotWidth = 200; 
+                        const margin = isSmall ? 6 : 8;
+                        const mascotWidth = 200;
                         const rawLeft = productosRect
-                            ? (productosRect.left + productosRect.width + margin) 
+                            ? (productosRect.left + productosRect.width + margin)
                             : (spotlightRect.left + spotlightRect.width / 2);
 
                         const sidePad = isSmall ? 12 : 16;
@@ -170,10 +170,10 @@ export default function CoachmarkTutorial() {
                             Math.max(sidePad, rawLeft)
                         );
                         const mascotTop = productosRect
-                            ? (productosRect.top + productosRect.height / 2) 
+                            ? (productosRect.top + productosRect.height / 2)
                             : (spotlightRect.top + spotlightRect.height / 2);
 
-                        
+
                         const maxBubble = 520;
                         const bubbleWidth = Math.min(maxBubble, window.innerWidth - sidePad * 2);
                         const bubbleAnchor = productosRect
@@ -183,7 +183,7 @@ export default function CoachmarkTutorial() {
                             window.innerWidth - bubbleWidth - sidePad,
                             Math.max(sidePad, bubbleAnchor - bubbleWidth / 2)
                         );
-            const bubbleTop = Math.max(isSmall ? 8 : 16, navBottom + (isSmall ? 8 : 16));
+                        const bubbleTop = Math.max(isSmall ? 8 : 16, navBottom + (isSmall ? 8 : 16));
 
                         return (
                             <>
@@ -200,7 +200,7 @@ export default function CoachmarkTutorial() {
                                     <div className="p-4 sm:p-5 md:p-6">
                                         <p className="text-sm sm:text-base md:text-lg leading-relaxed text-justify">
                                             <span className='font-bold'>¡Hola, soy El Boom!, y vengo a decirte que: </span><br />Puedes navegar por todo el sitio web dando clic o presionando sobre cualquiera de las opciones
-                                                que ves en esta barra que tengo a mi derecha e izquierda. Y así conocer un poco de nosotros y todo lo que ofrecemos para ti.
+                                            que ves en esta barra que tengo a mi derecha e izquierda. Y así conocer un poco de nosotros y todo lo que ofrecemos para ti.
                                         </p>
                                         <div className="mt-4 sm:mt-5 text-right">
                                             <button

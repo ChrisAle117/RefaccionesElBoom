@@ -51,7 +51,7 @@ interface OrderProps {
 
 const OrderSummary: React.FC<OrderProps> = ({ order }) => {
     const { hours, minutes, seconds } = useCountdown(order.time_left);
-    const { data, setData, post, processing, errors } = useForm({
+    const { setData, post } = useForm({
         payment_proof: null as File | null,
         notes: '',
     });
@@ -61,18 +61,6 @@ const OrderSummary: React.FC<OrderProps> = ({ order }) => {
     const [cancelProcessing, setCancelProcessing] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files && e.target.files[0]) {
-            setData('payment_proof', e.target.files[0]);
-        }
-    };
-
-
-    const openFileSelector = () => {
-        if (fileInputRef.current) {
-            fileInputRef.current.click();
-        }
-    };
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -113,7 +101,7 @@ const OrderSummary: React.FC<OrderProps> = ({ order }) => {
     const subtotalProductos = React.useMemo(() => {
         try {
             return (order.items || []).reduce((sum, it) => sum + (it.price * it.quantity), 0);
-        } catch (e) {
+        } catch (_e) {
             return 0;
         }
     }, [order.items]);

@@ -7,7 +7,7 @@ import { ShoppingCartProvider } from './shopping-car-context';
  * This allows the cart to react to authentication changes (login/logout)
  */
 export const ShoppingCartWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const pageProps = usePage().props as any;
+    const pageProps = usePage().props as unknown as { auth?: { user?: { id: number; name: string; email: string } } };
     const isAuthenticated = !!pageProps?.auth?.user;
 
     return (

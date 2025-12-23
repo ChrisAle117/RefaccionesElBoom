@@ -174,7 +174,7 @@ export function ProductCatalog() {
             if (type) url.searchParams.set('type', type); else url.searchParams.delete('type');
             url.searchParams.set('view', 'grid');
             window.history.pushState(window.history.state, '', url.toString());
-        } catch {
+        } catch (_err) {
             const url = new URL(window.location.href);
             if (type) url.searchParams.set('type', type); else url.searchParams.delete('type');
             url.searchParams.set('view', 'grid');
@@ -245,9 +245,6 @@ export function ProductCatalog() {
         );
     };
 
-    const formatPrice = (price: number) => {
-        return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(price);
-    };
 
     // Modo de vista: 'selector' (categorías) o 'grid' (productos)
     const getInitialView = (): 'selector' | 'grid' => {
@@ -255,7 +252,7 @@ export function ProductCatalog() {
             const url = new URL(window.location.href);
             const v = (url.searchParams.get('view') || '').toLowerCase();
             if (v === 'grid') return 'grid';
-        } catch { }
+        } catch (_err) { /* ignore */ }
         return 'selector';
     };
     const [viewMode, setViewMode] = useState<'selector' | 'grid'>(getInitialView());
@@ -267,7 +264,7 @@ export function ProductCatalog() {
             const href = url.toString();
             if (replace) window.history.replaceState(window.history.state, '', href);
             else window.history.pushState(window.history.state, '', href);
-        } catch { }
+        } catch (_err) { /* ignore */ }
     };
 
     // Vista: mostrar selector si viewMode = 'selector'
