@@ -160,94 +160,6 @@ export function DetailsPurchase({ product }: DetailsPurchaseProps) {
     const [invoiceError, setInvoiceError] = useState<string | null>(null);
     const [invoiceUploading, setInvoiceUploading] = useState<boolean>(false);
 
-    const handleProceedToPayment = async () => {
-        if (!selectedAddress) {
-            alert("Por favor seleccione una dirección de envío");
-            return;
-        }
-        setError(null);
-        try {
-            const requestBody: Record<string, unknown> = { address_id: selectedAddress };
-            if (product) {
-                requestBody.product_id = product.id_product;
-                requestBody.quantity = product.quantity || 1;
-            }
-            const response = await fetch('/orders', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document
-                        .querySelector('meta[name="csrf-token"]')
-                        ?.getAttribute('content') || '',
-                },
-                body: JSON.stringify(requestBody)
-            });
-            const data = await response.json();
-            if (data.success) {
-                window.location.href = `/orders/${data.order_id}`;
-            } else {
-                if (data.error_type === 'stock_error') {
-                    const details = data.details;
-                    setError(
-                        <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-4 rounded-md shadow-sm">
-                            <div className="flex items-start">
-                                <div className="flex-shrink-0">
-                                    <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                                    </svg>
-                                </div>
-                                <div className="ml-3">
-                                    <h3 className="text-sm font-medium text-red-800">Error de inventario</h3>
-                                    <div className="mt-2 text-sm text-red-700">
-                                        <p>{data.message}</p>
-                                        {details && (
-                                            <div className="mt-2 p-2 bg-red-100 rounded text-xs">
-                                                <p className="font-medium">Detalles:</p>
-                                                <p>• Producto: {details.product_name}</p>
-                                                <p>• Cantidad solicitada: {details.requested} unidades</p>
-                                                <p>• Disponible: {details.available} unidades</p>
-                                                <button
-                                                    className="mt-2 bg-red-200 hover:bg-red-300 text-red-800 py-1 px-2 rounded text-xs"
-                                                    onClick={() => handleRemoveFromCart(details.product_id)}
-                                                >
-                                                    Eliminar del carrito o esperar a que haya mas stock
-                                                </button>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    );
-                } else {
-                    setError(
-                        <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-4">
-                            <div className="flex">
-                                <div className="flex-shrink-0">
-                                    <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                                    </svg>
-                                </div>
-                                <div className="ml-3">
-                                    <p className="text-sm text-red-700">
-                                        {data.message || "Ocurrió un error al crear el pedido"}
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    );
-                }
-            }
-        } catch (_err: unknown) {
-            setError(
-                <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-4">
-                    <p className="text-sm text-red-700">
-                        Ocurrió un error al crear el pedido. Por favor intente nuevamente.
-                    </p>
-                </div>
-            );
-        }
-    };
 
     const postCheckout = async (opts?: {
         requiresInvoice?: boolean;
@@ -336,7 +248,7 @@ export function DetailsPurchase({ product }: DetailsPurchaseProps) {
                     const url = `${window.location.origin}/payment-back-handler?order_id=${encodeURIComponent(orderId)}`;
                     window.location.replace(url);
                 }
-            } catch { }
+            } catch { /* ignore */ }
         };
 
         redirectIfExpectBack();
@@ -483,10 +395,7 @@ export function DetailsPurchase({ product }: DetailsPurchaseProps) {
         }
     };
 
-
-
-    // Función para eliminar del carrito
-    const handleRemoveFromCart = async (productId: number) => {
+    const handleRemoveFromCart = React.useCallback(async (productId: number) => {
         try {
             const response = await fetch(`/cart/${productId}`, {
                 method: "DELETE",
@@ -500,10 +409,10 @@ export function DetailsPurchase({ product }: DetailsPurchaseProps) {
             } else {
                 /* silent fail */
             }
-        } catch (_err) {
+        } catch {
             /* silent fail */
         }
-    };
+    }, []);
 
     // Fetch direcciones
     useEffect(() => {
@@ -544,7 +453,7 @@ export function DetailsPurchase({ product }: DetailsPurchaseProps) {
                     state: a.estado,
                 }));
                 setAddresses(mapped);
-            } catch (_err) {
+            } catch {
                 /* silent fail */
             }
         };
@@ -559,7 +468,7 @@ export function DetailsPurchase({ product }: DetailsPurchaseProps) {
         await fetchShippingForAddress(addressId);
     };
 
-    const fetchShippingForAddress = async (addressId: string) => {
+    const fetchShippingForAddress = React.useCallback(async (addressId: string) => {
         if (!addressId) return;
         setLoadingShipping(true);
         try {
@@ -608,12 +517,12 @@ export function DetailsPurchase({ product }: DetailsPurchaseProps) {
                     });
                 }
             }
-        } catch (_err) {
+        } catch {
             /* silent fail */
         } finally {
             setLoadingShipping(false);
         }
-    };
+    }, [product, cartItems]);
 
     useEffect(() => {
         if (!pickupAtStore) {
@@ -625,7 +534,7 @@ export function DetailsPurchase({ product }: DetailsPurchaseProps) {
             setShipping(null);
         }
 
-    }, [pickupAtStore, selectedAddress]);
+    }, [pickupAtStore, selectedAddress, fetchShippingForAddress]);
 
     const handleRegisterClick = () => {
         setShowAddressForm(true);
@@ -666,7 +575,7 @@ export function DetailsPurchase({ product }: DetailsPurchaseProps) {
                     city: a.ciudad,
                     state: a.estado,
                 })));
-            } catch (_err) {
+            } catch {
                 /* silent fail */
             }
         })();

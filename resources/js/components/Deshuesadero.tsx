@@ -114,11 +114,9 @@ const YELLOW_BG = "bg-[#FBCC13]/20";
 
 interface DeshuesaderoProps {
     brands?: Brand[];
-    /** URL de la imagen del hero superior */
-    heroImageUrl?: string;
 }
 
-export default function Deshuesadero({ brands, heroImageUrl }: DeshuesaderoProps) {
+export default function Deshuesadero({ brands }: DeshuesaderoProps) {
     const items = brands ?? BRANDS;
     const [expanded, setExpanded] = useState<Record<string, boolean>>({});
     // const heroSrc = heroImageUrl ?? "https://refaccioneselboom.com/images/Camion.webp";

@@ -14,7 +14,7 @@ import { ChevronsUpDown } from 'lucide-react';
 
 export function NavUser() {
     const { auth } = usePage<SharedData>().props;
-    const isMobile = useIsMobile();
+    useIsMobile();
 
     return (
         <DropdownMenu>

@@ -269,12 +269,12 @@ export function ProductCard({
         }
         // Update cart flag for selected variant id
         setIsInCart(isProductInCart(effectiveId));
-    }, [selectedVariantId, currentVariant, disponibility, isProductInCart, effectiveId, image]);
+    }, [selectedVariantId, currentVariant, disponibility, isProductInCart, effectiveId, image, computeInitialSrc]);
 
     useEffect(() => {
         setRetryCount(0);
         setImgSrc(computeInitialSrc());
-    }, [image, id_product, base, logoSrc]);
+    }, [image, id_product, base, logoSrc, computeInitialSrc]);
 
 
     useEffect(() => {
@@ -407,7 +407,7 @@ export function ProductCard({
                         setLiveDisponibility(d.local_stock);
                     }
                 }
-            } catch { }
+            } catch { /* ignore */ }
 
             const product = { id_product: effectiveId, name: effectiveName, price: effectivePrice, quantity: 1, disponibility: finalStock, image: effectiveImage };
             await addToCart(product);
@@ -472,7 +472,7 @@ export function ProductCard({
                         setLiveDisponibility(d.local_stock);
                     }
                 }
-            } catch { }
+            } catch { /* ignore */ }
 
             const productData = { id_product: effectiveId, name: effectiveName, price: effectivePrice, description, disponibility: finalStock, image: effectiveImage, quantity: 1 };
             const encoded = encodeURIComponent(JSON.stringify(productData));
@@ -670,9 +670,9 @@ export function ProductCard({
                                 <option value="" className="text-gray-500 dark:text-gray-400">
                                     Selecciona un C.P.
                                 </option>
-                                {addresses.map((a: any) => (
-                                    <option key={a.id_direccion} value={a.id_direccion.toString()} className="text-gray-700 dark:text-gray-200">
-                                        {a.codigo_postal}: {a.calle}, {a.ciudad}
+                                {addresses.map((a: unknown) => (
+                                    <option key={(a as any).id_direccion} value={(a as any).id_direccion.toString()} className="text-gray-700 dark:text-gray-200">
+                                        {(a as any).codigo_postal}: {(a as any).calle}, {(a as any).ciudad}
                                     </option>
                                 ))}
                             </select>

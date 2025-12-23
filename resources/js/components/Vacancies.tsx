@@ -49,7 +49,7 @@ export function Vacancies() {
                 const response = await axios.get('/api/vacancies');
                 setVacancies(response.data);
                 setLoading(false);
-            } catch (err) {
+            } catch {
                 setError('No se pudieron cargar las vacantes. Por favor, inténtalo más tarde.');
                 setLoading(false);
             }
@@ -285,7 +285,7 @@ export function Vacancies() {
                                                                             const title = isNonEmptyText(req.title) ? req.title : null;
                                                                             const items = Array.isArray(req.items)
                                                                                 ? req.items
-                                                                                    .map((s: any) => String(s).trim())
+                                                                                    .map((s: unknown) => String(s).trim())
                                                                                     .filter(Boolean)
                                                                                 : [];
                                                                             if (!title && items.length === 0) return null;
@@ -335,7 +335,7 @@ export function Vacancies() {
                                                                             const title = isNonEmptyText(b.title) ? b.title : null;
                                                                             const items = Array.isArray(b.items)
                                                                                 ? b.items
-                                                                                    .map((s: any) => String(s).trim())
+                                                                                    .map((s: unknown) => String(s).trim())
                                                                                     .filter(Boolean)
                                                                                 : [];
                                                                             if (!title && items.length === 0) return null;

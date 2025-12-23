@@ -58,12 +58,12 @@ export default function WhatsAppWidget({
     const [isAnimating, setIsAnimating] = React.useState(false);
     const [isFirstMessageComplete, setIsFirstMessageComplete] = React.useState(false);
     const page = usePage();
-    const props: any = page?.props ?? {};
+    const props = (page?.props as unknown as Record<string, unknown>) ?? {};
 
     const resolvedNumber =
         number ||
-        (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_WHATSAPP_NUMBER) ||
-        props.whatsAppNumber || 
+        (typeof import.meta !== 'undefined' && (import.meta as unknown as { env: Record<string, string> }).env?.VITE_WHATSAPP_NUMBER) ||
+        props.whatsAppNumber ||
         '527771810370';
 
     const message =

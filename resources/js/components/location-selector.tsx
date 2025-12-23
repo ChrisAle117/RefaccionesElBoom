@@ -1,17 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { router, usePage } from '@inertiajs/react';
 import { MapPin } from 'lucide-react';
+import { SharedData } from '@/types';
 
 interface LocationSelectorProps {
     className?: string;
 }
 
 export function LocationSelector({ className = '' }: LocationSelectorProps) {
-    const { auth } = usePage().props as any;
+    const { auth } = usePage<SharedData>().props;
     const [postalCode, setPostalCode] = useState<string>('');
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
     const [loading, setLoading] = useState<boolean>(true);
-    
+
     useEffect(() => {
         // Función para cargar el código postal
         const loadUserPostalCode = async () => {
@@ -20,14 +21,14 @@ export function LocationSelector({ className = '' }: LocationSelectorProps) {
                     setLoading(false);
                     return;
                 }
-                
+
                 // Intentar obtener la dirección primero mediante la relación
-                if (auth?.user?.address?.codigo_postal) {
-                    setPostalCode(auth.user.address.codigo_postal);
+                if ((auth?.user as any)?.address?.codigo_postal) {
+                    setPostalCode((auth.user as any).address.codigo_postal);
                     setLoading(false);
                     return;
                 }
-                
+
                 // Si no está en auth, hacer una petición al servidor
                 const response = await fetch('/api/user/address', {
                     headers: {
@@ -36,25 +37,25 @@ export function LocationSelector({ className = '' }: LocationSelectorProps) {
                     },
                     credentials: 'same-origin'
                 });
-                
+
                 if (!response.ok) {
                     throw new Error(`Error al obtener la dirección: ${response.status}`);
                 }
-                
+
                 const data = await response.json();
-                
+
                 if (data.success && data.address) {
                     setPostalCode(data.address.codigo_postal || '');
                 } else {
-                    
+                    /* ignore */
                 }
-            } catch (error) {
-                
+            } catch {
+                /* ignore */
             } finally {
                 setLoading(false);
             }
         };
-        
+
         loadUserPostalCode();
     }, [auth]);
 
@@ -72,13 +73,13 @@ export function LocationSelector({ className = '' }: LocationSelectorProps) {
             alert('Por favor, ingresa un código postal válido de 5 dígitos');
             return;
         }
-        
+
         setIsModalOpen(false);
-        
+
         try {
             // Mostrar el código postal
             setPostalCode(newPostalCode);
-            
+
             // Enviar la actualización al backend
             const response = await fetch('/api/user/update-address', {
                 method: 'POST',
@@ -90,22 +91,22 @@ export function LocationSelector({ className = '' }: LocationSelectorProps) {
                     codigo_postal: newPostalCode
                 }),
             });
-            
+
             const data = await response.json();
-            
+
             if (!data.success) {
                 throw new Error(data.message || 'Error al actualizar el código postal');
             }
-            
-            
-        } catch (error) {
-            
+
+
+        } catch {
+            /* ignore */
         }
     };
 
     return (
         <div className={`relative ${className}`}>
-            <button 
+            <button
                 onClick={handleOpenModal}
                 className="flex items-center gap-2 text-white px-3 py-2 hover:text-[#FBCC13] transition-colors w-full cursor-pointer rounded-none"
             >
@@ -123,12 +124,12 @@ export function LocationSelector({ className = '' }: LocationSelectorProps) {
                 <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
                     <div className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full">
                         <h3 className="text-lg font-bold mb-4">Cotización de envío</h3>
-                        
+
                         <div className="mb-4">
                             <label className="block text-sm font-medium text-gray-700 mb-1">
                                 Ingresa tu código postal
                             </label>
-                            <input 
+                            <input
                                 type="text"
                                 placeholder="Ej. 62785"
                                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#006CFA]"
@@ -148,7 +149,7 @@ export function LocationSelector({ className = '' }: LocationSelectorProps) {
                                 </p>
                             )}
                         </div>
-                        
+
                         <div className="flex justify-end space-x-2">
                             <button
                                 onClick={handleCloseModal}
