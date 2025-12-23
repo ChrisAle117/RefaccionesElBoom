@@ -67,7 +67,7 @@ const OrderSummary: React.FC<OrderProps> = ({ order }) => {
         }
     };
 
-    
+
     const openFileSelector = () => {
         if (fileInputRef.current) {
             fileInputRef.current.click();
@@ -93,11 +93,11 @@ const OrderSummary: React.FC<OrderProps> = ({ order }) => {
             onSuccess: () => {
                 setShowCancelDialog(false);
                 setCancelProcessing(false);
-                
+
             },
             onError: () => {
                 setCancelProcessing(false);
-                
+
             }
         });
     };
@@ -125,7 +125,7 @@ const OrderSummary: React.FC<OrderProps> = ({ order }) => {
         <div className="container mx-auto p-4">
             <Head title="Resumen de Orden" />
 
-            
+
             <Dialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
                 <DialogContent>
                     <DialogHeader>
@@ -163,12 +163,12 @@ const OrderSummary: React.FC<OrderProps> = ({ order }) => {
                 />
             </div>
 
-            
+
             <div className={`p-4 mb-6 rounded-md border ${getStatusColor(order.status)}`}>
                 <p className="font-bold">{getStatusMessage(order.status)}</p>
             </div>
 
-            
+
             {isPending && !isExpired && (
                 <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-6 rounded">
                     <p className="font-bold">Tiempo restante para subir su comprobante:</p>
@@ -178,7 +178,7 @@ const OrderSummary: React.FC<OrderProps> = ({ order }) => {
                 </div>
             )}
 
-            
+
             {isPending && isExpired && (
                 <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded">
                     <p className="font-bold">El tiempo para cargar su comprobante ha expirado.</p>
@@ -186,7 +186,7 @@ const OrderSummary: React.FC<OrderProps> = ({ order }) => {
                 </div>
             )}
 
-            
+
             {order.status === 'rejected' && (
                 <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded">
                     <p className="font-bold">Hemos encontrado incongruencias en su comprobante, o su comprobante no se puede abrir.</p>
@@ -221,7 +221,7 @@ const OrderSummary: React.FC<OrderProps> = ({ order }) => {
                 </div>
             )}
 
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div className="border p-4 rounded shadow">
                     <h2 className="text-xl font-bold mb-2">Detalles del pedido</h2>
@@ -233,7 +233,9 @@ const OrderSummary: React.FC<OrderProps> = ({ order }) => {
                 </div>
 
                 <div className="border p-4 rounded shadow">
-                    <h2 className="text-xl font-bold mb-2">Dirección de envío</h2>
+                    <h2 className="text-xl font-bold mb-2">
+                        {order.address.reference === 'Recoger en sucursal' ? 'Punto de recolección' : 'Dirección de envío'}
+                    </h2>
                     <p>{order.address.street} {order.address.exteriorNumber}{order.address.interiorNumber ? `, Int. ${order.address.interiorNumber}` : ''}</p>
                     <p>{order.address.colony}, {order.address.postalCode}</p>
                     <p>{order.address.city}, {order.address.state}</p>
@@ -241,7 +243,7 @@ const OrderSummary: React.FC<OrderProps> = ({ order }) => {
                 </div>
             </div>
 
-            
+
             <CollapsibleSection title="Productos">
                 <div className="border p-4 rounded shadow mb-6">
                     <h2 className="text-xl font-bold mb-4">Productos</h2>
@@ -283,7 +285,7 @@ const OrderSummary: React.FC<OrderProps> = ({ order }) => {
                 </div>
             </CollapsibleSection>
 
-            
+
             {isPending && !isExpired && (
                 <div className="border p-4 rounded shadow mb-6">
                     {/* <h2 className="text-xl font-bold mb-4">Subir Comprobante de Pago</h2> */}

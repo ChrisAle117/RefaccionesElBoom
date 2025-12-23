@@ -53,6 +53,42 @@ const formatEta = (iso: string): string => {
     );
 };
 
+// Sucursales disponibles
+const BRANCHES = [
+    {
+        id: 'alpuyeca',
+        name: 'Sucursal Matriz Alpuyeca',
+        address: 'REFACCIONES EL BOOM, Carr. Federal Mexico-Acapulco Km. 29, 62660 Puente de Ixtla, MORELOS',
+        city: 'Alpuyeca',
+        state: 'Morelos',
+        postalCode: '62660'
+    },
+    {
+        id: 'acapulco',
+        name: 'Sucursal Acapulco',
+        address: 'Refaccionaria EL BOOM, Avenida Lázaro Cárdenas, No. 2, Manzana 18. Colonia La Popular, Acapulco, Guerrero. C.P. 39700',
+        city: 'Acapulco',
+        state: 'Guerrero',
+        postalCode: '39700'
+    },
+    {
+        id: 'chilpancingo',
+        name: 'Sucursal Chilpancingo',
+        address: 'Refaccionaria EL BOOM, Boulevard Vicente Guerrero, Km 269, Chilpancingo, Guerrero. C.P. 39010',
+        city: 'Chilpancingo',
+        state: 'Guerrero',
+        postalCode: '39010'
+    },
+    {
+        id: 'tizoc',
+        name: 'Sucursal Tizoc',
+        address: 'Refaccionaria EL BOOM, Boulevard Cuauhnáhuac Km 3.5, No. 25. Colonia Buganbilias, Jiutepec, Morelos. C.P. 62560',
+        city: 'Jiutepec',
+        state: 'Morelos',
+        postalCode: '62560'
+    }
+];
+
 export function DetailsPurchase({ product }: DetailsPurchaseProps) {
     // Usar carrito real o simular carrito con un solo producto
     const { cartItems, totalPrice } = useShoppingCart();
@@ -94,6 +130,7 @@ export function DetailsPurchase({ product }: DetailsPurchaseProps) {
     const [loadingShipping, setLoadingShipping] = useState(false);
     // Recoger en sucursal
     const [pickupAtStore, setPickupAtStore] = useState<boolean>(false);
+    const [selectedBranch, setSelectedBranch] = useState<string>(BRANCHES[0].id);
     // Modal y campo de teléfono para recoger en sucursal
     const [showPhoneRequiredModal, setShowPhoneRequiredModal] = useState<boolean>(false);
     const [pickupPhone, setPickupPhone] = useState<string>("");
@@ -226,7 +263,10 @@ export function DetailsPurchase({ product }: DetailsPurchaseProps) {
                 requires_invoice: !!opts?.requiresInvoice,
                 pickup_in_store: pickupAtStore,
             };
-            if (!pickupAtStore && selectedAddress) {
+            if (pickupAtStore) {
+                requestBody.pickup_in_store = true;
+                requestBody.branch_id = selectedBranch;
+            } else if (selectedAddress) {
                 requestBody.address_id = parseInt(selectedAddress, 10);
             }
             // En pickup, si el usuario capturó un teléfono válido aquí, mándalo
@@ -731,50 +771,52 @@ export function DetailsPurchase({ product }: DetailsPurchaseProps) {
                             Recoger en sucursal
                         </label>
                     </div>
-                    {addresses.length > 0 ? (
-                        <select
-                            className="block w-full px-3 py-2 pr-8 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-sm cursor-pointer focus:outline-none focus:border-blue-500 text-gray-700 dark:text-gray-200"
-                            value={selectedAddress}
-                            onChange={handleAddressChange}
-                            disabled={pickupAtStore}
-                        >
-                            <option value="" disabled>Seleccione una dirección</option>
-                            {addresses.map(address => (
-                                <option key={address.id} value={address.id.toString()}>
-                                    {address.street}, {address.city}, {address.state}
-                                </option>
-                            ))}
-                        </select>
-                    ) : (
-                        <div>
-                            {/* Versión compacta para móvil */}
-                            <div className="sm:hidden bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-400 rounded-md p-3 flex items-center justify-between gap-3">
-                                <div className="flex items-center gap-2 text-yellow-900 dark:text-yellow-200 text-[13px] leading-snug flex-1">
-                                    <svg className="h-4 w-4 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                                    </svg>
-                                    <span>No tienes direcciones registradas. Agrega una para continuar.</span>
+                    {!pickupAtStore && (
+                        addresses.length > 0 ? (
+                            <select
+                                className="block w-full px-3 py-2 pr-8 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-sm cursor-pointer focus:outline-none focus:border-blue-500 text-gray-700 dark:text-gray-200"
+                                value={selectedAddress}
+                                onChange={handleAddressChange}
+                                disabled={pickupAtStore}
+                            >
+                                <option value="" disabled>Seleccione una dirección</option>
+                                {addresses.map(address => (
+                                    <option key={address.id} value={address.id.toString()}>
+                                        {address.street}, {address.city}, {address.state}
+                                    </option>
+                                ))}
+                            </select>
+                        ) : (
+                            <div>
+                                {/* Versión compacta para móvil */}
+                                <div className="sm:hidden bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-400 rounded-md p-3 flex items-center justify-between gap-3">
+                                    <div className="flex items-center gap-2 text-yellow-900 dark:text-yellow-200 text-[13px] leading-snug flex-1">
+                                        <svg className="h-4 w-4 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                                        </svg>
+                                        <span>No tienes direcciones registradas. Agrega una para continuar.</span>
+                                    </div>
+                                    <Button
+                                        onClick={handleRegisterClick}
+                                        className="cursor-pointer bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1.5 text-xs rounded-md whitespace-nowrap">
+                                        Agregar dirección
+                                    </Button>
                                 </div>
-                                <Button
-                                    onClick={handleRegisterClick}
-                                    className="cursor-pointer bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1.5 text-xs rounded-md whitespace-nowrap">
-                                    Agregar dirección
-                                </Button>
-                            </div>
 
-                            {/* Versión original para pantallas >= sm */}
-                            <div className="hidden sm:block p-4 bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-400 rounded-md">
-                                <p className="text-sm lg:text-base">
-                                    No cuentas con dirección registradas, para poder finalizar con tu proceso de compra debes de registrar una desde la configuración de perfil o dando clic en "Agregar diección". <br />
-                                    En caso de ya contar con direcciones registradas, y no visualizarlas, contacta a soporte
-                                </p>
-                                <button
-                                    onClick={handleRegisterClick}
-                                    className="inline-block ml-70 my-4 bg-none cursor-pointer hover:text-underline hover:text-[#FBCC13] text-black dark:text-white text-sm py-2 px-4 rounded">
-                                    Agregar dirección
-                                </button>
+                                {/* Versión original para pantallas >= sm */}
+                                <div className="hidden sm:block p-4 bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-400 rounded-md">
+                                    <p className="text-sm lg:text-base">
+                                        No cuentas con dirección registradas, para poder finalizar con tu proceso de compra debes de registrar una desde la configuración de perfil o dando clic en "Agregar dirección". <br />
+                                        En caso de ya contar con direcciones registradas, y no visualizarlas, contacta a soporte
+                                    </p>
+                                    <button
+                                        onClick={handleRegisterClick}
+                                        className="inline-block ml-70 my-4 bg-none cursor-pointer hover:text-underline hover:text-[#FBCC13] text-black dark:text-white text-sm py-2 px-4 rounded">
+                                        Agregar dirección
+                                    </button>
+                                </div>
                             </div>
-                        </div>
+                        )
                     )}
 
                     {pickupAtStore && (
@@ -785,10 +827,22 @@ export function DetailsPurchase({ product }: DetailsPurchaseProps) {
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                                 </svg>
                                 <div>
-                                    <p className="font-semibold">Recogerás en sucursal:</p>
-                                    <p>El Boom Tractopartes Sucursal Alpuyeca</p>
-                                    <p>Carretera federal Mexico - Acapulco Km.29, Punte de Ixtla, Morelos. C.P. 62660</p>
-                                    {!addresses.some(a => isValidPhone10(a.phone)) && (
+                                    <p className="font-semibold mb-2">Selecciona la sucursal:</p>
+                                    <select
+                                        className="block w-full px-3 py-2 mb-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-sm focus:outline-none focus:border-blue-500 text-gray-700 dark:text-gray-200"
+                                        value={selectedBranch}
+                                        onChange={(e) => setSelectedBranch(e.target.value)}
+                                    >
+                                        {BRANCHES.map(branch => (
+                                            <option key={branch.id} value={branch.id}>
+                                                {branch.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <p className="font-semibold">Dirección de entrega:</p>
+                                    <p>{BRANCHES.find(b => b.id === selectedBranch)?.name}</p>
+                                    <p>{BRANCHES.find(b => b.id === selectedBranch)?.address}</p>
+                                    {!(addresses.some(a => isValidPhone10(a.phone)) || isValidPhone10(pickupPhone)) ? (
                                         <div className="mt-3 p-3 rounded bg-yellow-50 border-l-4 border-yellow-400 text-yellow-800 text-xs">
                                             Para continuar, registra un número de teléfono de contacto.
                                             <div className="mt-2">
@@ -797,6 +851,20 @@ export function DetailsPurchase({ product }: DetailsPurchaseProps) {
                                                 </Button>
                                             </div>
                                         </div>
+                                    ) : (
+                                        isValidPhone10(pickupPhone) && (
+                                            <div className="mt-3 p-3 rounded bg-green-50 border-l-4 border-green-400 text-green-800 text-xs flex items-center justify-between">
+                                                <div>
+                                                    <span className="font-semibold">Teléfono de contacto:</span> {pickupPhone}
+                                                </div>
+                                                <button
+                                                    onClick={() => setShowPhoneRequiredModal(true)}
+                                                    className="text-blue-600 font-medium hover:underline"
+                                                >
+                                                    Cambiar
+                                                </button>
+                                            </div>
+                                        )
                                     )}
                                 </div>
                             </div>

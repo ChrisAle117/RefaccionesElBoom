@@ -50,7 +50,17 @@ class ProcessOrderPostPayment implements ShouldQueue
         // Verificar si el pedido es para recoger en sucursal
         $isPickupInStore = false;
         try {
-            $isPickupInStore = \Cache::get("order:pickup_in_store:{$order->id_order}", false) ? true : false;
+            // Intentamos primero por cache (más rápido)
+            $isPickupInStore = \Cache::get("order:pickup_in_store:{$order->id_order}", false);
+            
+            // Si no está en cache o es falso, verificamos la dirección del pedido directamente
+            if (!$isPickupInStore && $order->address) {
+                $isPickupInStore = (
+                    ($order->address->referencia && $order->address->referencia === 'Recoger en sucursal') ||
+                    ($order->address->calle && str_starts_with($order->address->calle, 'REFACCIONES EL BOOM')) ||
+                    ($order->address->calle && str_starts_with($order->address->calle, 'Refaccionaria EL BOOM'))
+                );
+            }
         } catch (\Throwable $e) {
             $isPickupInStore = false;
         }

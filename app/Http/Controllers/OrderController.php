@@ -25,8 +25,46 @@ class OrderController extends Controller
             $pickupInStore = (bool) $request->input('pickup_in_store', false);
 
             if ($pickupInStore && empty($addressId)) {
+                $branchId = $request->input('branch_id', 'alpuyeca');
+                $branches = [
+                    'alpuyeca' => [
+                        'name' => 'Sucursal Matriz Alpuyeca',
+                        'calle' => 'REFACCIONES EL BOOM, Carr. Federal Mexico-Acapulco Km. 29',
+                        'colonia' => 'Alpuyeca',
+                        'cp' => '62660',
+                        'estado' => 'Morelos',
+                        'ciudad' => 'Puente de Ixtla'
+                    ],
+                    'acapulco' => [
+                        'name' => 'Sucursal Acapulco',
+                        'calle' => 'Refaccionaria EL BOOM, Avenida Lázaro Cárdenas, No. 2, Manzana 18',
+                        'colonia' => 'La Popular',
+                        'cp' => '39700',
+                        'estado' => 'Guerrero',
+                        'ciudad' => 'Acapulco'
+                    ],
+                    'chilpancingo' => [
+                        'name' => 'Sucursal Chilpancingo',
+                        'calle' => 'Refaccionaria EL BOOM, Boulevard Vicente Guerrero, Km 269',
+                        'colonia' => 'Centro',
+                        'cp' => '39010',
+                        'estado' => 'Guerrero',
+                        'ciudad' => 'Chilpancingo'
+                    ],
+                    'tizoc' => [
+                        'name' => 'Sucursal Tizoc',
+                        'calle' => 'Refaccionaria EL BOOM, Boulevard Cuauhnáhuac Km 3.5, No. 25',
+                        'colonia' => 'Buganbilias',
+                        'cp' => '62560',
+                        'estado' => 'Morelos',
+                        'ciudad' => 'Jiutepec'
+                    ]
+                ];
+
+                $branchData = $branches[$branchId] ?? $branches['alpuyeca'];
+                
                 $existing = Address::where('user_id', $user->id)
-                    ->where('calle', 'Sucural El Boom Alpuyeca')
+                    ->where('calle', $branchData['calle'])
                     ->where('referencia', 'Recoger en sucursal')
                     ->first();
                 if ($existing) {
@@ -34,14 +72,14 @@ class OrderController extends Controller
                 } else {
                     $addr = new Address();
                     $addr->user_id         = $user->id;
-                    $addr->calle           = 'Sucural El Boom Alpuyeca';
-                    $addr->colonia         = 'Centro';
+                    $addr->calle           = $branchData['calle'];
+                    $addr->colonia         = $branchData['colonia'];
                     $addr->numero_exterior = 'SN';
                     $addr->numero_interior = null;
-                    $addr->codigo_postal   = '62660';
-                    $addr->estado          = 'Morelos';
-                    $addr->ciudad          = 'Puente de Ixtla';
-                    $addr->telefono        = '7771807312';
+                    $addr->codigo_postal   = $branchData['cp'];
+                    $addr->estado          = $branchData['estado'];
+                    $addr->ciudad          = $branchData['ciudad'];
+                    $addr->telefono        = $user->phone ?? '7771807312';
                     $addr->referencia      = 'Recoger en sucursal';
                     $addr->save();
                     $addressId = $addr->id_direccion;
@@ -295,7 +333,7 @@ class OrderController extends Controller
         if ($order->address) {
             $isPickup = (
                 ($order->address->referencia && $order->address->referencia === 'Recoger en sucursal') ||
-                ($order->address->calle && $order->address->calle === 'Sucural El Boom Alpuyeca')
+                ($order->address->calle && str_starts_with($order->address->calle, 'REFACCIONES EL BOOM'))
             );
         }
 
@@ -438,7 +476,7 @@ class OrderController extends Controller
                 if ($order->address) {
                     $isPickup = (
                         ($order->address->referencia && $order->address->referencia === 'Recoger en sucursal') ||
-                        ($order->address->calle && $order->address->calle === 'Sucural El Boom Alpuyeca')
+                        ($order->address->calle && str_starts_with($order->address->calle, 'REFACCIONES EL BOOM'))
                     );
                 }
                 return [

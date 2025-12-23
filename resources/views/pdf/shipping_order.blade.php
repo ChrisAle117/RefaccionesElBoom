@@ -178,7 +178,7 @@
         $isPickup = false;
         if (isset($address)) {
             $isPickup = ((isset($address->referencia) && $address->referencia === 'Recoger en sucursal')
-                        || (isset($address->calle) && $address->calle === 'Sucural El Boom Alpuyeca'));
+                        || (isset($address->calle) && str_starts_with($address->calle, 'REFACCIONES EL BOOM')));
         }
     @endphp
     @if($isPickup)

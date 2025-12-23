@@ -87,6 +87,7 @@ class OpenpayCheckoutController extends Controller
             'tax_situation_document' => 'sometimes','required_if:requires_invoice,1','string','max:255', // ruta relativa en storage/app/public
             // Si es pickup en sucursal, permitimos/solicitamos un teléfono directamente
             'phone'                  => ['sometimes','required_if:pickup_in_store,1','string','min:10','max:20'],
+            'branch_id'              => 'sometimes|string|in:alpuyeca,acapulco,chilpancingo,tizoc',
         ]);
 
         if ($validator->fails()) {
@@ -123,10 +124,47 @@ class OpenpayCheckoutController extends Controller
             }
 
             // Si es pickup y no viene address_id, crear/usar la dirección "Sucursal" para el usuario
-            // Se exige un teléfono real: si no hay teléfono registrado, se rechaza la operación
             if ($pickupInStore && empty($validated['address_id'])) {
+                $branchId = $request->input('branch_id', 'alpuyeca');
+                
+                $branches = [
+                    'alpuyeca' => [
+                        'name' => 'Sucursal Matriz Alpuyeca',
+                        'calle' => 'REFACCIONES EL BOOM, Carr. Federal Mexico-Acapulco Km. 29',
+                        'colonia' => 'Alpuyeca',
+                        'cp' => '62660',
+                        'estado' => 'Morelos',
+                        'ciudad' => 'Puente de Ixtla'
+                    ],
+                    'acapulco' => [
+                        'name' => 'Sucursal Acapulco',
+                        'calle' => 'Refaccionaria EL BOOM, Avenida Lázaro Cárdenas, No. 2, Manzana 18',
+                        'colonia' => 'La Popular',
+                        'cp' => '39700',
+                        'estado' => 'Guerrero',
+                        'ciudad' => 'Acapulco'
+                    ],
+                    'chilpancingo' => [
+                        'name' => 'Sucursal Chilpancingo',
+                        'calle' => 'Refaccionaria EL BOOM, Boulevard Vicente Guerrero, Km 269',
+                        'colonia' => 'Centro',
+                        'cp' => '39010',
+                        'estado' => 'Guerrero',
+                        'ciudad' => 'Chilpancingo'
+                    ],
+                    'tizoc' => [
+                        'name' => 'Sucursal Tizoc',
+                        'calle' => 'Refaccionaria EL BOOM, Boulevard Cuauhnáhuac Km 3.5, No. 25',
+                        'colonia' => 'Buganbilias',
+                        'cp' => '62560',
+                        'estado' => 'Morelos',
+                        'ciudad' => 'Jiutepec'
+                    ]
+                ];
+
+                $branchData = $branches[$branchId] ?? $branches['alpuyeca'];
+
                 // Intentar obtener un teléfono real del usuario o de alguna otra dirección del usuario
-                // Priorizar teléfono enviado por el frontend
                 $incomingPhone = $this->extractPhone10($request->input('phone'));
                 $userPhonePrimary = $incomingPhone ?: $this->extractPhone10($user->phone ?? null);
                 $userRealPhone = Address::where('user_id', $user->id)
@@ -134,7 +172,7 @@ class OpenpayCheckoutController extends Controller
                         $q->whereNull('referencia')
                         ->orWhere('referencia','!=','Recoger en sucursal');
                     })
-                    ->where('calle','!=','Sucural El Boom Alpuyeca')
+                    ->where('calle','not like','Sucursal El Boom%')
                     ->orderByDesc('id_direccion')
                     ->value('telefono');
                 $userPhoneFromAddress = $this->extractPhone10($userRealPhone ?: null);
@@ -144,16 +182,15 @@ class OpenpayCheckoutController extends Controller
                     throw new Exception('Para recoger en sucursal debes registrar un número de teléfono en tu perfil o en alguna dirección.');
                 }
 
-                // Reutiliza una dirección técnica existente si ya fue creada para el usuario
+                // Reutiliza una dirección técnica existente para la sucursal seleccionada
                 $existing = Address::where('user_id', $user->id)
-                    ->where('calle', 'Sucural El Boom Alpuyeca')
+                    ->where('calle', $branchData['calle'])
                     ->where('referencia', 'Recoger en sucursal')
                     ->first();
 
                 if ($existing) {
-                    // Actualiza teléfono si el existente no es válido (o es vacío) y hay uno real disponible
-                    $existingDigits = $this->extractPhone10($existing->telefono ?? null);
-                    if (!$existingDigits && $phoneForPickup) {
+                    // Actualizar teléfono si se proporcionó uno nuevo o el anterior no es válido
+                    if ($phoneForPickup) {
                         $existing->telefono = $phoneForPickup;
                         $existing->save();
                     }
@@ -161,16 +198,14 @@ class OpenpayCheckoutController extends Controller
                 } else {
                     $addr = new Address();
                     $addr->user_id         = $user->id;
-                    // Dirección fija de sucursal
-                    $addr->calle           = 'Sucural El Boom Alpuyeca';
-                    $addr->colonia         = 'Centro';
+                    $addr->calle           = $branchData['calle'];
+                    $addr->colonia         = $branchData['colonia'];
                     $addr->numero_exterior = 'SN';
                     $addr->numero_interior = null;
-                    // Código postal proporcionado
-                    $addr->codigo_postal   = '62660';
-                    $addr->estado          = 'Morelos';
-                    $addr->ciudad          = 'Puente de Ixtla';
-                    $addr->telefono        = $phoneForPickup; // Teléfono válido requerido para pickup
+                    $addr->codigo_postal   = $branchData['cp'];
+                    $addr->estado          = $branchData['estado'];
+                    $addr->ciudad          = $branchData['ciudad'];
+                    $addr->telefono        = $phoneForPickup;
                     $addr->referencia      = 'Recoger en sucursal';
                     $addr->save();
                     $validated['address_id'] = $addr->id_direccion;

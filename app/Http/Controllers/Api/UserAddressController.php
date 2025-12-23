@@ -131,7 +131,7 @@ class UserAddressController extends Controller
                     $q->whereNull('referencia')
                       ->orWhere('referencia', '!=', 'Recoger en sucursal');
                 })
-                ->where('calle', '!=', 'Sucural El Boom Alpuyeca')
+                ->where('calle', 'not like', 'Sucursal El Boom%')
                 ->get();
 
             return response()->json([
