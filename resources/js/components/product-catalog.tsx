@@ -362,7 +362,7 @@ export function ProductCatalog() {
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 w-full">
                             {productTypes.map((t, i) => {
                                 const slug = slugifyType(t);
-                                const backImage = CATEGORY_INFO[slug]?.image || 'https://refaccioneselboom.com/images/categories/default-large.jpg';
+                                const backImage = CATEGORY_INFO[slug]?.image || '/images/default-large.jpg';
                                 const backText = CATEGORY_INFO[slug]?.info || 'Más información de la categoría.';
                                 return (
                                     <div
@@ -382,7 +382,7 @@ export function ProductCatalog() {
                                                         src={getTypeImage(t)}
                                                         alt={t || 'Tipo'}
                                                         className="w-full h-full object-cover"
-                                                        onError={(e) => { (e.currentTarget as HTMLImageElement).src = 'https://refaccioneselboom.com/images/categories/default.jpg'; }}
+                                                        onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/images/default.jpg'; }}
                                                         loading="lazy"
                                                     />
                                                     <div className="absolute inset-0 bg-black/20 transition-all z-10"></div>
