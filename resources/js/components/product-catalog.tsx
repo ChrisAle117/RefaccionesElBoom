@@ -15,23 +15,18 @@ const slugifyType = (t: string) => (
         .replace(/(^-|-$)/g, '')
 );
 
+/*Imagenes para tipos de productos de manera normal*/ 
+
 const TYPE_IMAGE_MAP: Record<string, string> = {
-    'faro-led': '/images/modulos.png',
-    'faroled': '/images/modulos.png',
-    'faro': '/images/modulos.png',
-    'faros': '/images/modulos.png',
-    'faros-led': '/images/modulos.png',
-    'plafon': '/images/plafones.png',
-    'bocina': '/images/bocinas.png',
-    'espejos': '/images/espejos.png',
-    'modulo-led': '/images/modulos.png',
-    'modulos-led': '/images/modulos.png',
-    'modulos': '/images/modulos.png',
-    'leds': '/images/modulos.png',
-    'cubretuerca': '/images/cubretuercas.png',
-    'limpiaparabrisas': '/images/limpiaparabrisas.png',
+    // Categorías principales y slugs correctos
+    'bocina': '/images/bocinas.png', // Cornetas de aire, eléctricas y repuestos
+    'plafon': '/images/plafones.png', // Iluminación de señalización, micas, plafones LED
+    'cubretuerca': '/images/cubretuercas.png', // Accesorios cromados para rines
+    'faro-led': '/images/modulos.png', // Iluminación principal, barras LED, ojos de ángel
+    'limpiaparabrisas': '/images/limpiaparabrisas.png', // Plumillas de todas las medidas
+    'mantenimiento-y-quimicos': '/images/mantenimiento-y-quimicos.png', // Cemento, siliconas, sprays, grasas
+    'accesorios-y-herramientas': '/images/accesorios-y-herramientas.png', // Abrazaderas, conectores, cinchos
     'otros': '/images/otros.png',
-    'otro': '/images/otros.png',
     'sin-clasificar': '/images/otros.png',
     'default': '/images/otros.png',
     '': '/images/otros.png',
@@ -270,6 +265,8 @@ export function ProductCatalog() {
     // Vista: mostrar selector si viewMode = 'selector'
     const shouldShowTypeSelector = viewMode === 'selector';
 
+//Fotografias parte trasera de las categorias
+
     if (shouldShowTypeSelector) {
         // Información adicional por categoría (puedes personalizar)
         const CATEGORY_INFO: Record<string, { image: string; info: string }> = {
@@ -320,6 +317,14 @@ export function ProductCatalog() {
             'limpiaparabrisas': {
                 image: '/images/limpiaparabrisas.png',
                 info: 'Plumillas y brazos limpiaparabrisas para camiones.'
+            },
+            'mantenimiento-y-quimicos': {
+                image: '/images/mantenimiento-y-quimicos.png',
+                info: 'Cemento, siliconas, sprays, thinner y grasas para mantenimiento automotriz.'
+            },
+            'accesorios-y-herramientas': {
+                image: '/images/accesorios-y-herramientas.png',
+                info: 'Abrazaderas, conectores de aire, válvulas de frenos y cinchos.'
             },
             'otros': {
                 image: '/images/otros.png',
@@ -418,24 +423,24 @@ export function ProductCatalog() {
 
                         {/* Catalogos y donde comprar */}
                         <div className="w-full flex flex-col items-center justify-center mt-24 mb-6">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-xl justify-center">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-10 w-full max-w-3xl justify-center">
                                 <a
                                     href="/catalogos"
-                                    className="relative rounded-2xl overflow-hidden shadow-xl transition-transform hover:scale-105 cursor-pointer flex items-center justify-center h-[180px] md:h-[220px] bg-black"
-                                    style={{ backgroundImage: "url('https://images.unsplash.com/photo-1515378791036-0648a3ef77b2?auto=format&fit=crop&w=600&q=80')", backgroundSize: 'cover', backgroundPosition: 'center' }}
+                                    className="relative rounded-2xl overflow-hidden shadow-xl transition-transform hover:scale-105 cursor-pointer flex items-end aspect-[4/3] min-h-[220px] md:min-h-[280px] bg-black"
+                                    style={{ backgroundImage: "url('/images/catalogos.png')", backgroundSize: 'cover', backgroundPosition: 'center' }}
                                 >
-                                    <div className="absolute inset-0 bg-black/50"></div>
-                                    <span className="relative z-10 text-white text-xl md:text-2xl font-extrabold text-center drop-shadow-lg">
+                                    {/* Overlay removed */}
+                                    <span className="relative z-10 w-full text-white text-xl md:text-2xl font-extrabold text-center drop-shadow-lg pb-4 px-3">
                                         CATÁLOGOS
                                     </span>
                                 </a>
                                 <a
                                     href="/sucursales"
-                                    className="relative rounded-2xl overflow-hidden shadow-xl transition-transform hover:scale-105 cursor-pointer flex items-center justify-center h-[180px] md:h-[220px] bg-black"
-                                    style={{ backgroundImage: "url('https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=600&q=80')", backgroundSize: 'cover', backgroundPosition: 'center' }}
+                                    className="relative rounded-2xl overflow-hidden shadow-xl transition-transform hover:scale-105 cursor-pointer flex items-end aspect-[4/3] min-h-[220px] md:min-h-[280px] bg-black"
+                                    style={{ backgroundImage: "url('/images/dondeComprar.png')", backgroundSize: 'cover', backgroundPosition: 'center' }}
                                 >
-                                    <div className="absolute inset-0 bg-black/50"></div>
-                                    <span className="relative z-10 text-white text-xl md:text-2xl font-extrabold text-center drop-shadow-lg">
+                                    {/* Overlay removed */}
+                                    <span className="relative z-10 w-full text-white text-xl md:text-2xl font-extrabold text-center drop-shadow-lg pb-4 px-3">
                                         DÓNDE COMPRAR
                                     </span>
                                 </a>
