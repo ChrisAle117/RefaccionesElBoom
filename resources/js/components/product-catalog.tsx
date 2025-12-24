@@ -22,7 +22,10 @@ const TYPE_IMAGE_MAP: Record<string, string> = {
     'bocina': '/images/bocinas.png', // Cornetas de aire, eléctricas y repuestos
     'plafon': '/images/plafones.png', // Iluminación de señalización, micas, plafones LED
     'cubretuerca': '/images/cubretuercas.png', // Accesorios cromados para rines
-    'faro-led': '/images/modulos.png', // Iluminación principal, barras LED, ojos de ángel
+    'faro-led': '/images/faroled.png', // Iluminación principal, barras LED, ojos de ángel
+    'faro': '/images/faroled.png', // Alias por si viene sin el "led"
+    'modulo-led': '/images/modulos.png', // Módulos LED decorativos/señalización
+    'modulos-led': '/images/modulos.png', // Alias plural
     'limpiaparabrisas': '/images/limpiaparabrisas.png', // Plumillas de todas las medidas
     'mantenimiento-y-quimicos': '/images/mantenimiento-y-quimicos.png', // Cemento, siliconas, sprays, grasas
     'accesorios-y-herramientas': '/images/accesorios-y-herramientas.png', // Abrazaderas, conectores, cinchos
@@ -271,16 +274,16 @@ export function ProductCatalog() {
         // Información adicional por categoría (puedes personalizar)
         const CATEGORY_INFO: Record<string, { image: string; info: string }> = {
             'faro-led': {
-                image: '/images/modulos.png',
-                info: 'Faros LED de alta potencia para camiones y vehículos pesados.'
+                image: '/images/faroled.png',
+                info: 'Faros principales y barras LED de alta potencia para camiones.'
             },
             'faroled': {
-                image: '/images/modulos.png',
-                info: 'Faros LED de alta potencia para camiones y vehículos pesados.'
+                image: '/images/faroled.png',
+                info: 'Faros principales y barras LED de alta potencia para camiones.'
             },
             'faro': {
-                image: '/images/modulos.png',
-                info: 'Faros LED de alta potencia para camiones y vehículos pesados.'
+                image: '/images/faroled.png',
+                info: 'Faros principales y barras LED de alta potencia para camiones.'
             },
             'plafon': {
                 image: '/images/plafones.png',
