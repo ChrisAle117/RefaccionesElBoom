@@ -54,6 +54,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, types }) => {
             setData('image', normalized);
             setImagePreview(buildPreview(normalized));
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [product]);
 
     // Lista de tipos que provienen SOLO de base de datos.

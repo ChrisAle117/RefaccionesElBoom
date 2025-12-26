@@ -155,7 +155,7 @@ export function ProductDetails({
 
     const extractFromCode = (c?: string): string[] => {
         if (!c) return [];
-        const parts = c.split(/[\/-]/);
+        const parts = c.split(/[/-]/);
         if (parts.length < 2) return [];
         const last = parts[parts.length - 1];
         const out: string[] = [];

@@ -167,7 +167,9 @@ export function TabNavigation({
             if (urlParams.has('search') || urlParams.has('openProduct') || urlParams.has('type')) {
                 return 'productos';
             }
-        } catch {}
+        } catch {
+            /* ignore */
+        }
         return defaultActiveTab || (tabs.length > 0 ? tabs[0].id : '');
     };
 
