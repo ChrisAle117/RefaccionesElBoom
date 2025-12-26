@@ -15,7 +15,7 @@ const slugifyType = (t: string) => (
         .replace(/(^-|-$)/g, '')
 );
 
-/*Imagenes para tipos de productos de manera normal*/ 
+/*Imagenes para tipos de productos de manera normal*/
 
 const TYPE_IMAGE_MAP: Record<string, string> = {
     // Categorías principales y slugs correctos
@@ -50,6 +50,18 @@ interface Product {
     active: boolean;
     type?: string;
     code?: string;
+    variants?: Array<{
+        id_product: number;
+        code: string;
+        name: string;
+        description: string;
+        price: number;
+        image: string;
+        audio_url?: string | null;
+        disponibility: number;
+        color_hex: string;
+        color_label: string;
+    }>;
 }
 
 type FilterOption = {
@@ -113,6 +125,23 @@ export function ProductCatalog() {
         });
     }, [rawProducts]);
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+
+    // Abrir automáticamente producto si viene el parámetro openProduct
+    useEffect(() => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const openProductId = urlParams.get('openProduct');
+        
+        if (openProductId && initialProducts.length > 0) {
+            const productToOpen = initialProducts.find(p => p.id_product === parseInt(openProductId));
+            if (productToOpen) {
+                setSelectedProduct(productToOpen);
+                // Limpiar el parámetro del URL
+                urlParams.delete('openProduct');
+                const newUrl = window.location.pathname + (urlParams.toString() ? '?' + urlParams.toString() : '');
+                window.history.replaceState({}, '', newUrl);
+            }
+        }
+    }, [initialProducts]);
 
     // Estado para manejar los productos filtrados
     const [filteredProducts, setFilteredProducts] = useState<Product[]>(initialProducts);
@@ -248,6 +277,10 @@ export function ProductCatalog() {
     const getInitialView = (): 'selector' | 'grid' => {
         try {
             const url = new URL(window.location.href);
+            // Si hay parámetros de búsqueda, tipo o producto específico, mostrar vista de grid
+            if (url.searchParams.has('search') || url.searchParams.has('type') || url.searchParams.has('openProduct')) {
+                return 'grid';
+            }
             const v = (url.searchParams.get('view') || '').toLowerCase();
             if (v === 'grid') return 'grid';
         } catch { /* ignore */ }
@@ -268,8 +301,7 @@ export function ProductCatalog() {
     // Vista: mostrar selector si viewMode = 'selector'
     const shouldShowTypeSelector = viewMode === 'selector';
 
-//Fotografias parte trasera de las categorias
-
+    //Fotografias parte trasera de las categorias
     if (shouldShowTypeSelector) {
         // Información adicional por categoría (puedes personalizar)
         const CATEGORY_INFO: Record<string, { image: string; info: string }> = {
@@ -599,6 +631,7 @@ export function ProductCatalog() {
                     image={selectedProduct.image}
                     type={selectedProduct.type}
                     code={selectedProduct.code}
+                    variants={selectedProduct.variants}
                     onClose={() => setSelectedProduct(null)}
                 />
             ) : (

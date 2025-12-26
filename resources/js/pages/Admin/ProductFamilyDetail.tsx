@@ -123,7 +123,21 @@ function MemberRow({ item, onClear }: { item: Item; onClear: () => void }) {
                 <div className="font-semibold truncate text-base">{item.name}</div>
                 <div className="text-xs md:text-sm text-gray-500">{item.code}</div>
                 <div className="mt-2 flex flex-wrap items-center gap-3">
-                    <div className="w-6 h-6 rounded-full border border-black" style={preview} title={combinedHex || '(auto)'} />
+                    <div className="relative">
+                        <div className="w-8 h-8 rounded-full border-2 border-black cursor-pointer hover:scale-110 transition-transform" style={preview} title="Click para elegir color" />
+                        <input
+                            className="absolute inset-0 w-8 h-8 opacity-0 cursor-pointer"
+                            type="color"
+                            value={/^#([0-9a-f]{6})$/i.test(hex1) ? hex1 : '#000000'}
+                            onChange={(e) => {
+                                setHex1(e.target.value);
+                                if (!bicolor) {
+                                    setHex2('');
+                                }
+                            }}
+                            title="Selector de color rápido"
+                        />
+                    </div>
                     <input
                         className="w-32 border border-gray-300 dark:border-gray-600 px-2 py-1 rounded text-sm"
                         type="text"

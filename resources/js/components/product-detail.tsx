@@ -13,6 +13,19 @@ import { usePage } from '@inertiajs/react';
 import { router } from '@inertiajs/react';
 import type { SharedProps } from './product-card';
 
+interface Variant {
+    id_product: number;
+    code?: string;
+    name?: string;
+    description?: string;
+    price?: number;
+    image?: string;
+    audio_url?: string | null;
+    disponibility?: number;
+    color_hex?: string;
+    color_label?: string;
+}
+
 interface ProductDetailsProps {
     id_product: number;
     name: string;
@@ -22,6 +35,7 @@ interface ProductDetailsProps {
     image: string;
     type?: string;
     code?: string;
+    variants?: Variant[];
     onClose: () => void;
 }
 
@@ -34,19 +48,43 @@ export function ProductDetails({
     image,
     type,
     code,
+    variants,
     onClose,
 }: ProductDetailsProps) {
     const { cartItems, addToCart, isProductInCart } = useShoppingCart();
     const { props } = usePage<SharedProps>();
     const { auth } = props;
 
+    // Variant selection
+    const [selectedVariantId, setSelectedVariantId] = useState<number | null>(() => {
+        if (variants && variants.length > 0) {
+            const hasRep = variants.find(v => v.id_product === id_product);
+            return hasRep ? id_product : variants[0].id_product;
+        }
+        return null;
+    });
 
-    const [currentDisponibility, setCurrentDisponibility] = useState(disponibility);
+    const currentVariant = React.useMemo(() => {
+        if (!variants || variants.length === 0) return null;
+        const v = variants.find(v => v.id_product === (selectedVariantId ?? id_product));
+        return v || variants[0];
+    }, [variants, selectedVariantId, id_product]);
+
+    // Effective values based on selected variant
+    const effectiveId = currentVariant?.id_product ?? id_product;
+    const effectiveName = (currentVariant?.name && currentVariant.name.trim() !== '') ? currentVariant.name : name;
+    const effectivePrice = currentVariant?.price ?? price;
+    const effectiveImage = (currentVariant?.image && currentVariant.image.trim() !== '') ? currentVariant.image : image;
+    const effectiveCode = currentVariant?.code ?? code;
+    const effectiveDescription = (currentVariant as Record<string, unknown>)?.description as string || description;
+    const effectiveDisponibility = currentVariant?.disponibility ?? disponibility;
+
+    const [currentDisponibility, setCurrentDisponibility] = useState(effectiveDisponibility);
     const [reconciling, setReconciling] = useState(false);
     const [selectedQuantity, setSelectedQuantity] = useState(1);
 
-    const isInCart = isProductInCart(id_product);
-    const cartItem = cartItems.find(item => item.id_product === id_product);
+    const isInCart = isProductInCart(effectiveId);
+    const cartItem = cartItems.find(item => item.id_product === effectiveId);
     const quantityInCart = cartItem ? cartItem.quantity : 0;
     const remainingStock = Math.max(0, currentDisponibility - quantityInCart);
 
@@ -93,6 +131,72 @@ export function ProductDetails({
         return s.charAt(0).toUpperCase() + s.slice(1);
     };
 
+    // Color derivation functions (same as product-card)
+    const colorNames: Record<string, string> = {
+        rojo: '#FF0000', red: '#FF0000', negro: '#000000', black: '#000000',
+        blanco: '#FFFFFF', white: '#FFFFFF', azul: '#0000FF', blue: '#0000FF',
+        verde: '#00FF00', green: '#00FF00', amarillo: '#FFFF00', yellow: '#FFFF00',
+        naranja: '#FFA500', orange: '#FFA500', rosa: '#FFC0CB', pink: '#FFC0CB',
+        morado: '#800080', purple: '#800080', violeta: '#800080', violet: '#800080',
+        gris: '#808080', gray: '#808080', grey: '#808080', cafe: '#8B4513',
+        brown: '#8B4513', cromo: '#C0C0C0', chrome: '#C0C0C0', plateado: '#C0C0C0',
+        silver: '#C0C0C0', dorado: '#FFD700', gold: '#FFD700',
+    };
+
+    const extractFromText = (txt: string): string[] => {
+        if (!txt) return [];
+        const lower = txt.toLowerCase();
+        const out: string[] = [];
+        for (const [kw, hex] of Object.entries(colorNames)) {
+            if (lower.includes(kw)) out.push(hex);
+        }
+        return out.slice(0, 2).reverse();
+    };
+
+    const extractFromCode = (c?: string): string[] => {
+        if (!c) return [];
+        const parts = c.split(/[\/-]/);
+        if (parts.length < 2) return [];
+        const last = parts[parts.length - 1];
+        const out: string[] = [];
+        for (const [kw, hex] of Object.entries(colorNames)) {
+            if (last.toLowerCase().includes(kw)) out.push(hex);
+        }
+        return out.slice(0, 2).reverse();
+    };
+
+    const deriveSwatchColors = (v: { color_hex?: string; code?: string; name?: string; color_label?: string; description?: string }): string[] => {
+        if (v.color_hex && v.color_hex.trim() !== '') {
+            if (v.color_hex.includes('|')) {
+                const parts = v.color_hex.split('|').map(s => s.trim()).filter(Boolean);
+                if (parts.length >= 2) return parts.slice(0, 2);
+                return [parts[0]];
+            }
+            return [v.color_hex.trim()];
+        }
+        const fromCode = extractFromCode(v.code);
+        if (fromCode.length) return fromCode;
+        const fromText = [
+            ...extractFromText(v.color_label || ''),
+            ...extractFromText(v.name || ''),
+            ...extractFromText(v.description || '')
+        ];
+        const uniq: string[] = [];
+        for (const c of fromText) { if (!uniq.includes(c)) uniq.push(c); if (uniq.length >= 2) break; }
+        if (uniq.length) return uniq;
+        return ['#eee'];
+    };
+
+    const deriveSwatchBackground = (v: { color_hex?: string; code?: string; name?: string; color_label?: string; description?: string }): string => {
+        const cols = deriveSwatchColors(v);
+        if (cols.length >= 2) {
+            const c1 = cols[0];
+            const c2 = cols[1];
+            return `linear-gradient(90deg, ${c1} 0%, ${c1} 50%, ${c2} 50%, ${c2} 100%)`;
+        }
+        return cols[0];
+    };
+
     const handleAddressChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const addrId = e.target.value;
         setSelectedAddress(addrId);
@@ -136,11 +240,11 @@ export function ProductDetails({
         let aborted = false;
 
         // Solo iniciar reconciliación si no es cero inicial
-        if (disponibility > 0) {
+        if (effectiveDisponibility > 0) {
             setReconciling(true);
         }
 
-        fetch(`/api/products/${id_product}/reconcile-stock`, { credentials: 'include' })
+        fetch(`/api/products/${effectiveId}/reconcile-stock`, { credentials: 'include' })
             .then(r => r.ok ? r.json() : null)
             .then(data => {
                 if (!aborted && data && data.success && typeof data.local_stock === 'number') {
@@ -150,7 +254,7 @@ export function ProductDetails({
             .catch(() => {
                 // En caso de error, mantener el stock inicial
                 if (!aborted) {
-                    setCurrentDisponibility(disponibility);
+                    setCurrentDisponibility(effectiveDisponibility);
                 }
             })
             .finally(() => {
@@ -159,7 +263,7 @@ export function ProductDetails({
                 }
             });
         return () => { aborted = true; };
-    }, [id_product, disponibility]);
+    }, [effectiveId, effectiveDisponibility]);
 
     // Asegurar que selectedQuantity no sea mayor que el stock disponible restante
     useEffect(() => {
@@ -184,7 +288,7 @@ export function ProductDetails({
             setIsAddingToCart(true);
             let finalStock = currentDisponibility;
             try {
-                const r = await fetch(`/api/products/${id_product}/reconcile-stock`, { credentials: 'include' });
+                const r = await fetch(`/api/products/${effectiveId}/reconcile-stock`, { credentials: 'include' });
                 if (r.ok) {
                     const d = await r.json();
                     if (d && d.success && typeof d.local_stock === 'number') {
@@ -193,7 +297,7 @@ export function ProductDetails({
                     }
                 }
             } catch { /* ignore */ }
-            await addToCart({ id_product, name, price, quantity: selectedQuantity, disponibility: finalStock, image });
+            await addToCart({ id_product: effectiveId, name: effectiveName, price: effectivePrice, quantity: selectedQuantity, disponibility: finalStock, image: effectiveImage });
 
 
             setTimeout(() => {
@@ -253,8 +357,8 @@ export function ProductDetails({
                                 <FiZoomIn className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                             </div>
                             <img
-                                src={image}
-                                alt={name}
+                                src={effectiveImage}
+                                alt={effectiveName}
                                 className="absolute w-full h-full object-contain transition-transform duration-200 transform-gpu"
                                 style={{
                                     transform: `scale(${zoomLevel})`,
@@ -275,14 +379,35 @@ export function ProductDetails({
                                     </span>
                                 )}
                             </div>
-                            <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-black dark:text-white mb-2 sm:mb-3">{name}</h1>
-                            <p className="text-xl sm:text-2xl md:text-3xl text-green-700 dark:text-green-400 font-bold mb-3 sm:mb-4">{formatPrice(price)}</p>
-                            <p className="border-t border-b border-gray-200 dark:border-gray-700 py-3 sm:py-4 mb-3 sm:mb-4 text-gray-700 dark:text-gray-300 max-h-[15vh] sm:max-h-[20vh] overflow-y-auto overflow-x-hidden text-sm sm:text-base">{description}</p>
+                            <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-black dark:text-white mb-2 sm:mb-3">{effectiveName}</h1>
+                            
+                            {/* Variant color swatches */}
+                            {variants && variants.length > 1 && (
+                                <div className="mb-3 flex flex-wrap items-center gap-2">
+                                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Color:</span>
+                                    {variants.map((v) => (
+                                        <button
+                                            key={v.id_product}
+                                            onClick={() => setSelectedVariantId(v.id_product)}
+                                            title={(v.color_label || v.code || '').toString()}
+                                            className={`w-8 h-8 rounded-full border-2 ${selectedVariantId === v.id_product ? 'border-blue-500 ring-2 ring-blue-300' : 'border-gray-300'} shadow-sm hover:scale-110 transition-transform cursor-pointer`}
+                                            style={{ background: deriveSwatchBackground(v), borderColor: selectedVariantId === v.id_product ? '#3b82f6' : '#000' }}
+                                            aria-label={`Ver variante ${(v.color_label || '')}`}
+                                        />
+                                    ))}
+                                    {currentVariant?.color_label && (
+                                        <span className="text-sm text-gray-600 dark:text-gray-400 ml-1">({currentVariant.color_label})</span>
+                                    )}
+                                </div>
+                            )}
+                            
+                            <p className="text-xl sm:text-2xl md:text-3xl text-green-700 dark:text-green-400 font-bold mb-3 sm:mb-4">{formatPrice(effectivePrice)}</p>
+                            <p className="border-t border-b border-gray-200 dark:border-gray-700 py-3 sm:py-4 mb-3 sm:mb-4 text-gray-700 dark:text-gray-300 max-h-[15vh] sm:max-h-[20vh] overflow-y-auto overflow-x-hidden text-sm sm:text-base">{effectiveDescription}</p>
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-3 sm:mb-4">
                                 <div className="flex flex-col gap-2 text-sm sm:text-base">
                                     {type && <div className="flex items-center gap-2 sm:gap-3"><span className="w-3 h-3 sm:w-4 sm:h-4 rounded-full bg-purple-500" /><span className="font-medium text-gray-700 dark:text-gray-300">Tipo:</span><span className="font-semibold text-gray-900 dark:text-gray-100">{type}</span></div>}
-                                    {code && <div className="flex items-center gap-2 sm:gap-3"><span className="w-3 h-3 sm:w-4 sm:h-4 rounded-full bg-yellow-500" /><span className="font-medium text-gray-700 dark:text-gray-300">Código:</span><span className="font-semibold text-gray-900 dark:text-gray-100">{code}</span></div>}
+                                    {effectiveCode && <div className="flex items-center gap-2 sm:gap-3"><span className="w-3 h-3 sm:w-4 sm:h-4 rounded-full bg-yellow-500" /><span className="font-medium text-gray-700 dark:text-gray-300">Código:</span><span className="font-semibold text-gray-900 dark:text-gray-100">{effectiveCode}</span></div>}
                                     <div className="flex items-center gap-2 sm:gap-3"><span className="w-3 h-3 sm:w-4 sm:h-4 rounded-full bg-blue-500" /><span className="font-medium text-gray-700 dark:text-gray-300">Stock:</span><span className="font-semibold text-gray-900 dark:text-gray-100">{reconciling ? 'Calculando…' : currentDisponibility} unidades</span></div>
 
                                 </div>
@@ -473,8 +598,8 @@ export function ProductDetails({
                             <div ref={lightboxImageRef} className="cursor-zoom-in overflow-hidden" onMouseMove={handleLightboxMouseMove} onMouseEnter={() => setLightboxZoomLevel(2)} onMouseLeave={() => setLightboxZoomLevel(1)}>
                                 <div className="relative overflow-hidden rounded-lg shadow-2xl max-h-[85vh] max-w-[90vw]">
                                     <img
-                                        src={image}
-                                        alt={name}
+                                        src={effectiveImage}
+                                        alt={effectiveName}
                                         className="object-contain transition-transform duration-200 transform-gpu"
                                         style={{
                                             transform: `scale(${lightboxZoomLevel})`,

@@ -160,8 +160,18 @@ export function TabNavigation({
         return standardTabs;
     })();
 
-    const [activeTab, setActiveTab] = useState(defaultActiveTab || (tabs.length > 0 ? tabs[0].id : ''));
+    // Detectar si hay parámetros de búsqueda o producto para activar tab de productos
+    const getInitialTab = () => {
+        try {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('search') || urlParams.has('openProduct') || urlParams.has('type')) {
+                return 'productos';
+            }
+        } catch {}
+        return defaultActiveTab || (tabs.length > 0 ? tabs[0].id : '');
+    };
 
+    const [activeTab, setActiveTab] = useState(getInitialTab());
 
     const validTabIds = useMemo(() => new Set(tabs.map(t => t.id)), [tabs]);
     const idToSlug: Record<string, string> = useMemo(() => ({
@@ -232,6 +242,19 @@ export function TabNavigation({
 
 
     useEffect(() => {
+        // Detectar si hay parámetros de búsqueda para activar automáticamente la tab de productos
+        try {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('search') || urlParams.has('openProduct') || urlParams.has('type')) {
+                if (activeTab !== 'productos') {
+                    setActiveTab('productos');
+                    // Actualizar la URL al slug correcto
+                    pushTabToHistory('productos', true);
+                }
+                return; // No continuar con la lógica normal
+            }
+        } catch { /* ignore */ }
+
         // 1) Sincroniza el tab activo desde la URL si hay slug válido (sin escribir en la URL)
         const urlTab = getTabFromUrl();
         if (urlTab && urlTab !== activeTab) {
