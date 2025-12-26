@@ -57,3 +57,31 @@ Route::get('/products/{id}/reconcile-stock', function ($id) {
 		'adjusted' => $adjusted,
 	]);
 });
+
+// Search product by exact code
+Route::get('/products/search-by-code', function (Request $request) {
+    $code = $request->query('code');
+    
+    if (!$code) {
+        return response()->json(['success' => false, 'message' => 'Código no proporcionado'], 400);
+    }
+    
+    $product = Product::query()
+        ->where('code', '=', trim($code))
+        ->where('active', true)
+        ->first();
+    
+    if (!$product) {
+        return response()->json(['success' => false, 'message' => 'Producto no encontrado'], 404);
+    }
+    
+    return response()->json([
+        'success' => true,
+        'product' => [
+            'id_product' => $product->id_product,
+            'name' => $product->name,
+            'code' => $product->code,
+            'price' => $product->price,
+        ]
+    ]);
+});

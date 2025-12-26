@@ -47,7 +47,7 @@ const ProductIncidences: React.FC<PageProps> = ({ incidences, total }) => {
         if (!list.length && total > 0) {
             refresh(false);
         }
-    }, []);
+    }, [list.length, total, refresh]);
 
     return (
         <AdminLayout title="Incidencias de Stock">

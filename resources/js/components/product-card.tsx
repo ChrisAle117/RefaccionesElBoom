@@ -511,6 +511,7 @@ export function ProductCard({
                     image={effectiveImage}
                     type={type}
                     code={effectiveCode}
+                    variants={variants}
                     onClose={() => setShowDetails(false)}
                 />
             </div>
