@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaWhatsapp } from 'react-icons/fa';
+import { MessageCircle } from 'lucide-react';
 
 type VacancyRequirement = string | {
     title?: string;
@@ -399,7 +399,7 @@ export function Vacancies() {
                                                             className="inline-flex items-center px-3 py-1.5 bg-[#25D366] text-black font-semibold text-sm rounded-md hover:brightness-95 transition-colors"
                                                             aria-label={`Contactar por WhatsApp acerca de ${vacancy.title}`}
                                                         >
-                                                            <FaWhatsapp className="h-4 w-4 mr-1" size={16} aria-hidden="true" />
+                                                            <MessageCircle className="h-4 w-4 mr-1" size={16} aria-hidden="true" />
                                                             WhatsApp
                                                         </a>
                                                     </div>
@@ -462,7 +462,7 @@ export function Vacancies() {
                                 className="inline-flex items-center px-3 py-1.5 bg-[#25D366] text-black text-sm rounded-md  transition-colors dark:bg-blue-700 dark:hover:bg-blue-800"
                                 aria-label="Contactar por WhatsApp"
                             >
-                                <FaWhatsapp className="h-4 w-4 mr-1" size={16} aria-hidden="true" />
+                                <MessageCircle className="h-4 w-4 mr-1" size={16} aria-hidden="true" />
                                 WhatsApp
                             </a>
                         </div>

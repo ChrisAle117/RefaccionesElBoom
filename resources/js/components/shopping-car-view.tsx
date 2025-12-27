@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useShoppingCart } from './shopping-car-context';
-import { Trash2, ShoppingCart, CreditCard, ChevronDown, X } from 'lucide-react';
+import { Trash2, ShoppingCart, CreditCard, ChevronDown, X, Truck } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { TbTruckDelivery } from 'react-icons/tb';
 import { router } from '@inertiajs/react';
 import { Address } from './address';
 import { Button } from './ui/button';
@@ -94,7 +93,7 @@ export function ShoppingCarView() {
     const finalTotal = totalPrice + (shipping?.price || 0);
 
     //envío gratis
-    const MIN_PURCHASE_FOR_FREE_SHIPPING = 2000;
+    const MIN_PURCHASE_FOR_FREE_SHIPPING = 1000;
 
     useEffect(() => {
         const newQuantities: Record<number, number> = {};
@@ -241,7 +240,7 @@ export function ShoppingCarView() {
                         onClick={() => setShowShippingOptions(!showShippingOptions)}
                         className="flex items-center gap-2 text-lg font-bold text-black dark:text-white px-4 py-2 rounded shadow hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors cursor-pointer border-none"
                     >
-                        <TbTruckDelivery className="h-6 w-6 text-blue-500 cursor-pointer" />
+                        <Truck className="h-6 w-6 text-blue-500 cursor-pointer" />
                         Mis direcciones para envío
                         <ChevronDown className={`h-5 w-5 transition-transform ${showShippingOptions ? 'rotate-180' : ''}`} />
                     </button>
@@ -293,7 +292,7 @@ export function ShoppingCarView() {
                             }}
                         >
                             <img
-                                src="/images/trailer.png"
+                                src="/images/trailer.webp"
                                 width="100"
                                 height="100"
                                 alt="Camión de entrega"
@@ -335,7 +334,7 @@ export function ShoppingCarView() {
                             onClick={() => setShowShippingOptions(!showShippingOptions)}
                             className="w-full flex items-center justify-center gap-2 text-sm font-bold text-black dark:text-white px-3 py-2 rounded shadow hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors cursor-pointer border border-gray-200 dark:border-gray-600"
                         >
-                            <TbTruckDelivery className="h-5 w-5 text-blue-500" />
+                            <Truck className="h-5 w-5 text-blue-500" />
                             Mis direcciones para envío
                             <ChevronDown className={`h-4 w-4 transition-transform ${showShippingOptions ? 'rotate-180' : ''}`} />
                         </button>

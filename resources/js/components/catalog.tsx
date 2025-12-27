@@ -11,7 +11,7 @@ interface Catalog {
     order: number;
 }
 
-export function Catalog() {
+export const Catalog = React.memo(function Catalog() {
     const [catalogs, setCatalogs] = useState<Catalog[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -84,4 +84,4 @@ export function Catalog() {
             )}
         </div>
     );
-}
+});

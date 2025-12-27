@@ -84,4 +84,4 @@ Route::get('/products/search-by-code', function (Request $request) {
             'price' => $product->price,
         ]
     ]);
-});
+})->middleware('throttle:30,1');

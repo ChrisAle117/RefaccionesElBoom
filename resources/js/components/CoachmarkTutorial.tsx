@@ -219,7 +219,7 @@ export default function CoachmarkTutorial() {
                     <div className="absolute inset-0 flex items-center justify-center">
                         <div className="pointer-events-auto max-w-2xl mx-auto rounded-xl bg-white p-6 shadow-2xl">
                             <div className="flex items-center gap-6">
-                                <img src="/images/ElBoomTutorial.webp" alt="El Boom" className="w-40 h-auto" />
+                                <img src="/images/ElBoomTutorial.webp" alt="Personaje de El Boom explicando el tutorial" className="w-40 h-auto" />
                                 <p className="text-base md:text-lg leading-relaxed text-justify">
                                     Usa los títulos del menú superior para navegar por el sitio.
                                 </p>

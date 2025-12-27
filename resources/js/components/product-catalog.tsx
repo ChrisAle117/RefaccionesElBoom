@@ -1,9 +1,11 @@
-﻿import React, { useState, useEffect, useRef, useLayoutEffect, useMemo } from 'react';
+﻿import React, { useState, useEffect, useRef, useLayoutEffect, useMemo, Suspense, lazy } from 'react';
 import { usePage } from '@inertiajs/react';
 import { type SharedData } from '@/types';
 import { ProductCard } from './product-card';
-import { ProductDetails } from './product-detail';
 import { Pagination } from './pagination';
+
+// Lazy load para el componente pesado de detalles
+const ProductDetails = lazy(() => import('./product-detail').then(m => ({ default: m.ProductDetails })));
 
 // Helpers globales para imÃ¡genes de tipos
 const slugifyType = (t: string) => (
@@ -19,20 +21,20 @@ const slugifyType = (t: string) => (
 
 const TYPE_IMAGE_MAP: Record<string, string> = {
     // Categorías principales y slugs correctos
-    'bocina': '/images/bocinas.png', // Cornetas de aire, eléctricas y repuestos
-    'plafon': '/images/plafones.png', // Iluminación de señalización, micas, plafones LED
-    'cubretuerca': '/images/cubretuercas.png', // Accesorios cromados para rines
-    'faro-led': '/images/faroled.png', // Iluminación principal, barras LED, ojos de ángel
-    'faro': '/images/faroled.png', // Alias por si viene sin el "led"
-    'modulo-led': '/images/modulos.png', // Módulos LED decorativos/señalización
-    'modulos-led': '/images/modulos.png', // Alias plural
-    'limpiaparabrisas': '/images/limpiaparabrisas.png', // Plumillas de todas las medidas
-    'mantenimiento-y-quimicos': '/images/mantenimiento-y-quimicos.png', // Cemento, siliconas, sprays, grasas
-    'accesorios-y-herramientas': '/images/accesorios-y-herramientas.png', // Abrazaderas, conectores, cinchos
-    'otros': '/images/otros.png',
-    'sin-clasificar': '/images/otros.png',
-    'default': '/images/otros.png',
-    '': '/images/otros.png',
+    'bocina': '/images/bocinas.webp', // Cornetas de aire, eléctricas y repuestos
+    'plafon': '/images/plafon.webp', // Iluminación de señalización, micas, plafones LED
+    'cubretuerca': '/images/cubretuercas.webp', // Accesorios cromados para rines
+    'faro-led': '/images/faroled.webp', // Iluminación principal, barras LED, ojos de ángel
+    'faro': '/images/faroled.webp', // Alias por si viene sin el "led"
+    'modulo-led': '/images/modulos.webp', // Módulos LED decorativos/señalización
+    'modulos-led': '/images/modulos.webp', // Alias plural
+    'limpiaparabrisas': '/images/limpiaparabrisas.webp', // Plumillas de todas las medidas
+    'mantenimiento-y-quimicos': '/images/mantenimiento-y-quimicos.webp', // Cemento, siliconas, sprays, grasas
+    'accesorios-y-herramientas': '/images/accesorios-y-herramientas.webp', // Abrazaderas, conectores, cinchos
+    'otros': '/images/otros.webp',
+    'sin-clasificar': '/images/otros.webp',
+    'default': '/images/otros.webp',
+    '': '/images/otros.webp',
 };
 
 const getTypeImage = (t: string) => {
@@ -130,7 +132,7 @@ export function ProductCatalog() {
     useEffect(() => {
         const urlParams = new URLSearchParams(window.location.search);
         const openProductId = urlParams.get('openProduct');
-        
+
         if (openProductId && initialProducts.length > 0) {
             const productToOpen = initialProducts.find(p => p.id_product === parseInt(openProductId));
             if (productToOpen) {
@@ -306,79 +308,79 @@ export function ProductCatalog() {
         // Información adicional por categoría (puedes personalizar)
         const CATEGORY_INFO: Record<string, { image: string; info: string }> = {
             'faro-led': {
-                image: '/images/faroled.png',
+                image: '/images/faroled.webp',
                 info: 'Faros principales y barras LED de alta potencia para camiones.'
             },
             'faroled': {
-                image: '/images/faroled.png',
+                image: '/images/faroled.webp',
                 info: 'Faros principales y barras LED de alta potencia para camiones.'
             },
             'faro': {
-                image: '/images/faroled.png',
+                image: '/images/faroled.webp',
                 info: 'Faros principales y barras LED de alta potencia para camiones.'
             },
             'plafon': {
-                image: '/images/plafones.png',
+                image: '/images/plafon.webp',
                 info: 'Plafones LED resistentes para cabinas de camión.'
             },
             'bocina': {
-                image: '/images/bocinas.png',
+                image: '/images/bocinas.webp',
                 info: 'Bocinas de aire comprimido y eléctricas para camiones.'
             },
             'espejos': {
-                image: '/images/espejos.png',
+                image: '/images/espejos.webp',
                 info: 'Espejos retrovisores laterales y panorámicos para camiones.'
             },
             'modulo-led': {
-                image: '/images/modulos.png',
+                image: '/images/modulos.webp',
                 info: 'Módulos LED para señalización y decoración de camiones.'
             },
             'modulos-led': {
-                image: '/images/modulos.png',
+                image: '/images/modulos.webp',
                 info: 'Módulos LED para señalización y decoración de camiones.'
             },
             'modulos': {
-                image: '/images/modulos.png',
+                image: '/images/modulos.webp',
                 info: 'Módulos LED para señalización y decoración de camiones.'
             },
             'leds': {
-                image: '/images/modulos.png',
+                image: '/images/modulos.webp',
                 info: 'Módulos LED para señalización y decoración de camiones.'
             },
             'cubretuerca': {
-                image: '/images/cubretuercas.png',
+                image: '/images/cubretuercas.webp',
                 info: 'Cubretuercos cromados y decorativos para llantas de camión.'
             },
             'limpiaparabrisas': {
-                image: '/images/limpiaparabrisas.png',
+                image: '/images/limpiaparabrisas.webp',
                 info: 'Plumillas y brazos limpiaparabrisas para camiones.'
             },
             'mantenimiento-y-quimicos': {
-                image: '/images/mantenimiento-y-quimicos.png',
+                image: '/images/mantenimiento-y-quimicos.webp',
                 info: 'Cemento, siliconas, sprays, thinner y grasas para mantenimiento automotriz.'
             },
             'accesorios-y-herramientas': {
-                image: '/images/accesorios-y-herramientas.png',
+                image: '/images/accesorios-y-herramientas.webp',
                 info: 'Abrazaderas, conectores de aire, válvulas de frenos y cinchos.'
             },
             'otros': {
-                image: '/images/otros.png',
+                image: '/images/otros.webp',
                 info: 'Otras refacciones y accesorios para camiones.'
             },
             'otro': {
-                image: '/images/otros.png',
+                image: '/images/otros.webp',
                 info: 'Otras refacciones y accesorios para camiones.'
             },
             'sin-clasificar': {
-                image: '/images/otros.png',
+                image: '/images/otros.webp',
                 info: 'Otras refacciones y accesorios para camiones.'
             },
             'default': {
-                image: '/images/otros.png',
+                image: '/images/otros.webp',
                 info: 'Otras refacciones y accesorios para camiones.'
             },
             '': {
-                image: '/images/otros.png',
+                image: '/images/otros.webp',
                 info: 'Otras refacciones y accesorios para camiones.'
             },
         };
@@ -415,7 +417,7 @@ export function ProductCatalog() {
                                                 <div className="flip-card-front absolute inset-0 w-full h-full backface-hidden">
                                                     <img
                                                         src={getTypeImage(t)}
-                                                        alt={t || 'Tipo'}
+                                                        alt={`Categoría: ${t || 'Producto general'}`}
                                                         className="w-full h-full object-cover"
                                                         onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/images/default.jpg'; }}
                                                         loading="lazy"
@@ -429,7 +431,7 @@ export function ProductCatalog() {
                                                 <div className="flip-card-back absolute inset-0 w-full h-full backface-hidden rotate-y-180">
                                                     <img
                                                         src={backImage}
-                                                        alt={t || 'Tipo'}
+                                                        alt={`Información adicional de ${t || 'Producto general'}`}
                                                         className="w-full h-full object-cover"
                                                         loading="lazy"
                                                     />
@@ -462,7 +464,7 @@ export function ProductCatalog() {
                                 <a
                                     href="/catalogos"
                                     className="relative rounded-2xl overflow-hidden shadow-xl transition-transform hover:scale-105 cursor-pointer flex items-end aspect-[4/3] min-h-[220px] md:min-h-[280px] bg-black"
-                                    style={{ backgroundImage: "url('/images/catalogos.png')", backgroundSize: 'cover', backgroundPosition: 'center' }}
+                                    style={{ backgroundImage: "url('/images/catalogos.webp')", backgroundSize: 'cover', backgroundPosition: 'center' }}
                                 >
                                     {/* Overlay removed */}
                                     <span className="relative z-10 w-full text-white text-xl md:text-2xl font-extrabold text-center drop-shadow-lg pb-4 px-3">
@@ -472,7 +474,7 @@ export function ProductCatalog() {
                                 <a
                                     href="/sucursales"
                                     className="relative rounded-2xl overflow-hidden shadow-xl transition-transform hover:scale-105 cursor-pointer flex items-end aspect-[4/3] min-h-[220px] md:min-h-[280px] bg-black"
-                                    style={{ backgroundImage: "url('/images/dondeComprar.png')", backgroundSize: 'cover', backgroundPosition: 'center' }}
+                                    style={{ backgroundImage: "url('/images/dondeComprar.webp')", backgroundSize: 'cover', backgroundPosition: 'center' }}
                                 >
                                     {/* Overlay removed */}
                                     <span className="relative z-10 w-full text-white text-xl md:text-2xl font-extrabold text-center drop-shadow-lg pb-4 px-3">
@@ -622,18 +624,24 @@ export function ProductCatalog() {
 
             {/* Grid de productos */}
             {selectedProduct ? (
-                <ProductDetails
-                    id_product={selectedProduct.id_product}
-                    name={selectedProduct.name}
-                    price={selectedProduct.price}
-                    description={selectedProduct.description}
-                    disponibility={selectedProduct.disponibility}
-                    image={selectedProduct.image}
-                    type={selectedProduct.type}
-                    code={selectedProduct.code}
-                    variants={selectedProduct.variants}
-                    onClose={() => setSelectedProduct(null)}
-                />
+                <Suspense fallback={
+                    <div className="flex items-center justify-center py-20">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#006CFA]"></div>
+                    </div>
+                }>
+                    <ProductDetails
+                        id_product={selectedProduct.id_product}
+                        name={selectedProduct.name}
+                        price={selectedProduct.price}
+                        description={selectedProduct.description}
+                        disponibility={selectedProduct.disponibility}
+                        image={selectedProduct.image}
+                        type={selectedProduct.type}
+                        code={selectedProduct.code}
+                        variants={selectedProduct.variants}
+                        onClose={() => setSelectedProduct(null)}
+                    />
+                </Suspense>
             ) : (
                 <div
                     ref={gridRef}

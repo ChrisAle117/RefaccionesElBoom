@@ -3,8 +3,58 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <script type="text/javascript" src="https://resources.openpay.mx/lib/openpay.v1.min.js"></script>
-        <script type="text/javascript" src="https://resources.openpay.mx/lib/openpay-data.v1.min.js"></script>
+        
+        {{-- Performance Hints --}}
+        <link rel="preconnect" href="https://resources.openpay.mx">
+        <link rel="preconnect" href="https://fonts.bunny.net">
+        <link rel="dns-prefetch" href="https://resources.openpay.mx">
+        <link rel="dns-prefetch" href="https://fonts.bunny.net">
+        
+        {{-- Defer Openpay scripts to avoid render blocking --}}
+        <script type="text/javascript" src="https://resources.openpay.mx/lib/openpay.v1.min.js" defer></script>
+        <script type="text/javascript" src="https://resources.openpay.mx/lib/openpay-data.v1.min.js" defer></script>
+
+        @php
+            $currentPath = request()->path();
+            $type = request()->query('type');
+            
+            $title = "Refaccionaria El Boom - Tractopartes Nuevas y Usadas";
+            $description = "Refaccionaria El Boom - Venta de tractopartes nuevas y usadas. Encuentra las mejores refacciones para tu transporte de carga en un solo lugar.";
+            
+            if (str_contains($currentPath, 'productos')) {
+                $title = $type ? ucfirst($type) . " | Refaccionaria El Boom" : "Catálogo de Productos | Refaccionaria El Boom";
+                $description = "Explora nuestro catálogo de refacciones" . ($type ? " para $type" : "") . ": faros LED, bocinas, suspensiones y más.";
+            } elseif (str_contains($currentPath, 'nosotros')) {
+                $title = "Sobre Nosotros | Refaccionaria El Boom";
+                $description = "Conoce la historia y el compromiso de Refaccionaria El Boom con el transporte de carga en México.";
+            } elseif (str_contains($currentPath, 'sucursales')) {
+                $title = "Nuestras Sucursales | Refaccionaria El Boom";
+                $description = "Encuentra la sucursal de Refaccionaria El Boom más cercana a ti.";
+            } elseif (str_contains($currentPath, 'deshuesadero')) {
+                $title = "Deshuesadero de Tractocamiones | Refaccionaria El Boom";
+                $description = "Venta de tractopartes usadas y componentes recuperados con garantía.";
+            }
+        @endphp
+
+        {{-- SEO Meta Tags --}}
+        <title inertia>{{ $title }}</title>
+        <meta name="description" content="{{ $description }}">
+        <meta name="keywords" content="tractopartes, refacciones, tractocamiones, El Boom, diesel, partes de motor, transmisión, colisión">
+        <meta name="author" content="Refaccionaria El Boom">
+
+        {{-- Open Graph / Facebook --}}
+        <meta property="og:type" content="website">
+        <meta property="og:url" content="{{ url()->current() }}">
+        <meta property="og:title" content="{{ $title }}">
+        <meta property="og:description" content="{{ $description }}">
+        <meta property="og:image" content="{{ asset('images/logotipo.png') }}">
+
+        {{-- Twitter --}}
+        <meta property="twitter:card" content="summary_large_image">
+        <meta property="twitter:url" content="{{ url()->current() }}">
+        <meta property="twitter:title" content="{{ $title }}">
+        <meta property="twitter:description" content="{{ $description }}">
+        <meta property="twitter:image" content="{{ asset('images/logotipo.png') }}">
 
         {{-- CSRF Token --}}
         <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -37,8 +87,7 @@
 
         <title inertia>{{ config('app.name') }}</title>
 
-        <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />
+        <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600&display=swap" rel="stylesheet" />
         <link rel="icon" href="{{ asset('favicon.ico') }}" type="image/x-icon">
         
         

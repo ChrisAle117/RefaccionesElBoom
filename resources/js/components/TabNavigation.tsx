@@ -1,14 +1,22 @@
-import { ProductCatalog } from '@/components/product-catalog';
-import { LegalDocuments } from '@/components/LegalDocuments';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Vacancies } from '@/components/Vacancies';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import Ubication from '@/components/ubication';
-import { Catalog } from '@/components/catalog';
-import AboutUs from '@/components/about-us';
-import Support from '@/components/Support';
-import SocialFeeds from '@/components/SocialFeeds';
-import Deshuesadero from '@/components/Deshuesadero';
+import React, { useCallback, useEffect, useMemo, useState, lazy, Suspense } from 'react';
+
+// Lazy load heavy tab components
+const ProductCatalog = lazy(() => import('./product-catalog').then(m => ({ default: m.ProductCatalog })));
+const LegalDocuments = lazy(() => import('./LegalDocuments').then(m => ({ default: m.LegalDocuments })));
+const Vacancies = lazy(() => import('./Vacancies').then(m => ({ default: m.Vacancies })));
+const Ubication = lazy(() => import('./ubication'));
+const Catalog = lazy(() => import('./catalog').then(m => ({ default: m.Catalog })));
+const AboutUs = lazy(() => import('./about-us'));
+const Support = lazy(() => import('./Support'));
+const SocialFeeds = lazy(() => import('./SocialFeeds'));
+const Deshuesadero = lazy(() => import('./Deshuesadero'));
+
+const LoadingFallback = () => (
+    <div className="flex items-center justify-center py-20 min-h-[400px]">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-500"></div>
+    </div>
+);
 
 type Tab = {
     id: string;
@@ -298,7 +306,7 @@ export function TabNavigation({
                             key={tab.id}
                             data-tab-id={tab.id}
                             href={typeof window !== 'undefined' ? makeUrlWithTab(tab.id) : '#'}
-                            className={`px-6 py-4 font-medium text-sm whitespace-nowrap transition-colors cursor-pointer flex-1 basis-0 text-center ${activeTab === tab.id
+                            className={`px-6 py-5 font-medium text-sm whitespace-nowrap transition-colors cursor-pointer flex-1 basis-0 text-center ${activeTab === tab.id
                                 ? 'text-slate-900 border-b-2 border-yellow-500 dark:text-[#FBCC13] dark:border-[#FBCC13]'
                                 : 'text-gray-500 hover:text-black dark:text-gray-400 dark:hover:text-[#FBCC13]'
                                 }`}
@@ -335,7 +343,9 @@ export function TabNavigation({
                                     exit={{ opacity: 0, x: -100 }}
                                     transition={{ duration: 0.3, ease: "easeInOut" }}
                                 >
-                                    {tab.content}
+                                    <Suspense fallback={<LoadingFallback />}>
+                                        {tab.content}
+                                    </Suspense>
                                 </motion.div>
                             )
                         ))}

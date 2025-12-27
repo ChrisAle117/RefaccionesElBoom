@@ -1031,22 +1031,22 @@ export function DetailsPurchase({ product }: DetailsPurchaseProps) {
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
                     <div className="flex flex-col items-center">
                         <img
-                            src="/images/cards1.png"
-                            alt="Tarjetas de crédito aceptadas"
+                            src="/images/cards1.webp"
+                            alt="Logos de tarjetas de crédito aceptadas: Visa, Mastercard, American Express"
                             className="h-8 object-contain"
                         />
                     </div>
                     <div className="flex flex-col items-center">
                         <img
-                            src="/images/cards2.png"
-                            alt="Tarjetas de débito aceptadas"
+                            src="/images/cards2.webp"
+                            alt="Logos de tarjetas de débito aceptadas: Visa y Mastercard"
                             className="h-8 object-contain"
                         />
                     </div>
                     <div className="flex flex-col items-center">
                         <img
                             src="/images/openpay.png"
-                            alt="Openpay"
+                            alt="Logo de Openpay - Pasarela de pagos segura"
                             className="h-8 object-contain"
                         />
                     </div>

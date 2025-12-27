@@ -19,8 +19,56 @@ export default defineConfig({
         drop: process.env.NODE_ENV === 'production' ? ['console', 'debugger'] : undefined,
     },
     build: {
-        sourcemap: false, // Evita publicar mapas de código en producción
+        sourcemap: false,
         minify: 'esbuild',
+        rollupOptions: {
+            output: {
+                manualChunks(id) {
+                    // Core React libraries
+                    if (id.includes('node_modules/react') || id.includes('node_modules/react-dom')) {
+                        return 'react-vendor';
+                    }
+                    // Inertia
+                    if (id.includes('@inertiajs')) {
+                        return 'inertia-vendor';
+                    }
+                    // React Icons - separar por familia para lazy loading efectivo
+                    if (id.includes('react-icons/tb')) {
+                        return 'icons-tb';
+                    }
+                    if (id.includes('react-icons/si')) {
+                        return 'icons-si';
+                    }
+                    if (id.includes('react-icons/fa')) {
+                        return 'icons-fa';
+                    }
+                    if (id.includes('react-icons/io')) {
+                        return 'icons-io';
+                    }
+                    if (id.includes('react-icons/fi')) {
+                        return 'icons-fi';
+                    }
+                    // Lucide React (usado frecuentemente)
+                    if (id.includes('lucide-react')) {
+                        return 'lucide-vendor';
+                    }
+                    // Framer Motion
+                    if (id.includes('framer-motion')) {
+                        return 'framer-vendor';
+                    }
+                    // Date libraries
+                    if (id.includes('date-fns')) {
+                        return 'date-vendor';
+                    }
+                    // Radix UI components
+                    if (id.includes('@radix-ui')) {
+                        return 'radix-vendor';
+                    }
+                },
+            },
+        },
+        // Aumentar el límite de advertencia de chunk
+        chunkSizeWarningLimit: 1000,
     },
     resolve: {
         alias: {

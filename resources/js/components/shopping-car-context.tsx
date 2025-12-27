@@ -45,7 +45,6 @@ const ShoppingCartContext = createContext<ShoppingCartContextProps | undefined>(
 
 export const ShoppingCartProvider: React.FC<{ children: React.ReactNode; isAuthenticated?: boolean }> = ({ children, isAuthenticated = false }) => {
     const [cartItems, setCartItems] = useState<CartItem[]>([]);
-    const [isLoading, setIsLoading] = useState(false);
     // Clear cart when user is not logged in
     useEffect(() => {
         if (!isAuthenticated) {
@@ -64,6 +63,8 @@ export const ShoppingCartProvider: React.FC<{ children: React.ReactNode; isAuthe
         }));
     };
 
+    const isLoadingRef = React.useRef(false);
+
     // Función para cargar el carrito desde el backend
     const fetchCart = useCallback(async (force = false) => {
         // Skip if user is not logged in
@@ -73,12 +74,12 @@ export const ShoppingCartProvider: React.FC<{ children: React.ReactNode; isAuthe
         }
 
         // Evitar múltiples solicitudes simultáneas
-        if (isLoading && !force) return;
+        if (isLoadingRef.current && !force) return;
 
         const isLoginPage = window.location.pathname.includes('login');
         if (isLoginPage) return;
 
-        setIsLoading(true);
+        isLoadingRef.current = true;
 
         try {
             // Evitar problemas de caché
@@ -110,17 +111,17 @@ export const ShoppingCartProvider: React.FC<{ children: React.ReactNode; isAuthe
         } catch (error) {
             console.error('Error fetching cart:', error);
         } finally {
-            setIsLoading(false);
+            isLoadingRef.current = false;
         }
-    }, [isAuthenticated, isLoading]);
+    }, [isAuthenticated]); // No dependency on isLoading state, using ref instead
 
     // Initial load handling
     useEffect(() => {
         const isLoginPage = window.location.pathname.includes('login');
-        if (!isLoginPage && isAuthenticated && cartItems.length === 0) {
+        if (!isLoginPage && isAuthenticated) {
             fetchCart();
         }
-    }, [isAuthenticated, cartItems.length, fetchCart]);
+    }, [isAuthenticated, fetchCart]);
 
     // Función para agregar un ítem al carrito
     const addToCart = async (item: CartItem) => {
