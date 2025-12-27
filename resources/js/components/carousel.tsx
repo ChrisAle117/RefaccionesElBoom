@@ -60,8 +60,8 @@ const Carousel: React.FC<CarouselProps> = React.memo(({
 
     if (!count) return null;
 
-    const MAX_VH_DESKTOP = 42;
-    const MAX_VH_MOBILE = 50;
+    const MAX_VH_DESKTOP = 60; // Aumentado de 42 a 60 para mostrar más imagen
+    const MAX_VH_MOBILE = 60;  // Aumentado de 50 a 60
 
     const containerHeight = isDesktop
         ? `min(calc(100vw * 9 / 21), ${MAX_VH_DESKTOP}vh)`
@@ -81,7 +81,7 @@ const Carousel: React.FC<CarouselProps> = React.memo(({
                             src={src}
                             sizes="100vw"
                             alt={`Imagen del carrusel ${index + 1} - Refaccionaria El Boom`}
-                            className="w-full h-full object-contain object-center"
+                            className="w-full h-full object-cover object-center"
                             loading={index === 0 ? 'eager' : 'lazy'}
                             decoding="async"
                             fetchPriority={index === 0 ? 'high' : undefined}
