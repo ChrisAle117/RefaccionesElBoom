@@ -144,7 +144,7 @@ const OrderSummary: React.FC<OrderProps> = ({ order }) => {
                 <h1 className="text-2xl font-bold">Resumen de orden #{order.id}</h1>
                 <img
                     src="/images/logotipo.png"
-                    alt="Logo"
+                    alt="Logotipo Refaccionaria El Boom"
                     className="h-12 cursor-pointer"
                     onClick={() => window.location.href = '/dashboard'}
                 />
@@ -242,7 +242,7 @@ const OrderSummary: React.FC<OrderProps> = ({ order }) => {
                                         src={item.image && item.image.trim() !== '' ?
                                             (item.image.startsWith('http') ? item.image : `${window.location.origin}${item.image.startsWith('/') ? '' : '/'}${item.image}`)
                                             : "/images/logotipo.png"}
-                                        alt={item.name || "Producto"}
+                                        alt={`Imagen del producto: ${item.name || "Refacción"}`}
                                         className="w-20 h-20 object-contain rounded bg-white border"
                                         loading="lazy"
                                         onError={(e) => {

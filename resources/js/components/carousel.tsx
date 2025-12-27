@@ -27,7 +27,7 @@ interface CarouselProps {
     className?: string;
 }
 
-const Carousel: React.FC<CarouselProps> = ({
+const Carousel: React.FC<CarouselProps> = React.memo(({
     images,
     imagesMobile,
     interval = 8000,
@@ -79,7 +79,8 @@ const Carousel: React.FC<CarouselProps> = ({
                     >
                         <img
                             src={src}
-                            alt={`Imagen ${index + 1}`}
+                            sizes="100vw"
+                            alt={`Imagen del carrusel ${index + 1} - Refaccionaria El Boom`}
                             className="w-full h-full object-contain object-center"
                             loading={index === 0 ? 'eager' : 'lazy'}
                             decoding="async"
@@ -94,7 +95,7 @@ const Carousel: React.FC<CarouselProps> = ({
             <button
                 onClick={goToPrevious}
                 aria-label="Anterior"
-                className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/60 hover:bg-black hover:text-white text-black p-2 rounded-full z-30 cursor-pointer"
+                className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/60 hover:bg-black hover:text-white text-black p-4 rounded-full z-30 cursor-pointer touch-manipulation"
             >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -103,7 +104,7 @@ const Carousel: React.FC<CarouselProps> = ({
             <button
                 onClick={goToNext}
                 aria-label="Siguiente"
-                className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/60 hover:bg-black hover:text-white text-black p-2 rounded-full z-30 cursor-pointer"
+                className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/60 hover:bg-black hover:text-white text-black p-4 rounded-full z-30 cursor-pointer touch-manipulation"
             >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -117,12 +118,14 @@ const Carousel: React.FC<CarouselProps> = ({
                         key={i}
                         onClick={() => setCurrentIndex(i)}
                         aria-label={`Ir a la imagen ${i + 1}`}
-                        className={`w-3 h-3 rounded-full ${i === currentIndex ? 'bg-white' : 'bg-gray-400/70'}`}
-                    />
+                        className={`w-6 h-6 flex items-center justify-center cursor-pointer`}
+                    >
+                        <div className={`w-3 h-3 rounded-full ${i === currentIndex ? 'bg-white' : 'bg-gray-400/70'} transition-colors`} />
+                    </button>
                 ))}
             </div>
         </div>
     );
-};
+});
 
 export default Carousel;

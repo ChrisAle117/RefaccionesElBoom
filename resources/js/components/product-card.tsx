@@ -4,7 +4,7 @@ import { parseISO, differenceInBusinessDays, format } from 'date-fns';
 import { useShoppingCart } from './shopping-car-context';
 import React, { useState, useEffect, useRef } from 'react';
 import { ProductDetails } from './product-detail';
-import { TbTruckDelivery } from 'react-icons/tb';
+import { Truck } from 'lucide-react';
 import { router } from '@inertiajs/react';
 import { usePage } from '@inertiajs/react';
 import { es } from 'date-fns/locale';
@@ -34,6 +34,7 @@ interface ProductCardProps {
         id_product: number;
         code?: string;
         name?: string;
+        description?: string;
         price?: number;
         image?: string;
         audio_url?: string | null;
@@ -41,6 +42,13 @@ interface ProductCardProps {
         color_hex?: string;
         color_label?: string;
     }>;
+}
+
+interface Address {
+    id_direccion: number;
+    codigo_postal: string;
+    calle: string;
+    ciudad: string;
 }
 
 export function ProductCard({
@@ -70,7 +78,7 @@ export function ProductCard({
         setIsInCart(isProductInCart(id_product));
     }, [isProductInCart, id_product]);
 
-    const [addresses, setAddresses] = useState<unknown[]>([]);
+    const [addresses, setAddresses] = useState<Address[]>([]);
     const [loadingAddresses, setLoadingAddresses] = useState(false);
     const [selectedAddress, setSelectedAddress] = useState('');
     const [shipping, setShipping] = useState<{ price: number; eta: string } | null>(null);
@@ -245,7 +253,7 @@ export function ProductCard({
     const effectivePrice = currentVariant?.price ?? price;
     const effectiveImage = (currentVariant?.image && currentVariant.image.trim() !== '') ? currentVariant.image : image;
     const effectiveCode = currentVariant?.code ?? code;
-    const effectiveDescription = (currentVariant as Record<string, unknown>)?.description as string || description;
+    const effectiveDescription = currentVariant?.description || description;
     const effectiveAudioUrl = currentVariant?.audio_url ?? audio_url ?? null;
 
     // When variant has image, update preview
@@ -671,7 +679,7 @@ export function ProductCard({
                                 <option value="" className="text-gray-500 dark:text-gray-400">
                                     Selecciona un C.P.
                                 </option>
-                                {addresses.map((a: { id_direccion: number; codigo_postal: string; calle: string; ciudad: string }) => (
+                                {(addresses || []).map((a: Address) => (
                                     <option key={a.id_direccion} value={a.id_direccion.toString()} className="text-gray-700 dark:text-gray-200">
                                         {a.codigo_postal}: {a.calle}, {a.ciudad}
                                     </option>
@@ -688,7 +696,7 @@ export function ProductCard({
                 {shipping && etaData && (
                     <div className="inline-flex flex-col mt-2 mb-2 items-start w-full text-sm text-blue-600 bg-blue-50 px-2 py-1.5 rounded dark:text-blue-400 dark:bg-blue-900">
                         <div className="flex items-center w-full">
-                            <TbTruckDelivery className="w-4 h-4 mr-1 flex-shrink-0" />
+                            <Truck className="w-4 h-4 mr-1 flex-shrink-0" />
                             {/* <span className="font-semibold">Costo de envío: {formatPrice(shipping.price)}</span> */}
                         </div>
                         <div className="mt-1 flex items-center">

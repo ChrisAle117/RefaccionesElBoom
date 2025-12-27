@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Catalog;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
@@ -73,6 +74,9 @@ class CatalogController extends Controller
         }
         
         Catalog::create($validated);
+        
+        // Limpiar caché de catálogos
+        Cache::forget('catalogs_public');
         
         return redirect()->route('admin.catalogs.index')
             ->with('success', 'Catálogo creado correctamente');
@@ -157,6 +161,9 @@ class CatalogController extends Controller
         $catalog->active = !$catalog->active;
         $catalog->save();
         
+        // Limpiar caché de catálogos
+        Cache::forget('catalogs_public');
+        
         return redirect()->back()
             ->with('success', 'Estado del catálogo actualizado');
     }
@@ -181,14 +188,20 @@ class CatalogController extends Controller
                 ->update(['order' => $catalogData['order']]);
         }
         
+        // Limpiar caché de catálogos
+        Cache::forget('catalogs_public');
+        
         return response()->json(['success' => true]);
     }
 
         public function showPublic()
     {
-        $catalogs = Catalog::where('active', true)
+        // Cachear los catálogos por 1 hora
+        $catalogs = Cache::remember('catalogs_public', 3600, function () {
+            return Catalog::where('active', true)
                         ->orderBy('order')
                         ->get();
+        });
                         
         return response()->json($catalogs);
     }

@@ -64,7 +64,7 @@
 <body>
     <div class="error-container">
         <div class="error-header">404</div>
-        <img src="{{ asset('images/ElBoom404.png') }}" alt="404 Error" class="error-image">
+        <img src="{{ asset('images/ElBoom404.webp') }}" alt="404 Error" class="error-image">
         <div class="error-message">
             La página que intentas solicitar<br>
             no está en el servidor (Error 404).

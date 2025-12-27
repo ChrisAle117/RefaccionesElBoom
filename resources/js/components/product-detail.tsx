@@ -1,13 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import AppLayout from '@/layouts/app-layout';
-import { IoMdArrowRoundBack, IoMdClose } from 'react-icons/io';
-import { TbTruckDelivery } from 'react-icons/tb';
-import {
-    FiZoomIn,
-    FiShoppingCart,
-    FiCreditCard,
-    FiChevronDown,
-} from 'react-icons/fi';
+import { ArrowLeft, X, Truck, ZoomIn, ShoppingCart, CreditCard, ChevronDown } from 'lucide-react';
 import { useShoppingCart } from './shopping-car-context';
 import { usePage } from '@inertiajs/react';
 import { router } from '@inertiajs/react';
@@ -24,6 +17,13 @@ interface Variant {
     disponibility?: number;
     color_hex?: string;
     color_label?: string;
+}
+
+interface Address {
+    id_direccion: number;
+    codigo_postal: string;
+    calle: string;
+    ciudad: string;
 }
 
 interface ProductDetailsProps {
@@ -76,7 +76,7 @@ export function ProductDetails({
     const effectivePrice = currentVariant?.price ?? price;
     const effectiveImage = (currentVariant?.image && currentVariant.image.trim() !== '') ? currentVariant.image : image;
     const effectiveCode = currentVariant?.code ?? code;
-    const effectiveDescription = (currentVariant as Record<string, unknown>)?.description as string || description;
+    const effectiveDescription = currentVariant?.description || description;
     const effectiveDisponibility = currentVariant?.disponibility ?? disponibility;
 
     const [currentDisponibility, setCurrentDisponibility] = useState(effectiveDisponibility);
@@ -97,7 +97,7 @@ export function ProductDetails({
     const lightboxImageRef = useRef<HTMLDivElement>(null);
 
     // Dirección y envío
-    const [addresses, setAddresses] = useState<unknown[]>([]);
+    const [addresses, setAddresses] = useState<Address[]>([]);
     const [loadingAddresses, setLoadingAddresses] = useState(false);
     const [selectedAddress, setSelectedAddress] = useState('');
     const [shipping, setShipping] = useState<{ price: number; eta: string } | null>(null);
@@ -338,7 +338,7 @@ export function ProductDetails({
                     className="absolute top-2 sm:top-4 left-2 sm:left-4 z-20 bg-white dark:bg-gray-900 p-1 sm:p-2 rounded-full shadow hover:bg-gray-100 dark:hover:bg-gray-800 transition"
                     aria-label="Regresar"
                 >
-                    <IoMdArrowRoundBack className="w-5 h-5 sm:w-6 sm:h-6 text-gray-700 dark:text-gray-200" />
+                    <ArrowLeft className="w-5 h-5 sm:w-6 sm:h-6 text-gray-700 dark:text-gray-200" />
                 </button>
 
 
@@ -354,7 +354,7 @@ export function ProductDetails({
                             onClick={() => setLightboxOpen(true)}
                         >
                             <div className="absolute top-2 right-2 bg-white dark:bg-gray-800 rounded-full p-2 opacity-70 hover:opacity-100 z-10 transition-all">
-                                <FiZoomIn className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                                <ZoomIn className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                             </div>
                             <img
                                 src={effectiveImage}
@@ -380,7 +380,7 @@ export function ProductDetails({
                                 )}
                             </div>
                             <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-black dark:text-white mb-2 sm:mb-3">{effectiveName}</h1>
-                            
+
                             {/* Variant color swatches */}
                             {variants && variants.length > 1 && (
                                 <div className="mb-3 flex flex-wrap items-center gap-2">
@@ -400,7 +400,7 @@ export function ProductDetails({
                                     )}
                                 </div>
                             )}
-                            
+
                             <p className="text-xl sm:text-2xl md:text-3xl text-green-700 dark:text-green-400 font-bold mb-3 sm:mb-4">{formatPrice(effectivePrice)}</p>
                             <p className="border-t border-b border-gray-200 dark:border-gray-700 py-3 sm:py-4 mb-3 sm:mb-4 text-gray-700 dark:text-gray-300 max-h-[15vh] sm:max-h-[20vh] overflow-y-auto overflow-x-hidden text-sm sm:text-base">{effectiveDescription}</p>
 
@@ -412,7 +412,7 @@ export function ProductDetails({
 
                                 </div>
                                 <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-3 sm:p-4">
-                                    <h3 className="flex items-center font-bold mb-2 sm:mb-3 text-gray-800 dark:text-gray-200 text-sm sm:text-base"><TbTruckDelivery className="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2 text-blue-600 dark:text-blue-400" />Información de envío</h3>
+                                    <h3 className="flex items-center font-bold mb-2 sm:mb-3 text-gray-800 dark:text-gray-200 text-sm sm:text-base"><Truck className="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2 text-blue-600 dark:text-blue-400" />Información de envío</h3>
                                     <div className="space-y-2 sm:space-y-3 text-gray-700 dark:text-gray-300 text-xs sm:text-sm">
                                         <p className="flex justify-between"><span className="font-medium">Envío estimado:</span>{loadingShipping ? <span className="inline-flex items-center px-2 py-0.5 bg-blue-50 dark:bg-blue-900 text-blue-500 dark:text-blue-300 rounded-full text-xs"><svg className="animate-spin h-3 w-3 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" /></svg>Calculando...</span> : shipping ? <span className="font-bold px-3 py-1 bg-blue-50 dark:bg-blue-900 text-blue-500 dark:text-blue-300 rounded-full text-sm">{formatEta(shipping.eta)}</span> : <span className="text-gray-400">Selecciona dirección</span>}</p>
                                         <p className="flex justify-between"><span className="font-medium">Costo de envío:</span>{loadingShipping ? <span className="inline-flex items-center px-2 py-0.5 bg-blue-50 dark:bg-blue-900 text-blue-500 dark:text-blue-300 rounded-full text-xs"><svg className="animate-spin h-3 w-3 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" /></svg>Calculando...</span> : shipping ? <span className="font-bold px-3 py-1 bg-blue-50 dark:bg-blue-900 text-blue-500 dark:text-blue-300 rounded-full text-sm">{formatPrice(shipping.price)}</span> : <span className="text-gray-400">Selecciona dirección</span>}</p>
@@ -430,11 +430,11 @@ export function ProductDetails({
                                         <div className="flex items-center">
                                             <select className="w-full p-2 sm:p-3 text-xs sm:text-sm border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 transition shadow-sm appearance-none" value={selectedAddress} onChange={handleAddressChange}>
                                                 <option value="" className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">Selecciona dirección...</option>
-                                                {addresses.map((a: { id_direccion: number; codigo_postal: string; calle: string; ciudad: string }) => (
+                                                {(addresses || []).map((a: Address) => (
                                                     <option key={a.id_direccion} value={a.id_direccion} className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">{a.codigo_postal} — {a.calle}, {a.ciudad}</option>
                                                 ))}
                                             </select>
-                                            <div className="pointer-events-none absolute right-0 flex items-center px-2 text-gray-700 dark:text-gray-300 h-full"><FiChevronDown className="h-4 w-4" /></div>
+                                            <div className="pointer-events-none absolute right-0 flex items-center px-2 text-gray-700 dark:text-gray-300 h-full"><ChevronDown className="h-4 w-4" /></div>
                                         </div>
                                     )}
                                     {shippingError && <div className="bg-red-50 dark:bg-red-900 border-l-4 border-red-500 p-2 mt-2 rounded text-xs"><p className="text-red-700 dark:text-gray-300">{shippingError}</p></div>}
@@ -518,7 +518,7 @@ export function ProductDetails({
                                                 </>
                                             ) : isInCart && remainingStock > 0 ? (
                                                 <>
-                                                    <FiShoppingCart className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2" /> Agregar más
+                                                    <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2" /> Agregar más
                                                 </>
                                             ) : isInCart && remainingStock <= 0 ? (
                                                 <>
@@ -529,11 +529,11 @@ export function ProductDetails({
                                                 </>
                                             ) : currentDisponibility > 0 ? (
                                                 <>
-                                                    <FiShoppingCart className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2" /> Agregar al carrito
+                                                    <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2" /> Agregar al carrito
                                                 </>
                                             ) : (
                                                 <>
-                                                    <FiShoppingCart className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2" /> Sin stock
+                                                    <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2" /> Sin stock
                                                 </>
                                             )}
                                         </button>
@@ -555,7 +555,7 @@ export function ProductDetails({
                                                 </>
                                             ) : (
                                                 <>
-                                                    <FiCreditCard className="h-4 w-4 sm:h-5 sm:w-5" />
+                                                    <CreditCard className="h-4 w-4 sm:h-5 sm:w-5" />
                                                     {currentDisponibility > 0 ? 'Comprar ahora' : 'Sin stock'}
                                                 </>
                                             )}
@@ -587,10 +587,10 @@ export function ProductDetails({
                     <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-30" onClick={() => setLightboxOpen(false)}>
                         <div onClick={e => e.stopPropagation()} className="relative max-w-5xl w-full mx-auto">
                             <button onClick={e => { e.stopPropagation(); setLightboxOpen(false); }} className="absolute top-4 right-4 bg-white bg-opacity-80 hover:bg-opacity-100 rounded-full p-3 text-gray-800 shadow-lg z-10" aria-label="Cerrar">
-                                <IoMdClose className="w-8 h-8" />
+                                <X className="w-8 h-8" />
                             </button>
                             <div className="absolute top-4 left-4 bg-white bg-opacity-80 rounded-full p-2 z-10">
-                                <FiZoomIn className="w-6 h-6 text-gray-800" />
+                                <ZoomIn className="w-6 h-6 text-gray-800" />
                                 <span className="text-xs font-medium bg-black bg-opacity-70 text-white px-2 py-1 rounded absolute top-full left-0 mt-1">
                                     Mueve el cursor para hacer zoom
                                 </span>

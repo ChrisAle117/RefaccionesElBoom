@@ -25,6 +25,16 @@ class ProductListingController extends Controller
         $search = (string) ($request->input('search') ?? '');
         $type   = (string) ($request->input('type') ?? '');
 
+        // Crear una clave de caché basada en los parámetros de búsqueda
+        $cacheKey = "products_listing_{$view}_" . md5($search . $type);
+        $cacheDuration = 300; // 5 minutos
+
+        // Intentar obtener desde caché
+        $cachedData = Cache::get($cacheKey);
+        if ($cachedData !== null && empty($search)) {
+            return Inertia::render($view, $cachedData);
+        }
+
     $query = Product::query()->where('active', true);
 
         if ($search !== '') {
@@ -207,11 +217,18 @@ class ProductListingController extends Controller
         }
         $productTypes = collect($types);
 
-        return Inertia::render($view, [
+        $renderData = [
             'products'     => $toRender->values()->all(),
             'search'       => $search,
             'type'         => $type,
             'productTypes' => $productTypes,
-        ]);
+        ];
+
+        // Cachear si no hay búsqueda activa
+        if (empty($search)) {
+            Cache::put($cacheKey, $renderData, $cacheDuration);
+        }
+
+        return Inertia::render($view, $renderData);
     }
 }
