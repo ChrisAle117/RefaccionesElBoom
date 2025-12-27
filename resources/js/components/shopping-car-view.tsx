@@ -94,7 +94,7 @@ export function ShoppingCarView() {
     const finalTotal = totalPrice + (shipping?.price || 0);
 
     //envío gratis
-    const MIN_PURCHASE_FOR_FREE_SHIPPING = 2000;
+    const MIN_PURCHASE_FOR_FREE_SHIPPING = 1000;
 
     useEffect(() => {
         const newQuantities: Record<number, number> = {};

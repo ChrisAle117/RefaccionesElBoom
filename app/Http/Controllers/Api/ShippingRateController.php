@@ -45,7 +45,7 @@ class ShippingRateController extends Controller
         
         //Determinar si el monto es suficiente para envío gratuito
         $cartTotal = $product->price * $quantity;
-        $freeShipping = $cartTotal >= 2000;
+        $freeShipping = $cartTotal >= 1000;
 
         try {
             //Invocar al servicio DHL
@@ -130,8 +130,8 @@ class ShippingRateController extends Controller
                 $cartTotal += $product->price * $item['quantity'];
             }
 
-            // Determinar si aplica envío gratis (mayor o igual a $2,000)
-            $freeShipping = $cartTotal >= 2000;
+            // Determinar si aplica envío gratis (mayor o igual a $1,000)
+            $freeShipping = $cartTotal >= 1000;
             
             //Llamar al servicio DHL (siempre necesitamos los datos de envío)
             $result = app(DhlRateService::class)->quoteCart($address, $items);

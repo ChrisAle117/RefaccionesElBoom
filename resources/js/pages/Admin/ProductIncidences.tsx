@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import AdminLayout from '@/layouts/admin-layout';
 import { Head, Link } from '@inertiajs/react';
 
@@ -27,7 +27,7 @@ const ProductIncidences: React.FC<PageProps> = ({ incidences, total }) => {
     const [syncSuccess, setSyncSuccess] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
 
-    const refresh = (forceFresh = true) => {
+    const refresh = useCallback((forceFresh = true) => {
         setLoading(true); setError(null);
         const url = route('admin.products.incidences') + (forceFresh ? '?fresh=1' : '');
         fetch(url, { credentials: 'include', headers: { 'Accept': 'application/json' } })
@@ -41,7 +41,7 @@ const ProductIncidences: React.FC<PageProps> = ({ incidences, total }) => {
             })
             .catch(() => setError('No se pudo refrescar'))
             .finally(() => setLoading(false));
-    };
+    }, []);
 
     useEffect(() => {
         if (!list.length && total > 0) {
