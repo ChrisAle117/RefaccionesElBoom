@@ -85,7 +85,7 @@ export default function Welcome() {
                         images={carouselImages}
                         imagesMobile={carouselImagesMobile}
                         interval={6000}
-                        className="shadow-2xl mb-8"
+                        className="mb-8 shadow-2xl"
                     />
                 </div>
 

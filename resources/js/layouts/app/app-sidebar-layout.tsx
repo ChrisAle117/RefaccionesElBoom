@@ -1,6 +1,7 @@
 import { AppContent } from '@/components/app-content';
 import { AppShell } from '@/components/app-shell';
 import { type PropsWithChildren } from 'react';
+import { type BreadcrumbItem } from '@/types';
 import { NavUser } from '@/components/nav-user';
 import React from 'react';
 import { SearchBar } from '@/components/search-bar';
@@ -10,16 +11,16 @@ import { ShoppingCarView } from '@/components/shopping-car-view';
 import { Menu, X } from 'lucide-react';
 import CoachmarkTutorial from '@/components/CoachmarkTutorial';
 import WhatsAppWidget from '@/components/WhatsAppWidget';
+import { type SharedData } from '@/types';
 
 export default function AppSidebarLayout({
     children,
-}: PropsWithChildren) {
+}: PropsWithChildren<{ breadcrumbs?: BreadcrumbItem[] }>) {
     const [isCartOpen, setIsCartOpen] = React.useState(false);
     const [showMobileSearch, setShowMobileSearch] = React.useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
 
-    const pageProps = usePage<{ auth?: unknown }>().props;
-    const auth = pageProps?.auth ?? {};
+    const { auth } = usePage<SharedData>().props;
 
     const toggleCart = () => setIsCartOpen(!isCartOpen);
     const handleMobileSearchClick = () => setShowMobileSearch(true);

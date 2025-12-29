@@ -24,14 +24,6 @@ export default defineConfig({
         rollupOptions: {
             output: {
                 manualChunks(id) {
-                    // Core React libraries
-                    if (id.includes('node_modules/react') || id.includes('node_modules/react-dom')) {
-                        return 'react-vendor';
-                    }
-                    // Inertia
-                    if (id.includes('@inertiajs')) {
-                        return 'inertia-vendor';
-                    }
                     // React Icons - separar por familia para lazy loading efectivo
                     if (id.includes('react-icons/tb')) {
                         return 'icons-tb';

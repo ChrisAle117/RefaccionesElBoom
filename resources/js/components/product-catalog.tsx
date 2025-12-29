@@ -4,8 +4,7 @@ import { type SharedData } from '@/types';
 import { ProductCard } from './product-card';
 import { Pagination } from './pagination';
 
-// Lazy load para el componente pesado de detalles
-const ProductDetails = lazy(() => import('./product-detail').then(m => ({ default: m.ProductDetails })));
+import { ProductDetails } from './product-detail';
 
 // Helpers globales para imÃ¡genes de tipos
 const slugifyType = (t: string) => (
@@ -31,6 +30,7 @@ const TYPE_IMAGE_MAP: Record<string, string> = {
     'limpiaparabrisas': '/images/limpiaparabrisas.webp', // Plumillas de todas las medidas
     'mantenimiento-y-quimicos': '/images/mantenimiento-y-quimicos.webp', // Cemento, siliconas, sprays, grasas
     'accesorios-y-herramientas': '/images/accesorios-y-herramientas.webp', // Abrazaderas, conectores, cinchos
+    'espejos': '/images/espejos.webp', // Espejos retrovisores laterales y panorámicos para camiones
     'otros': '/images/otros.webp',
     'sin-clasificar': '/images/otros.webp',
     'default': '/images/otros.webp',
@@ -624,24 +624,18 @@ export function ProductCatalog() {
 
             {/* Grid de productos */}
             {selectedProduct ? (
-                <Suspense fallback={
-                    <div className="flex items-center justify-center py-20">
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#006CFA]"></div>
-                    </div>
-                }>
-                    <ProductDetails
-                        id_product={selectedProduct.id_product}
-                        name={selectedProduct.name}
-                        price={selectedProduct.price}
-                        description={selectedProduct.description}
-                        disponibility={selectedProduct.disponibility}
-                        image={selectedProduct.image}
-                        type={selectedProduct.type}
-                        code={selectedProduct.code}
-                        variants={selectedProduct.variants}
-                        onClose={() => setSelectedProduct(null)}
-                    />
-                </Suspense>
+                <ProductDetails
+                    id_product={selectedProduct.id_product}
+                    name={selectedProduct.name}
+                    price={selectedProduct.price}
+                    description={selectedProduct.description}
+                    disponibility={selectedProduct.disponibility}
+                    image={selectedProduct.image}
+                    type={selectedProduct.type}
+                    code={selectedProduct.code}
+                    variants={selectedProduct.variants}
+                    onClose={() => setSelectedProduct(null)}
+                />
             ) : (
                 <div
                     ref={gridRef}
