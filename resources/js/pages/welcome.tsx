@@ -61,7 +61,7 @@ export default function Welcome() {
     ];
 
     return (
-        <AppLayout>
+        <AppLayout fullWidth={true}>
             <Head>
                 <title>{pageTitle}</title>
                 <meta name="description" content={metaDescription} />
@@ -79,13 +79,13 @@ export default function Welcome() {
             </Head>
 
             <div className="min-h-screen bg-gray-50 dark:bg-gray-950 relative">
-                {/* Hero / Carousel */}
-                <div className="relative z-10 pt-4">
+                {/* Hero / Carousel - Full Width */}
+                <div className="relative z-10 w-full">
                     <Carousel
                         images={carouselImages}
                         imagesMobile={carouselImagesMobile}
                         interval={6000}
-                        className="mb-8 shadow-2xl"
+                        className="mb-8"
                     />
                 </div>
 
