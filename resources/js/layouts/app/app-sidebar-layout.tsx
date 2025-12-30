@@ -1,5 +1,6 @@
 import { AppContent } from '@/components/app-content';
 import { AppShell } from '@/components/app-shell';
+import { cn } from '@/lib/utils';
 import { type PropsWithChildren } from 'react';
 import { type BreadcrumbItem } from '@/types';
 import { NavUser } from '@/components/nav-user';
@@ -8,14 +9,34 @@ import { SearchBar } from '@/components/search-bar';
 import { Link, usePage } from '@inertiajs/react';
 import { Cart } from '@/components/shopping-car';
 import { ShoppingCarView } from '@/components/shopping-car-view';
-import { Menu, X } from 'lucide-react';
+import { type SharedData } from '@/types';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Facebook, Instagram, MessageCircle, LayoutDashboard } from 'lucide-react';
 import CoachmarkTutorial from '@/components/CoachmarkTutorial';
 import WhatsAppWidget from '@/components/WhatsAppWidget';
-import { type SharedData } from '@/types';
+
+function SocialMobileIcon({ href, icon, color }: { href: string; icon: React.ReactNode; color: string }) {
+    return (
+        <a
+            href={href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={cn(
+                "w-full aspect-square flex items-center justify-center rounded-2xl transition-all active:scale-90",
+                color
+            )}
+        >
+            <div className="w-6 h-6 [&>svg]:w-full [&>svg]:h-full">
+                {icon}
+            </div>
+        </a>
+    );
+}
 
 export default function AppSidebarLayout({
     children,
-}: PropsWithChildren<{ breadcrumbs?: BreadcrumbItem[] }>) {
+    fullWidth = false,
+}: PropsWithChildren<{ breadcrumbs?: BreadcrumbItem[]; fullWidth?: boolean }>) {
     const [isCartOpen, setIsCartOpen] = React.useState(false);
     const [showMobileSearch, setShowMobileSearch] = React.useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
@@ -112,14 +133,29 @@ export default function AppSidebarLayout({
                             className="h-7 w-7 opacity-80 invert"
                         />
                     </button>
-                    {/* Hamburguesa */}
+                    {/* Hamburguesa Animada */}
                     <button
-                        className="flex items-center justify-center ml-2 p-2 rounded-full hover:bg-[#0055b3] transition-colors"
-                        onClick={handleOpenMobileMenu}
-                        aria-label="Abrir menú"
-                        type="button"
+                        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                        className="relative z-50 w-10 h-10 flex items-center justify-center focus:outline-none ml-2"
+                        aria-label={isMobileMenuOpen ? "Cerrar menú" : "Abrir menú"}
                     >
-                        <Menu className="h-7 w-7" />
+                        <div className="relative w-6 h-5">
+                            <motion.span
+                                animate={isMobileMenuOpen ? { rotate: 45, y: 8 } : { rotate: 0, y: 0 }}
+                                className="absolute block h-0.5 w-6 bg-slate-900 dark:bg-slate-900 rounded-full"
+                                transition={{ duration: 0.3 }}
+                            />
+                            <motion.span
+                                animate={isMobileMenuOpen ? { opacity: 0, x: -10 } : { opacity: 1, x: 0 }}
+                                className="absolute block h-0.5 w-6 bg-slate-900 dark:bg-slate-900 rounded-full top-2"
+                                transition={{ duration: 0.2 }}
+                            />
+                            <motion.span
+                                animate={isMobileMenuOpen ? { rotate: -45, y: -8 } : { rotate: 0, y: 0 }}
+                                className="absolute block h-0.5 w-6 bg-slate-900 dark:bg-slate-900 rounded-full top-4"
+                                transition={{ duration: 0.3 }}
+                            />
+                        </div>
                     </button>
                 </div>
                 {/* Mobile search bar overlay: centrada, sin borde amarillo, con animación */}
@@ -162,111 +198,156 @@ export default function AppSidebarLayout({
                 </style>
             </header>
 
-            {/* Menú lateral móvil */}
-            {isMobileMenuOpen && (
-                <div className="fixed inset-0 z-[200] flex">
-                    {/* Fondo oscuro */}
-                    <div
-                        className="fixed inset-0 bg-black bg-opacity-40"
-                        onClick={handleCloseMobileMenu}
-                    />
-                    {/* Drawer */}
-                    <aside className="relative ml-auto w-72 max-w-full h-full bg-white shadow-lg z-[201] animate-slide-in-left flex flex-col">
-                        {/* Cerrar */}
-                        <button
-                            className="absolute top-4 right-4 text-gray-700 hover:text-[#006CFA] transition-colors "
+            {/* Menú móvil desplegable con AnimatePresence */}
+            <AnimatePresence>
+                {isMobileMenuOpen && (
+                    <>
+                        {/* Backdrop opcional si quieres que se cierre al hacer click fuera, o simplemente el menú */}
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="fixed inset-0 bg-black/40 z-[40] sm:hidden"
                             onClick={handleCloseMobileMenu}
-                            aria-label="Cerrar menú"
+                        />
+
+                        <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            exit={{ opacity: 0, height: 0 }}
+                            transition={{ duration: 0.4, ease: [0.04, 0.62, 0.23, 0.98] }}
+                            className="absolute top-[72px] left-0 w-full bg-white dark:bg-slate-950 shadow-2xl overflow-hidden z-[100] sm:hidden border-t border-slate-100 dark:border-slate-800"
                         >
-                            <X className="h-7 w-7" />
-                        </button>
-                        <div className="p-6 pt-12 flex flex-col gap-2 h-full">
-                            {/* Usuario o invitado */}
-                            {auth?.user ? (
-                                <>
-                                    <div className="flex items-center gap-3 mb-4">
-                                        <div className="rounded-full bg-gray-200 text-gray-700 w-10 h-10 flex items-center justify-center font-bold text-lg text-black">
-                                            {getInitials(auth?.user?.name)}
+                            <div className="flex flex-col">
+                                {/* Sección Amarilla (Perfil / Invitado) */}
+                                <div className="bg-[#FBCC13] dark:bg-yellow-500 p-6">
+                                    {auth?.user ? (
+                                        <div className="flex items-center gap-3">
+                                            <div className="rounded-full bg-white/30 text-slate-900 w-12 h-12 flex items-center justify-center font-black text-xl shadow-sm border border-white/20">
+                                                {getInitials(auth?.user?.name)}
+                                            </div>
+                                            <div className="flex flex-col">
+                                                <span className="font-black text-slate-900 leading-tight">{auth?.user?.name}</span>
+                                                <span className="text-xs text-slate-800 font-medium opacity-90">{auth?.user?.email}</span>
+                                            </div>
                                         </div>
-                                        <span className="font-semibold text-base text-black">{auth?.user?.name}</span>
-                                    </div>
-                                    {/* Configuración */}
-                                    <Link
-                                        href={route('profile.edit')}
-                                        className="block py-2 px-4 rounded hover:bg-[#F5F7FA] text-[#006CFA] font-bold mr-[50%]"
-                                        onClick={handleCloseMobileMenu}
-                                        as="button"
-                                        prefetch
-                                    >
-                                        Configuración
-                                    </Link>
-                                    {/* Mis pedidos */}
-                                    <Link
-                                        href="/orders"
-                                        className="block py-2 px-4 rounded hover:bg-[#F5F7FA] text-[#006CFA] font-semibold"
-                                        onClick={handleCloseMobileMenu}
-                                    >
-                                        Mis pedidos
-                                    </Link>
-                                    {/* Cerrar sesión */}
-                                    <Link
-                                        href={route('logout')}
-                                        method="post"
-                                        as="button"
-                                        className="block w-full text-left py-2 px-4 rounded hover:bg-[#F5F7FA] text-red-600 mt-auto"
-                                        onClick={handleCloseMobileMenu}
-                                    >
-                                        Cerrar sesión
-                                    </Link>
-                                </>
-                            ) : (
-                                <>
-                                    <div className="flex items-center gap-3 mb-4">
-                                        <div className="rounded-full bg-gray-200 text-gray-700 w-10 h-10 flex items-center justify-center font-bold text-lg text-black">
-                                            {getInitials()}
+                                    ) : (
+                                        <div className="flex flex-col gap-1">
+                                            <span className="font-black text-slate-900 text-lg">Bienvenido</span>
+                                            <span className="text-xs text-slate-800 font-medium">Inicia sesión para gestionar tus pedidos</span>
                                         </div>
-                                        <span className="font-semibold text-base text-black">Invitado</span>
+                                    )}
+                                </div>
+
+                                {/* Sección Blanca (Navegación) */}
+                                <div className="p-6 flex flex-col space-y-2">
+                                    {auth?.user ? (
+                                        <>
+                                            <Link
+                                                href={route('profile.edit')}
+                                                className="flex items-center justify-between py-4 px-4 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-900 text-slate-700 dark:text-slate-300 font-bold transition-all active:scale-95 border border-transparent hover:border-slate-100 dark:hover:border-slate-800"
+                                                onClick={handleCloseMobileMenu}
+                                            >
+                                                <div className="flex items-center gap-3">
+                                                    <div className="p-2 bg-yellow-100 dark:bg-yellow-500/10 rounded-lg text-yellow-600 dark:text-yellow-500">
+                                                        <LayoutDashboard className="w-5 h-5" />
+                                                    </div>
+                                                    <span>Mi Perfil</span>
+                                                </div>
+                                                <div className="text-slate-400">→</div>
+                                            </Link>
+
+                                            <Link
+                                                href="/orders"
+                                                className="flex items-center justify-between py-4 px-4 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-900 text-slate-700 dark:text-slate-300 font-bold transition-all active:scale-95 border border-transparent hover:border-slate-100 dark:hover:border-slate-800"
+                                                onClick={handleCloseMobileMenu}
+                                            >
+                                                <div className="flex items-center gap-3">
+                                                    <div className="p-2 bg-blue-100 dark:bg-blue-500/10 rounded-lg text-blue-600 dark:text-blue-500">
+                                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-5 h-5">
+                                                            <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+                                                            <path d="M12 11h4" /><path d="M12 16h4" /><path d="M8 11h.01" /><path d="M8 16h.01" /><path d="M15 2H9v4h6V2z" />
+                                                        </svg>
+                                                    </div>
+                                                    <span>Mis Pedidos</span>
+                                                </div>
+                                                <div className="text-slate-400">→</div>
+                                            </Link>
+
+                                            {auth?.user?.role === 'admin' && (
+                                                <Link
+                                                    href="/admin/dashboard"
+                                                    className="flex items-center justify-between py-4 px-4 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 text-slate-700 dark:text-slate-300 font-bold transition-all active:scale-95 shadow-sm mt-2"
+                                                    onClick={handleCloseMobileMenu}
+                                                >
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="p-2 bg-[#FBCC13] dark:bg-yellow-500/20 rounded-lg text-slate-900 dark:text-yellow-500">
+                                                            <LayoutDashboard className="w-5 h-5" />
+                                                        </div>
+                                                        <span>Panel Admin</span>
+                                                    </div>
+                                                    <div className="text-slate-400">→</div>
+                                                </Link>
+                                            )}
+
+                                            <div className="pt-4 mt-2 border-t border-slate-50 dark:border-slate-800">
+                                                <Link
+                                                    href={route('logout')}
+                                                    method="post"
+                                                    as="button"
+                                                    className="flex items-center justify-center w-full py-4 px-4 rounded-2xl bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-500 font-black text-sm uppercase tracking-widest transition-all active:scale-95"
+                                                    onClick={handleCloseMobileMenu}
+                                                >
+                                                    Cerrar Sesión
+                                                </Link>
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <div className="flex flex-col gap-3 py-2">
+                                            <Link
+                                                href="/login"
+                                                className="w-full py-4 rounded-2xl bg-slate-900 text-[#FBCC13] font-black text-sm uppercase tracking-widest text-center shadow-xl active:scale-95 transition-all"
+                                                onClick={handleCloseMobileMenu}
+                                            >
+                                                Iniciar Sesión
+                                            </Link>
+                                            <Link
+                                                href="/register"
+                                                className="w-full py-4 rounded-2xl bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-black text-sm uppercase tracking-widest text-center border-2 border-slate-900 dark:border-slate-800 active:scale-95 transition-all"
+                                                onClick={handleCloseMobileMenu}
+                                            >
+                                                Registrarse
+                                            </Link>
+                                        </div>
+                                    )}
+
+                                    {/* Redes Sociales en Grid */}
+                                    <div className="pt-8 mt-4 border-t border-slate-50 dark:border-slate-800">
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4 text-center">Nuestras Redes</p>
+                                        <div className="grid grid-cols-4 gap-3">
+                                            <SocialMobileIcon href="https://wa.me/527771810370" icon={<MessageCircle />} color="text-green-500 bg-green-50 dark:bg-green-500/10" />
+                                            <SocialMobileIcon href="https://www.facebook.com/boomtractopartes/?locale=es_LA" icon={<Facebook />} color="text-blue-600 bg-blue-50 dark:bg-blue-500/10" />
+                                            <SocialMobileIcon href="https://www.instagram.com/elboomtractopartes/?hl=es" icon={<Instagram />} color="text-pink-600 bg-pink-50 dark:bg-pink-500/10" />
+                                            <SocialMobileIcon
+                                                href="https://www.tiktok.com"
+                                                icon={
+                                                    <svg viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6">
+                                                        <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.17-2.86-.6-4.12-1.31a8.15 8.15 0 0 1-1.33-1.01c-.13 3.1-.11 6.22-.12 9.33-.01 2.01-.5 4.16-1.92 5.62-1.51 1.56-3.83 2.15-5.91 1.9-2.18-.17-4.29-1.31-5.39-3.21-1.22-1.99-1.23-4.66-.23-6.68.91-1.84 2.82-3.13 4.87-3.41 1.02-.15 2.06-.05 3.03.27V12.44a5.13 5.13 0 0 0-2.88-.04c-1.84.47-3.32 2.1-3.6 4-.29 1.72.33 3.63 1.7 4.75 1.45 1.19 3.56 1.41 5.25.64 1.47-.64 2.32-2.18 2.33-3.76.01-4.71.01-9.42.01-14.13-.01-.39-.06-.78-.06-1.17z" />
+                                                    </svg>
+                                                }
+                                                color="text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-800"
+                                            />
+                                        </div>
                                     </div>
-                                    <Link
-                                        href="/login"
-                                        className="block py-2 px-4 rounded hover:bg-[#F5F7FA] text-[#006CFA] font-bold"
-                                        onClick={handleCloseMobileMenu}
-                                    >
-                                        Iniciar sesión
-                                    </Link>
-                                    <Link
-                                        href="/register"
-                                        className="block py-2 px-4 rounded hover:bg-[#F5F7FA] text-[#006CFA] font-semibold"
-                                        onClick={handleCloseMobileMenu}
-                                    >
-                                        Registrarse
-                                    </Link>
-                                </>
-                            )}
-                        </div>
-                    </aside>
-                    <style>
-                        {`
-            @keyframes slideInLeft {
-                0% {
-                    transform: translateX(100%);
-                    opacity: 0;
-                }
-                100% {
-                    transform: translateX(0);
-                    opacity: 1;
-                }
-            }
-            .animate-slide-in-left {
-                animation: slideInLeft 0.3s cubic-bezier(0.4,0,0.2,1);
-            }
-            `}
-                    </style>
-                </div>
-            )}
+                                </div>
+                            </div>
+                        </motion.div>
+                    </>
+                )}
+            </AnimatePresence>
 
             <div className="pt-20">
-                <AppContent>
+                <AppContent fullWidth={fullWidth}>
                     {isCartOpen ? (
                         <div className="fixed inset-0 z-[9999] bg-white dark:bg-gray-900 overflow-auto flex flex-col" style={{ height: '100vh', width: '100vw', top: 0, left: 0 }}>
                             <div className="relative flex-1 min-h-0">

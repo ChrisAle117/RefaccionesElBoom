@@ -37,16 +37,16 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
             <Heading title="Configuración" description="Perfil y cuenta" />
 
             <div className="flex flex-col space-y-8 lg:flex-row lg:space-y-0 lg:space-x-12">
-                <aside className="w-full max-w-xl lg:w-48">
-                    <nav className="flex flex-col space-y-1 space-x-0">
+                <aside className="w-full lg:w-48">
+                    <nav className="flex flex-row overflow-x-auto lg:flex-col space-y-0 lg:space-y-1 space-x-2 lg:space-x-0 pb-2 lg:pb-0 scrollbar-none">
                         {sidebarNavItems.map((item) => (
                             <Button
                                 key={item.href}
                                 size="sm"
                                 variant="ghost"
                                 asChild
-                                className={cn('w-full justify-start', {
-                                    'bg-muted': currentPath === item.href,
+                                className={cn('flex-none lg:w-full justify-start whitespace-nowrap px-4 lg:px-3', {
+                                    'bg-slate-100 dark:bg-slate-800 font-bold': currentPath === item.href,
                                 })}
                             >
                                 <Link href={item.href} prefetch>
@@ -57,7 +57,7 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
                     </nav>
                 </aside>
 
-                <Separator className="my-6 md:hidden" />
+                <Separator className="lg:hidden" />
 
                 <div className="flex-1 md:max-w-2xl">
                     <section className="max-w-xl space-y-12">{children}</section>

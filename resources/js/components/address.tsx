@@ -135,9 +135,9 @@ export function Address({ onRegisterSuccess }: AddressProps) {
                 <Button
                     type="submit"
                     disabled={processing}
-                    className="w-auto py-2 px-4 cursor-pointer bg-[#006CFA] text-white font-medium rounded-md shadow-sm hover:bg-[#FBCC13] hover:text-black"
+                    className="w-auto px-8 h-11 bg-slate-900 hover:bg-slate-800 text-white font-black text-xs uppercase tracking-widest rounded-xl shadow-lg transition-all"
                 >
-                    Guardar datos de dirección
+                    Guardar dirección
                 </Button>
             </div>
         </form>

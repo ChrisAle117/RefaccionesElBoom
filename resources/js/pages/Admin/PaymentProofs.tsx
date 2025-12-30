@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { Head, useForm } from '@inertiajs/react';
-import { Button } from '@/components/ui/button';
+import { Head, useForm, Link } from '@inertiajs/react';
 import AdminLayout from '@/layouts/admin-layout';
+import { ReceiptText, CheckCircle2, XCircle, FileText, Download, Check, Eye, Clock, AlertCircle } from 'lucide-react';
 
 interface PaymentProofItem {
     id: number;
@@ -25,13 +25,10 @@ const PaymentProofs: React.FC<PaymentProofsProps> = ({ pendingProofs }) => {
     const [approvingProofId, setApprovingProofId] = useState<number | null>(null);
     const [approving, setApproving] = useState(false);
 
-    // Estado para las opciones de PDF (fijos por ahora)
-    const generatePdfAfterApproval = true;
+    const [generatePdfAfterApproval, setGeneratePdfAfterApproval] = useState(true);
     const pdfAction: 'download' | 'email' = 'download';
 
-    // Estado para guardar la URL del PDF generado
     const [generatedPdfUrl, setGeneratedPdfUrl] = useState<string | null>(null);
-    // Estado para el mensaje de éxito
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
     const approvalForm = useForm({
@@ -39,46 +36,34 @@ const PaymentProofs: React.FC<PaymentProofsProps> = ({ pendingProofs }) => {
         pdfAction: pdfAction
     });
 
-    const { data, setData, post, processing, errors, reset } = useForm({
+    const rejectionForm = useForm({
         admin_notes: '',
     });
 
     const openApproveModal = (proofId: number) => {
         setApprovingProofId(proofId);
-        // Limpiar cualquier PDF generado anteriormente
         setGeneratedPdfUrl(null);
         setSuccessMessage(null);
     };
 
-    // Función para aprobación con opción de generar PDF
     const handleApprove = () => {
         if (!approvingProofId) return;
 
         setApproving(true);
-
-        // Actualizar el formulario con los valores actuales
         approvalForm.setData('generatePdf', generatePdfAfterApproval);
-        approvalForm.setData('pdfAction', pdfAction);
 
-        // Usar el formulario específico para hacer el post
         approvalForm.post(route('admin.payment-proofs.approve', approvingProofId), {
             preserveScroll: true,
             onSuccess: (response) => {
                 setApprovingProofId(null);
                 setApproving(false);
 
-                // Acceder a la URL del PDF
                 const flashData = (response.props as { flash?: Record<string, unknown> }).flash || {};
                 const pdfUrl = typeof flashData.pdfUrl === 'string' ? flashData.pdfUrl : null;
 
-                if (generatePdfAfterApproval) {
-                    if (pdfAction === 'download' && pdfUrl) {
-                        // Guardar la URL para mostrar el botón de descarga
-                        setGeneratedPdfUrl(pdfUrl);
-                        setSuccessMessage('Comprobante aprobado y PDF generado correctamente');
-                    } else if (pdfAction === 'email') {
-                        setSuccessMessage('Comprobante aprobado y PDF enviado por correo correctamente');
-                    }
+                if (generatePdfAfterApproval && pdfUrl) {
+                    setGeneratedPdfUrl(pdfUrl);
+                    setSuccessMessage('Comprobante aprobado y PDF generado');
                 } else {
                     setSuccessMessage('Comprobante aprobado exitosamente');
                 }
@@ -91,13 +76,13 @@ const PaymentProofs: React.FC<PaymentProofsProps> = ({ pendingProofs }) => {
 
     const openRejectModal = (proofId: number) => {
         setRejectingProofId(proofId);
-        reset();
+        rejectionForm.reset();
     };
 
     const handleReject = () => {
         if (!rejectingProofId) return;
 
-        post(route('admin.payment-proofs.reject', rejectingProofId), {
+        rejectionForm.post(route('admin.payment-proofs.reject', rejectingProofId), {
             onSuccess: () => {
                 setRejectingProofId(null);
                 setSuccessMessage('Comprobante rechazado correctamente');
@@ -106,156 +91,138 @@ const PaymentProofs: React.FC<PaymentProofsProps> = ({ pendingProofs }) => {
     };
 
     return (
-        <AdminLayout>
-            <Head title="Gestión de comprobantes" />
+        <AdminLayout title="Comprobantes">
+            <Head title="Gestión de Comprobantes" />
 
-            <div className="container mx-auto p-4">
-                <h1 className="text-2xl font-bold mb-6">Gestión de comprobantes de pago</h1>
+            <div className="container mx-auto p-2 sm:p-4">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-100">
+                            <ReceiptText className="w-6 h-6" />
+                        </div>
+                        <h1 className="text-xl sm:text-2xl font-black font-title">Comprobantes Pendientes</h1>
+                    </div>
+                </div>
 
-                {/* Mensaje de éxito con botón de descarga cuando corresponde */}
+                {/* Mensaje de Éxito / PDF */}
                 {successMessage && (
-                    <div className="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded shadow-md relative">
-                        <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-                            <div className="mb-3 md:mb-0">
-                                <p className="font-bold text-lg">¡Operación exitosa!</p>
-                                <p>{successMessage}</p>
+                    <div className="bg-emerald-50 border border-emerald-100 p-4 sm:p-6 rounded-2xl shadow-sm mb-6 animate-in slide-in-from-top duration-300">
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <div className="flex items-start gap-3">
+                                <div className="p-2 bg-emerald-100 rounded-lg text-emerald-600">
+                                    <CheckCircle2 className="w-5 h-5" />
+                                </div>
+                                <div>
+                                    <p className="text-emerald-900 font-black uppercase tracking-tight text-sm">¡Operación Confirmada!</p>
+                                    <p className="text-emerald-600 text-xs font-medium">{successMessage}</p>
+                                </div>
                             </div>
 
-                            {generatedPdfUrl && (
-                                <a
-                                    href={generatedPdfUrl}
-                                    target="_blank"
-                                    className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg shadow-md flex items-center justify-center"
-                                    rel="noopener noreferrer"
+                            <div className="flex items-center gap-2">
+                                {generatedPdfUrl && (
+                                    <a
+                                        href={generatedPdfUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex-1 sm:flex-none h-11 px-6 bg-slate-800 text-white rounded-xl hover:bg-slate-900 font-black transition-all text-xs flex items-center justify-center gap-2 uppercase tracking-widest shadow-lg shadow-slate-100"
+                                    >
+                                        <Download className="w-4 h-4" /> Descargar Surtido
+                                    </a>
+                                )}
+                                <button
+                                    onClick={() => { setSuccessMessage(null); setGeneratedPdfUrl(null); }}
+                                    className="h-11 w-11 flex items-center justify-center text-emerald-400 hover:bg-emerald-100/50 rounded-xl transition-all"
                                 >
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
-                                    </svg>
-                                    Descargar PDF de surtido
-                                </a>
-                            )}
+                                    <XCircle className="w-5 h-5" />
+                                </button>
+                            </div>
                         </div>
-
-                        <button
-                            onClick={() => {
-                                setSuccessMessage(null);
-                                setGeneratedPdfUrl(null);
-                            }}
-                            className="absolute top-2 right-2 text-green-700 hover:text-green-900"
-                            aria-label="Cerrar"
-                        >
-                            &times;
-                        </button>
                     </div>
                 )}
 
+                {/* Lista */}
                 {pendingProofs.length === 0 ? (
-                    <div className="bg-white p-6 rounded-lg shadow-md text-center">
-                        <p className="text-lg text-gray-600">No hay comprobantes pendientes de revisión.</p>
+                    <div className="bg-white p-16 rounded-2xl shadow-sm text-center border-2 border-dashed border-gray-100">
+                        <CheckCircle2 className="w-16 h-16 mx-auto text-emerald-100 mb-4" />
+                        <p className="text-gray-400 text-lg font-medium">No hay comprobantes pendientes de revisión</p>
+                        <p className="text-gray-300 text-sm">¡Todo está al día!</p>
                     </div>
                 ) : (
-                    <div className="bg-white rounded-lg shadow-md overflow-hidden">
+                    <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-100">
                         <div className="overflow-x-auto">
-                            <table className="min-w-full divide-y divide-gray-200">
-                                <thead className="bg-gray-50">
+                            <table className="min-w-[1100px] w-full divide-y divide-gray-100">
+                                <thead className="bg-gray-50/50">
                                     <tr>
-                                        <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-20">Orden #</th>
-                                        <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-40">Cliente</th>
-                                        <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-32">Monto</th>
-                                        <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-32">Fecha</th>
-                                        <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-40">Comprobante</th>
-                                        <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-24">Estado</th>
-                                        <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-28">Acciones</th>
-                                        <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-28">
-                                            <span className="whitespace-normal">Detalles de la compra</span>
-                                        </th>
-                                        <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-28">
-                                            <span className="whitespace-normal">Orden de surtido</span>
-                                        </th>
+                                        <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest w-24">Orden #</th>
+                                        <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Información Cliente</th>
+                                        <th className="px-6 py-4 text-center text-[10px] font-black text-gray-400 uppercase tracking-widest w-28">Monto</th>
+                                        <th className="px-6 py-4 text-center text-[10px] font-black text-gray-400 uppercase tracking-widest w-32">Fecha Subida</th>
+                                        <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Archivo / Notas</th>
+                                        <th className="px-6 py-4 text-center text-[10px] font-black text-gray-400 uppercase tracking-widest w-36">Operaciones</th>
                                     </tr>
                                 </thead>
-                                <tbody className="bg-white divide-y divide-gray-200">
+                                <tbody className="bg-white divide-y divide-gray-50">
                                     {pendingProofs.map((proof) => (
-                                        <tr key={proof.id}>
-                                            <td className="px-3 py-3 whitespace-nowrap text-center">
-                                                <span className="text-sm font-medium text-gray-900">#{proof.order_id}</span>
-                                            </td>
-                                            <td className="px-3 py-3 text-center">
-                                                <div className="text-sm font-medium text-gray-900">{proof.customer_name}</div>
-                                                <div className="text-sm text-gray-500 break-words">{proof.customer_email}</div>
-                                            </td>
-                                            <td className="px-3 py-3 whitespace-nowrap text-center">
-                                                <span className="text-sm text-gray-900">${Number(proof.total_amount).toFixed(2)} MXN</span>
-                                            </td>
-                                            <td className="px-3 py-3 whitespace-nowrap text-center">
-                                                <span className="text-sm text-gray-900">{proof.created_at}</span>
-                                            </td>
-                                            <td className="px-3 py-3 text-center">
-                                                <a
-                                                    href={`/storage/${proof.file_path}`}
-                                                    target="_blank"
-                                                    className="text-blue-600 hover:text-blue-800 break-all inline-block max-w-[200px]"
-                                                >
-                                                    {proof.file_name}
-                                                </a>
-                                                {proof.notes && (
-                                                    <div className="text-xs text-gray-500 mt-1 break-words">
-                                                        <span className="font-semibold">Notas:</span> {proof.notes}
-                                                    </div>
-                                                )}
-                                            </td>
-                                            <td className="px-3 py-3 whitespace-nowrap text-center">
-                                                <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${proof.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                                                    proof.status === 'approved' ? 'bg-green-100 text-green-800' :
-                                                        'bg-red-100 text-red-800'
-                                                    }`}>
-                                                    {proof.status === 'pending' ? 'Pendiente' :
-                                                        proof.status === 'approved' ? 'Aprobado' : 'Rechazado'}
-                                                </span>
-                                            </td>
-                                            <td className="px-3 py-3 text-center">
-                                                <button
-                                                    onClick={() => openApproveModal(proof.id)}
-                                                    className="text-green-600 hover:text-green-900 block mx-auto cursor-pointer mb-1"
-                                                >
-                                                    Aprobar
-                                                </button>
-                                                <button
-                                                    onClick={() => openRejectModal(proof.id)}
-                                                    className="text-red-600 hover:text-red-900 block cursor-pointer mx-auto"
-                                                >
-                                                    Rechazar
-                                                </button>
-                                            </td>
-                                            <td className="px-3 py-3 text-center">
-                                                <a
-                                                    href={route('admin.orders.show', proof.order_id)}
-                                                    className="text-blue-600 hover:text-blue-800 cursor-pointer whitespace-normal"
-                                                >
-                                                    Ver detalles
-                                                </a>
+                                        <tr key={proof.id} className="hover:bg-blue-50/20 transition-all group">
+                                            <td className="px-6 py-4">
+                                                <span className="text-sm font-black text-gray-900 bg-gray-50 px-3 py-1 rounded-lg border border-gray-100">#{proof.order_id}</span>
                                             </td>
 
-                                            {/* Nueva celda para la orden de surtido */}
-                                            <td className="px-3 py-3 text-center">
-                                                {proof.status === 'approved' ? (
+                                            <td className="px-6 py-4">
+                                                <div className="text-sm font-black text-gray-900 leading-tight uppercase tracking-tight">{proof.customer_name}</div>
+                                                <div className="text-[11px] text-gray-400 font-medium">{proof.customer_email}</div>
+                                            </td>
+
+                                            <td className="px-6 py-4 text-center">
+                                                <span className="text-sm font-black text-gray-900">${Number(proof.total_amount).toLocaleString('es-MX', { minimumFractionDigits: 2 })}</span>
+                                            </td>
+
+                                            <td className="px-6 py-4 text-center">
+                                                <span className="text-[11px] font-bold text-gray-500 whitespace-nowrap">{proof.created_at}</span>
+                                            </td>
+
+                                            <td className="px-6 py-4">
+                                                <div className="flex flex-col gap-1">
                                                     <a
-                                                        href={route('admin.orders.shipping-pdf', proof.order_id)}
+                                                        href={`/storage/${proof.file_path}`}
                                                         target="_blank"
-                                                        className="text-black font-bold py-2 px-4 rounded text-xs inline-flex items-center justify-center w-28"
                                                         rel="noopener noreferrer"
+                                                        className="inline-flex items-center gap-1.5 text-[11px] font-black text-blue-600 hover:text-blue-800 uppercase tracking-tighter"
                                                     >
-                                                        Descargar PDF
+                                                        <FileText className="w-3 h-3" /> {proof.file_name}
                                                     </a>
-                                                ) : (
+                                                    {proof.notes && (
+                                                        <div className="text-[10px] text-gray-400 bg-gray-50 p-1.5 rounded border border-gray-100 italic">
+                                                            "{proof.notes}"
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </td>
+
+                                            <td className="px-6 py-4">
+                                                <div className="flex justify-center items-center gap-2">
                                                     <button
-                                                        disabled
-                                                        className="bg-gray-300 text-gray-500 font-bold py-2 px-4 rounded text-xs cursor-not-allowed inline-flex items-center justify-center w-28"
-                                                        title="Apruebe el comprobante primero para generar el PDF"
+                                                        onClick={() => openApproveModal(proof.id)}
+                                                        className="h-9 px-3 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 rounded-lg transition-all border border-emerald-100 font-black text-[10px] uppercase tracking-widest flex items-center gap-1.5"
+                                                        title="Aprobar Pago"
                                                     >
-                                                        No disponible
+                                                        <Check className="w-3 h-3" /> OK
                                                     </button>
-                                                )}
+                                                    <button
+                                                        onClick={() => openRejectModal(proof.id)}
+                                                        className="h-9 px-3 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-lg transition-all border border-rose-100 font-black text-[10px] uppercase tracking-widest flex items-center gap-1.5"
+                                                        title="Rechazar Pago"
+                                                    >
+                                                        <XCircle className="w-3 h-3" /> NO
+                                                    </button>
+                                                    <Link
+                                                        href={route('admin.orders.show', proof.order_id)}
+                                                        className="h-9 w-9 flex items-center justify-center bg-gray-50 text-gray-400 hover:bg-gray-100 rounded-lg border border-gray-100 transition-all"
+                                                        title="Detalles"
+                                                    >
+                                                        <Eye className="w-4 h-4" />
+                                                    </Link>
+                                                </div>
                                             </td>
                                         </tr>
                                     ))}
@@ -264,98 +231,112 @@ const PaymentProofs: React.FC<PaymentProofsProps> = ({ pendingProofs }) => {
                         </div>
                     </div>
                 )}
+            </div>
 
-                {/* Modal de aprobación con opciones de PDF */}
-                {approvingProofId && (
-                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                        <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
-                            <h2 className="text-xl font-bold mb-4 text-green-700">Aprobar comprobante</h2>
-                            <div className="mb-4">
-                                <p className="text-gray-700">
-                                ¿Estás seguro de que deseas aprobar este comprobante de pago? 
-                                Esta acción sugiere que <span className='font-bold underline bg-[#FBCC13]'>El pago del cliente ha sido verificado y confirmado.</span> Esto continuará con el procesamiento del pedido.
+            {/* Modal Aprobación */}
+            {approvingProofId && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center backdrop-blur-md bg-black/40 p-4 transition-all animate-in fade-in">
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 relative border border-gray-100 animate-in zoom-in-95 duration-200">
+                        <div className="flex items-center gap-4 mb-8">
+                            <div className="w-14 h-14 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600 shadow-inner">
+                                <CheckCircle2 className="w-7 h-7" />
+                            </div>
+                            <div>
+                                <h2 className="text-xl font-bold text-gray-900 leading-none mb-1">Confirmar Pago</h2>
+                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Surtido Automático</p>
+                            </div>
+                        </div>
+
+                        <div className="bg-amber-50 border border-amber-100 p-4 rounded-xl mb-8">
+                            <div className="flex gap-3">
+                                <AlertCircle className="w-5 h-5 text-amber-500 shrink-0" />
+                                <p className="text-xs text-amber-700 font-medium leading-relaxed">
+                                    Al aprobar, confirmas que el dinero está en la cuenta. Esto liberará el proceso de surtido de almacén.
                                 </p>
                             </div>
+                        </div>
 
-                            <div className="border-t border-gray-200 pt-4 mb-4">
-                                <label className="flex items-center mb-2 cursor-pointer">
-                                    <input
-                                        type="checkbox"
-                                        checked={generatePdfAfterApproval}
-                                        onChange={(e) => setGeneratePdfAfterApproval(e.target.checked)}
-                                        className="mr-2 h-4 w-4 text-blue-600"
-                                    />
-                                    <span className="text-gray-700">Generar orden de surtido en PDF</span>
-                                </label>
-                                {/* 
-                                {generatePdfAfterApproval && (
-                                    <div className="pl-6 mt-2">
-                                        <select
-                                            value={pdfAction}
-                                            onChange={(e) => setPdfAction(e.target.value as 'download' | 'email')}
-                                            className="w-full border rounded p-2 text-sm"
-                                        >
-                                            <option value="download">Generar PDF para descargar</option>
-                                            <option value="email">Enviar por correo al departamento de almacén</option>
-                                        </select>
-                                    </div>
-                                )} */}
-                            </div>
+                        <div className="mb-8">
+                            <label className="flex items-center group cursor-pointer p-4 bg-gray-50 rounded-2xl border-2 border-transparent hover:border-blue-100 transition-all">
+                                <input
+                                    type="checkbox"
+                                    checked={generatePdfAfterApproval}
+                                    onChange={(e) => setGeneratePdfAfterApproval(e.target.checked)}
+                                    className="w-5 h-5 rounded text-blue-600 focus:ring-blue-500 border-gray-300 transition-all"
+                                />
+                                <div className="ml-4">
+                                    <span className="block text-sm font-black text-gray-900 uppercase tracking-tight">Generar PDF de Surtido</span>
+                                    <span className="block text-[10px] text-gray-400 font-bold">Descarga inmediata tras aprobación</span>
+                                </div>
+                            </label>
+                        </div>
 
-                            <div className="flex justify-end space-x-2">
-                                <Button
-                                    onClick={() => setApprovingProofId(null)}
-                                    className="bg-gray-300 text-black hover:bg-gray-400 cursor-pointer"
-                                >
-                                    Cancelar
-                                </Button>
-                                <Button
-                                    onClick={handleApprove}
-                                    disabled={approving}
-                                    className="bg-green-600 text-white hover:bg-green-700 cursor-pointer"
-                                >
-                                    {approving ? 'Procesando...' : 'Confirmar Aprobación'}
-                                </Button>
-                            </div>
+                        <div className="flex flex-col gap-3">
+                            <button
+                                type="button"
+                                onClick={handleApprove}
+                                className={`w-full py-4 rounded-2xl text-white flex items-center justify-center font-black shadow-xl shadow-emerald-100 transition-all text-sm uppercase tracking-[0.2em] cursor-pointer ${approving ? 'bg-emerald-400' : 'bg-emerald-600 hover:bg-emerald-700 active:scale-95'}`}
+                                disabled={approving}
+                            >
+                                {approving ? 'PROCESANDO...' : 'CONFIRMAR APROBACIÓN'}
+                            </button>
+                            <button
+                                type="button"
+                                className="w-full py-4 rounded-2xl bg-gray-50 hover:bg-gray-100 text-gray-400 font-black transition-all text-xs uppercase tracking-widest cursor-pointer"
+                                onClick={() => setApprovingProofId(null)}
+                                disabled={approving}
+                            >CANCELAR</button>
                         </div>
                     </div>
-                )}
+                </div>
+            )}
 
-                {/* Modal de rechazo */}
-                {rejectingProofId && (
-                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                        <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
-                            <h2 className="text-xl font-bold mb-4">Rechazar comprobante</h2>
-                            <div className="mb-4">
-                                <label className="block text-gray-700 mb-2">Motivo del rechazo</label>
-                                <textarea
-                                    value={data.admin_notes}
-                                    onChange={e => setData('admin_notes', e.target.value)}
-                                    className="w-full px-3 py-2 border rounded"
-                                    rows={4}
-                                    placeholder="Explique el motivo del rechazo..."
-                                ></textarea>
-                                {errors.admin_notes && <p className="text-red-500 text-xs mt-1">{errors.admin_notes}</p>}
+            {/* Modal Rechazo */}
+            {rejectingProofId && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center backdrop-blur-md bg-black/40 p-4 transition-all animate-in fade-in">
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 relative border border-gray-100 animate-in zoom-in-95 duration-200">
+                        <div className="flex items-center gap-4 mb-8">
+                            <div className="w-14 h-14 bg-rose-50 rounded-2xl flex items-center justify-center text-rose-600 shadow-inner">
+                                <XCircle className="w-7 h-7" />
                             </div>
-                            <div className="flex justify-end space-x-2">
-                                <Button
-                                    onClick={() => setRejectingProofId(null)}
-                                    className="bg-gray-300 text-black hover:bg-gray-400 cursor-pointer"
-                                >
-                                    Cancelar
-                                </Button>
-                                <Button
-                                    onClick={handleReject}
-                                    disabled={processing || !data.admin_notes}
-                                    className="bg-red-600 text-white hover:bg-red-700 cursor-pointer"
-                                >
-                                    {processing ? 'Procesando...' : 'Confirmar Rechazo'}
-                                </Button>
+                            <div>
+                                <h2 className="text-xl font-bold text-gray-900 leading-none mb-1">Rechazar Pago</h2>
+                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Aviso al Cliente</p>
                             </div>
                         </div>
+
+                        <div className="mb-8">
+                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-3 ml-1" htmlFor="notes">⚠️ Motivo del Rechazo</label>
+                            <textarea
+                                id="notes"
+                                value={rejectionForm.data.admin_notes}
+                                onChange={e => rejectionForm.setData('admin_notes', e.target.value)}
+                                className="w-full p-5 border-2 rounded-2xl border-gray-50 bg-gray-50/50 hover:bg-white hover:border-blue-100 focus:bg-white focus:border-rose-500 focus:outline-none transition-all text-sm font-medium shadow-inner placeholder:text-gray-300"
+                                rows={4}
+                                placeholder="Escribe aquí por qué se rechaza (ej. Archivo ilegible, monto incorrecto...)"
+                            ></textarea>
+                            {rejectionForm.errors.admin_notes && <p className="text-rose-500 text-[10px] font-black mt-2 uppercase">{rejectionForm.errors.admin_notes}</p>}
+                        </div>
+
+                        <div className="flex flex-col gap-3">
+                            <button
+                                type="button"
+                                onClick={handleReject}
+                                className={`w-full py-4 rounded-2xl text-white flex items-center justify-center font-black shadow-xl shadow-rose-100 transition-all text-sm uppercase tracking-[0.2em] cursor-pointer ${rejectionForm.processing || !rejectionForm.data.admin_notes ? 'bg-rose-300' : 'bg-rose-600 hover:bg-rose-700 active:scale-95'}`}
+                                disabled={rejectionForm.processing || !rejectionForm.data.admin_notes}
+                            >
+                                {rejectionForm.processing ? 'PROCESANDO...' : 'CONFIRMAR RECHAZO'}
+                            </button>
+                            <button
+                                type="button"
+                                className="w-full py-4 rounded-2xl bg-gray-50 hover:bg-gray-100 text-gray-400 font-black transition-all text-xs uppercase tracking-widest cursor-pointer"
+                                onClick={() => setRejectingProofId(null)}
+                                disabled={rejectionForm.processing}
+                            >ABORTAR</button>
+                        </div>
                     </div>
-                )}
-            </div>
+                </div>
+            )}
         </AdminLayout>
     );
 };
