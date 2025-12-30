@@ -8,10 +8,11 @@ import { SearchBar } from '@/components/search-bar';
 import { Link, usePage } from '@inertiajs/react';
 import { Cart } from '@/components/shopping-car';
 import { ShoppingCarView } from '@/components/shopping-car-view';
-import { Menu, X } from 'lucide-react';
+import { type SharedData } from '@/types';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Facebook, Instagram, MessageCircle, LayoutDashboard } from 'lucide-react';
 import CoachmarkTutorial from '@/components/CoachmarkTutorial';
 import WhatsAppWidget from '@/components/WhatsAppWidget';
-import { type SharedData } from '@/types';
 
 export default function AppSidebarLayout({
     children,
@@ -112,14 +113,29 @@ export default function AppSidebarLayout({
                             className="h-7 w-7 opacity-80 invert"
                         />
                     </button>
-                    {/* Hamburguesa */}
+                    {/* Hamburguesa Animada */}
                     <button
-                        className="flex items-center justify-center ml-2 p-2 rounded-full hover:bg-[#0055b3] transition-colors"
-                        onClick={handleOpenMobileMenu}
-                        aria-label="Abrir menú"
-                        type="button"
+                        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                        className="relative z-50 w-10 h-10 flex items-center justify-center focus:outline-none ml-2"
+                        aria-label={isMobileMenuOpen ? "Cerrar menú" : "Abrir menú"}
                     >
-                        <Menu className="h-7 w-7" />
+                        <div className="relative w-6 h-5">
+                            <motion.span
+                                animate={isMobileMenuOpen ? { rotate: 45, y: 8 } : { rotate: 0, y: 0 }}
+                                className="absolute block h-0.5 w-6 bg-slate-900 dark:bg-slate-900 rounded-full"
+                                transition={{ duration: 0.3 }}
+                            />
+                            <motion.span
+                                animate={isMobileMenuOpen ? { opacity: 0, x: -10 } : { opacity: 1, x: 0 }}
+                                className="absolute block h-0.5 w-6 bg-slate-900 dark:bg-slate-900 rounded-full top-2"
+                                transition={{ duration: 0.2 }}
+                            />
+                            <motion.span
+                                animate={isMobileMenuOpen ? { rotate: -45, y: -8 } : { rotate: 0, y: 0 }}
+                                className="absolute block h-0.5 w-6 bg-slate-900 dark:bg-slate-900 rounded-full top-4"
+                                transition={{ duration: 0.3 }}
+                            />
+                        </div>
                     </button>
                 </div>
                 {/* Mobile search bar overlay: centrada, sin borde amarillo, con animación */}
@@ -162,108 +178,129 @@ export default function AppSidebarLayout({
                 </style>
             </header>
 
-            {/* Menú lateral móvil */}
-            {isMobileMenuOpen && (
-                <div className="fixed inset-0 z-[200] flex">
-                    {/* Fondo oscuro */}
-                    <div
-                        className="fixed inset-0 bg-black bg-opacity-40"
-                        onClick={handleCloseMobileMenu}
-                    />
-                    {/* Drawer */}
-                    <aside className="relative ml-auto w-72 max-w-full h-full bg-white shadow-lg z-[201] animate-slide-in-left flex flex-col">
-                        {/* Cerrar */}
-                        <button
-                            className="absolute top-4 right-4 text-gray-700 hover:text-[#006CFA] transition-colors "
+            {/* Menú móvil desplegable con AnimatePresence */}
+            <AnimatePresence>
+                {isMobileMenuOpen && (
+                    <>
+                        {/* Backdrop opcional si quieres que se cierre al hacer click fuera, o simplemente el menú */}
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="fixed inset-0 bg-black/40 z-[40] sm:hidden"
                             onClick={handleCloseMobileMenu}
-                            aria-label="Cerrar menú"
+                        />
+
+                        <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            exit={{ opacity: 0, height: 0 }}
+                            transition={{ duration: 0.4, ease: [0.04, 0.62, 0.23, 0.98] }}
+                            className="absolute top-[72px] left-0 w-full bg-[#FBCC13] dark:bg-yellow-500 shadow-2xl overflow-hidden z-[100] sm:hidden border-t border-yellow-600/20"
                         >
-                            <X className="h-7 w-7" />
-                        </button>
-                        <div className="p-6 pt-12 flex flex-col gap-2 h-full">
-                            {/* Usuario o invitado */}
-                            {auth?.user ? (
-                                <>
-                                    <div className="flex items-center gap-3 mb-4">
-                                        <div className="rounded-full bg-gray-200 text-gray-700 w-10 h-10 flex items-center justify-center font-bold text-lg text-black">
-                                            {getInitials(auth?.user?.name)}
+                            <div className="p-6 flex flex-col space-y-4">
+                                {/* Usuario o invitado */}
+                                {auth?.user ? (
+                                    <>
+                                        <div className="flex items-center gap-3 pb-4 border-b border-yellow-600/20">
+                                            <div className="rounded-full bg-white/20 text-slate-900 w-10 h-10 flex items-center justify-center font-bold text-lg">
+                                                {getInitials(auth?.user?.name)}
+                                            </div>
+                                            <div className="flex flex-col">
+                                                <span className="font-bold text-slate-900">{auth?.user?.name}</span>
+                                                <span className="text-xs text-slate-800 opacity-80">{auth?.user?.email}</span>
+                                            </div>
                                         </div>
-                                        <span className="font-semibold text-base text-black">{auth?.user?.name}</span>
-                                    </div>
-                                    {/* Configuración */}
-                                    <Link
-                                        href={route('profile.edit')}
-                                        className="block py-2 px-4 rounded hover:bg-[#F5F7FA] text-[#006CFA] font-bold mr-[50%]"
-                                        onClick={handleCloseMobileMenu}
-                                        as="button"
-                                        prefetch
-                                    >
-                                        Configuración
-                                    </Link>
-                                    {/* Mis pedidos */}
-                                    <Link
-                                        href="/orders"
-                                        className="block py-2 px-4 rounded hover:bg-[#F5F7FA] text-[#006CFA] font-semibold"
-                                        onClick={handleCloseMobileMenu}
-                                    >
-                                        Mis pedidos
-                                    </Link>
-                                    {/* Cerrar sesión */}
-                                    <Link
-                                        href={route('logout')}
-                                        method="post"
-                                        as="button"
-                                        className="block w-full text-left py-2 px-4 rounded hover:bg-[#F5F7FA] text-red-600 mt-auto"
-                                        onClick={handleCloseMobileMenu}
-                                    >
-                                        Cerrar sesión
-                                    </Link>
-                                </>
-                            ) : (
-                                <>
-                                    <div className="flex items-center gap-3 mb-4">
-                                        <div className="rounded-full bg-gray-200 text-gray-700 w-10 h-10 flex items-center justify-center font-bold text-lg text-black">
-                                            {getInitials()}
+
+                                        <Link
+                                            href={route('profile.edit')}
+                                            className="flex items-center justify-between py-3 px-2 rounded-lg hover:bg-white/10 text-slate-900 font-semibold transition-colors"
+                                            onClick={handleCloseMobileMenu}
+                                        >
+                                            <span>Mi Perfil</span>
+                                            <div className="text-slate-700">→</div>
+                                        </Link>
+
+                                        <Link
+                                            href="/orders"
+                                            className="flex items-center justify-between py-3 px-2 rounded-lg hover:bg-white/10 text-slate-900 font-semibold transition-colors"
+                                            onClick={handleCloseMobileMenu}
+                                        >
+                                            <span>Mis Pedidos</span>
+                                            <div className="text-slate-700">→</div>
+                                        </Link>
+
+                                        {/* Panel de Administración (Solo para admins) */}
+                                        {auth?.user?.role === 'admin' && (
+                                            <Link
+                                                href="/admin/dashboard"
+                                                className="flex items-center justify-between py-3 px-2 rounded-lg bg-slate-900/10 hover:bg-slate-900/20 text-slate-900 font-bold transition-colors mt-2"
+                                                onClick={handleCloseMobileMenu}
+                                            >
+                                                <div className="flex items-center gap-2">
+                                                    <LayoutDashboard className="w-5 h-5" />
+                                                    <span>Panel de Administración</span>
+                                                </div>
+                                                <div className="text-slate-700">→</div>
+                                            </Link>
+                                        )}
+
+                                        <Link
+                                            href={route('logout')}
+                                            method="post"
+                                            as="button"
+                                            className="flex items-center justify-between w-full text-left py-3 px-2 rounded-lg hover:bg-red-500/10 text-red-700 font-bold transition-colors mt-4"
+                                            onClick={handleCloseMobileMenu}
+                                        >
+                                            <span>Cerrar Sesión</span>
+                                        </Link>
+                                    </>
+                                ) : (
+                                    <>
+                                        <div className="flex flex-col gap-3 pt-2">
+                                            <Link
+                                                href="/login"
+                                                className="w-full py-4 rounded-xl bg-slate-900 text-[#FBCC13] font-bold text-center shadow-lg active:scale-95 transition-transform"
+                                                onClick={handleCloseMobileMenu}
+                                            >
+                                                Iniciar Sesión
+                                            </Link>
+                                            <Link
+                                                href="/register"
+                                                className="w-full py-4 rounded-xl bg-white/20 text-slate-900 font-bold text-center border border-slate-900/10 active:scale-95 transition-transform"
+                                                onClick={handleCloseMobileMenu}
+                                            >
+                                                Registrarse
+                                            </Link>
                                         </div>
-                                        <span className="font-semibold text-base text-black">Invitado</span>
+                                    </>
+                                )}
+
+                                {/* Redes Sociales */}
+                                <div className="pt-6 mt-6 border-t border-yellow-600/20 flex flex-col gap-4">
+                                    <span className="text-xs font-bold text-slate-800 uppercase tracking-wider opacity-60 px-2">Nuestras Redes</span>
+                                    <div className="flex items-center justify-around px-2">
+                                        <a href="https://wa.me/527771810370" target="_blank" rel="noopener noreferrer" className="p-3 bg-white/20 rounded-full text-slate-900 hover:bg-green-500 hover:text-white transition-all shadow-sm active:scale-90">
+                                            <MessageCircle className="w-6 h-6" />
+                                        </a>
+                                        <a href="https://www.facebook.com/boomtractopartes/?locale=es_LA" target="_blank" rel="noopener noreferrer" className="p-3 bg-white/20 rounded-full text-slate-900 hover:bg-blue-600 hover:text-white transition-all shadow-sm active:scale-90">
+                                            <Facebook className="w-6 h-6" />
+                                        </a>
+                                        <a href="https://www.instagram.com/elboomtractopartes/?hl=es" target="_blank" rel="noopener noreferrer" className="p-3 bg-white/20 rounded-full text-slate-900 hover:bg-pink-600 hover:text-white transition-all shadow-sm active:scale-90">
+                                            <Instagram className="w-6 h-6" />
+                                        </a>
+                                        <a href="https://www.tiktok.com" target="_blank" rel="noopener noreferrer" className="p-3 bg-white/20 rounded-full text-slate-900 hover:bg-black hover:text-white transition-all shadow-sm active:scale-90">
+                                            <svg viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6">
+                                                <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.17-2.86-.6-4.12-1.31a8.15 8.15 0 0 1-1.33-1.01c-.13 3.1-.11 6.22-.12 9.33-.01 2.01-.5 4.16-1.92 5.62-1.51 1.56-3.83 2.15-5.91 1.9-2.18-.17-4.29-1.31-5.39-3.21-1.22-1.99-1.23-4.66-.23-6.68.91-1.84 2.82-3.13 4.87-3.41 1.02-.15 2.06-.05 3.03.27V12.44a5.13 5.13 0 0 0-2.88-.04c-1.84.47-3.32 2.1-3.6 4-.29 1.72.33 3.63 1.7 4.75 1.45 1.19 3.56 1.41 5.25.64 1.47-.64 2.32-2.18 2.33-3.76.01-4.71.01-9.42.01-14.13-.01-.39-.06-.78-.06-1.17z" />
+                                            </svg>
+                                        </a>
                                     </div>
-                                    <Link
-                                        href="/login"
-                                        className="block py-2 px-4 rounded hover:bg-[#F5F7FA] text-[#006CFA] font-bold"
-                                        onClick={handleCloseMobileMenu}
-                                    >
-                                        Iniciar sesión
-                                    </Link>
-                                    <Link
-                                        href="/register"
-                                        className="block py-2 px-4 rounded hover:bg-[#F5F7FA] text-[#006CFA] font-semibold"
-                                        onClick={handleCloseMobileMenu}
-                                    >
-                                        Registrarse
-                                    </Link>
-                                </>
-                            )}
-                        </div>
-                    </aside>
-                    <style>
-                        {`
-            @keyframes slideInLeft {
-                0% {
-                    transform: translateX(100%);
-                    opacity: 0;
-                }
-                100% {
-                    transform: translateX(0);
-                    opacity: 1;
-                }
-            }
-            .animate-slide-in-left {
-                animation: slideInLeft 0.3s cubic-bezier(0.4,0,0.2,1);
-            }
-            `}
-                    </style>
-                </div>
-            )}
+                                </div>
+                            </div>
+                        </motion.div>
+                    </>
+                )}
+            </AnimatePresence>
 
             <div className="pt-20">
                 <AppContent>

@@ -1,147 +1,148 @@
 import React from 'react';
-import { Head } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import AdminLayout from '@/layouts/admin-layout';
+import {
+    ReceiptText,
+    ClipboardList,
+    Package,
+    Layers,
+    Users,
+    BookOpen,
+    Truck,
+    AlertTriangle,
+    ChevronRight,
+    LayoutDashboard
+} from 'lucide-react';
 
 const Dashboard: React.FC = () => {
+    const adminModules = [
+        {
+            title: 'Comprobantes',
+            description: 'Revisa y aprueba comprobantes de pago pendientes de verificación.',
+            href: route('admin.payment-proofs.pending'),
+            icon: ReceiptText,
+            color: 'text-blue-600',
+            bgColor: 'bg-blue-50',
+            borderColor: 'hover:border-blue-200'
+        },
+        {
+            title: 'Órdenes',
+            description: 'Gestiona los pedidos de los clientes y su estado de procesamiento.',
+            href: route('admin.orders'),
+            icon: ClipboardList,
+            color: 'text-emerald-600',
+            bgColor: 'bg-emerald-50',
+            borderColor: 'hover:border-emerald-200'
+        },
+        {
+            title: 'Productos',
+            description: 'Controla el catálogo completo de productos y existencias.',
+            href: route('admin.products'),
+            icon: Package,
+            color: 'text-violet-600',
+            bgColor: 'bg-violet-50',
+            borderColor: 'hover:border-violet-200'
+        },
+        {
+            title: 'Familias',
+            description: 'Administra agrupaciones de variantes y colores de productos.',
+            href: route('admin.product-families.index'),
+            icon: Layers,
+            color: 'text-orange-600',
+            bgColor: 'bg-orange-50',
+            borderColor: 'hover:border-orange-200'
+        },
+        {
+            title: 'Incidencias',
+            description: 'Atiende reportes de sobreventas y diferencias de stock.',
+            href: route('admin.products.incidences'),
+            icon: AlertTriangle,
+            color: 'text-rose-600',
+            bgColor: 'bg-rose-50',
+            borderColor: 'hover:border-rose-200'
+        },
+        {
+            title: 'Vacantes',
+            description: 'Publica y gestiona ofertas laborales en la bolsa de trabajo.',
+            href: route('admin.vacancies.index'),
+            icon: Users,
+            color: 'text-amber-600',
+            bgColor: 'bg-amber-50',
+            borderColor: 'hover:border-amber-200'
+        },
+        {
+            title: 'Catálogos',
+            description: 'Sube y organiza los catálogos PDF de la página principal.',
+            href: route('admin.catalogs.index'),
+            icon: BookOpen,
+            color: 'text-sky-600',
+            bgColor: 'bg-sky-50',
+            borderColor: 'hover:border-sky-200'
+        },
+        {
+            title: 'Recolecciones',
+            description: 'Monitorea las recolecciones programadas con DHL.',
+            href: route('admin.dhl-pickups.index'),
+            icon: Truck,
+            color: 'text-slate-600',
+            bgColor: 'bg-slate-50',
+            borderColor: 'hover:border-slate-200'
+        },
+        {
+            title: 'Orden de Tipos',
+            description: 'Configura la jerarquía de aparición de categorías.',
+            href: route('admin.product-types.order'),
+            icon: Layers,
+            color: 'text-indigo-600',
+            bgColor: 'bg-indigo-50',
+            borderColor: 'hover:border-indigo-200'
+        }
+    ];
+
     return (
-        <AdminLayout title="Panel de Administrador">
-            <Head title="Panel de administrador" />
+        <AdminLayout title="Resumen">
+            <Head title="Panel de Administrador" />
 
-            {/* Fondo general suave en claro y oscuro */}
-            <div className="bg-gray-50 dark:bg-gray-900 min-h-screen p-6">
-                {/* Contenedor central con fondo blanco / gris oscuro */}
-                <div className="max-w-7xl mx-auto bg-white dark:bg-gray-800 overflow-hidden shadow-sm rounded-lg">
-                    <div className="p-6 text-gray-900 dark:text-gray-100">
-                        <h1 className="text-2xl font-bold mb-6">Gestión de datos</h1>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {/* Comprobantes */}
-                            <div className="bg-blue-100 dark:bg-blue-800 p-6 rounded-lg shadow">
-                                <h2 className="text-lg font-semibold mb-2">Comprobantes pendientes</h2>
-                                <p className="mb-4">
-                                    Revisa y aprueba los comprobantes de pago subidos por los clientes.
-                                </p>
-                                <a
-                                    href={route('admin.payment-proofs.pending')}
-                                    className="text-blue-700 dark:text-blue-300 hover:text-blue-900 dark:hover:text-blue-100 font-medium"
-                                >
-                                    Ver comprobantes →
-                                </a>
-                            </div>
-
-                            {/* Órdenes */}
-                            <div className="bg-green-100 dark:bg-green-800 p-6 rounded-lg shadow">
-                                <h2 className="text-lg font-semibold mb-2">Órdenes</h2>
-                                <p className="mb-4">
-                                    Gestiona las órdenes de los clientes y su estado de procesamiento.
-                                </p>
-                                <a
-                                    href={route('admin.orders')}
-                                    className="text-green-700 dark:text-green-300 hover:text-green-900 dark:hover:text-green-100 font-medium"
-                                >
-                                    Ver órdenes →
-                                </a>
-                            </div>
-
-                            {/* Productos */}
-                            <div className="bg-purple-100 dark:bg-purple-800 p-6 rounded-lg shadow">
-                                <h2 className="text-lg font-semibold mb-2">Productos</h2>
-                                <p className="mb-4">
-                                    Administra el catálogo de productos de la tienda.
-                                </p>
-                                <a
-                                    href={route('admin.products')}
-                                    className="text-purple-700 dark:text-purple-300 hover:text-purple-900 dark:hover:text-purple-100 font-medium"
-                                >
-                                    Gestionar productos →
-                                </a>
-                            </div>
-
-                            {/* Orden de tipos */}
-                            <div className="bg-indigo-100 dark:bg-indigo-800 p-6 rounded-lg shadow">
-                                <h2 className="text-lg font-semibold mb-2">Orden de tipos</h2>
-                                <p className="mb-4">
-                                    Define el orden en que se muestran los productos por tipo.
-                                </p>
-                                <a
-                                    href={route('admin.product-types.order')}
-                                    className="text-indigo-700 dark:text-indigo-300 hover:text-indigo-900 dark:hover:text-indigo-100 font-medium"
-                                >
-                                    Configurar orden →
-                                </a>
-                            </div>
-
-                            {/* Familias */}
-                            <div className="bg-cyan-100 dark:bg-cyan-800 p-6 rounded-lg shadow">
-                                <h2 className="text-lg font-semibold mb-2">Familias</h2>
-                                <p className="mb-4">
-                                    Administra las agrupaciones de variantes del mismo producto (colores) por tipo y base.
-                                </p>
-                                <a
-                                    href={route('admin.product-families.index')}
-                                    className="text-cyan-700 dark:text-cyan-300 hover:text-cyan-900 dark:hover:text-cyan-100 font-medium"
-                                >
-                                    Gestionar familias →
-                                </a>
-                            </div>
-
-                            {/* Incidencias */}
-                            <div className="bg-rose-100 dark:bg-rose-800 p-6 rounded-lg shadow">
-                                <h2 className="text-lg font-semibold mb-2">Incidencias</h2>
-                                <p className="mb-4">
-                                    Revisa diferencias de existencias (sobreventas) detectadas.
-                                </p>
-                                <a
-                                    href={route('admin.products.incidences')}
-                                    className="text-rose-700 dark:text-rose-300 hover:text-rose-900 dark:hover:text-rose-100 font-medium"
-                                >
-                                    Ver incidencias →
-                                </a>
-                            </div>
-
-                            {/* Vacantes */}
-                            <div className="bg-yellow-100 dark:bg-yellow-800 p-6 rounded-lg shadow">
-                                <h2 className="text-lg font-semibold mb-2">Vacantes</h2>
-                                <p className="mb-4">
-                                    Administra las vacantes disponibles en la sección de Bolsa de trabajo.
-                                </p>
-                                <a
-                                    href={route('admin.vacancies.index')}
-                                    className="text-yellow-700 dark:text-yellow-300 hover:text-yellow-900 dark:hover:text-yellow-100 font-medium"
-                                >
-                                    Gestionar vacantes →
-                                </a>
-                            </div>
-
-                            {/* Catálogos */}
-                            <div className="bg-red-100 dark:bg-red-800 p-6 rounded-lg shadow">
-                                <h2 className="text-lg font-semibold mb-2">Catálogos</h2>
-                                <p className="mb-4">
-                                    Administra los catálogos mostrados en la página principal.
-                                </p>
-                                <a
-                                    href={route('admin.catalogs.index')}
-                                    className="text-red-700 dark:text-red-300 hover:text-red-900 dark:hover:text-red-100 font-medium"
-                                >
-                                    Gestionar catálogos →
-                                </a>
-                            </div>
-
-                            {/* Recolecciones DHL */}
-                            <div className="bg-yellow-100 dark:bg-sky-800 p-6 rounded-lg shadow">
-                                <h2 className="text-lg font-semibold mb-2">Recolecciones DHL</h2>
-                                <p className="mb-4">
-                                    Consulta recolecciones programadas y datos clave de la recolección.
-                                </p>
-                                <a
-                                    href={route('admin.dhl-pickups.index')}
-                                    className="text-yellow-700 dark:text-sky-300 hover:text-sky-900 dark:hover:text-sky-100 font-medium"
-                                >
-                                    Ver recolecciones →
-                                </a>
-                            </div>
+            <div className="container mx-auto p-4 sm:p-6 lg:p-8">
+                <div className="mb-8">
+                    <div className="flex items-center gap-3 mb-2">
+                        <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-100">
+                            <LayoutDashboard className="w-6 h-6" />
                         </div>
+                        <h1 className="text-2xl sm:text-3xl font-black font-title text-gray-900 uppercase tracking-tight">Panel de Control</h1>
                     </div>
+                    <p className="text-gray-400 font-medium text-sm sm:text-base">Bienvenido al centro de mando de Refacciones El Boom.</p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+                    {adminModules.map((module, index) => (
+                        <Link
+                            key={index}
+                            href={module.href}
+                            className="group"
+                        >
+                            <div className={`h-full bg-white p-6 rounded-2xl shadow-sm border border-gray-100 ${module.borderColor} hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative overflow-hidden`}>
+                                {/* Background decoration */}
+                                <div className={`absolute -right-4 -bottom-4 w-24 h-24 ${module.bgColor} rounded-full opacity-30 group-hover:scale-150 transition-transform duration-500`} />
+
+                                <div className="relative z-10">
+                                    <div className={`w-14 h-14 ${module.bgColor} rounded-2xl flex items-center justify-center ${module.color} mb-6 group-hover:scale-110 transition-transform shadow-inner`}>
+                                        <module.icon className="w-7 h-7" />
+                                    </div>
+
+                                    <h2 className="text-lg font-black text-gray-900 mb-2 uppercase tracking-tight">{module.title}</h2>
+                                    <p className="text-xs font-medium text-gray-400 leading-relaxed mb-6 line-clamp-2">
+                                        {module.description}
+                                    </p>
+
+                                    <div className="flex items-center text-[10px] font-black text-blue-600 uppercase tracking-widest gap-1 group-hover:gap-2 transition-all">
+                                        Gestionar ahora
+                                        <ChevronRight className="w-3 h-3" />
+                                    </div>
+                                </div>
+                            </div>
+                        </Link>
+                    ))}
                 </div>
             </div>
         </AdminLayout>

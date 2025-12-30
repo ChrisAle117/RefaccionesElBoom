@@ -104,8 +104,10 @@ export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: 
                             </div>
                         )}
 
-                        <div className="flex items-center gap-4">
-                            <Button disabled={processing} className="bg-slate-900 hover:bg-slate-800 text-white cursor-pointer transition-colors shadow-md">Guardar</Button>
+                        <div className="flex items-center gap-4 pt-2">
+                            <Button disabled={processing} className="bg-slate-900 hover:bg-slate-800 text-white cursor-pointer transition-colors shadow-md px-8 h-11 rounded-xl font-bold uppercase tracking-widest text-xs">
+                                Guardar Perfil
+                            </Button>
 
                             <Transition
                                 show={recentlySuccessful}
@@ -114,12 +116,17 @@ export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: 
                                 leave="transition ease-in-out"
                                 leaveTo="opacity-0"
                             >
-                                <p className="text-sm text-neutral-600">Guardado</p>
+                                <p className="text-sm text-neutral-600 font-medium">Guardado correctamente</p>
                             </Transition>
                         </div>
                     </form>
 
-                    <Address></Address>
+                    <div className="pt-10 border-t border-slate-100 dark:border-slate-800">
+                        <HeadingSmall title="Dirección de Envío" description="Gestiona tu dirección principal para entregas rápidas." />
+                        <div className="mt-6 bg-slate-50 dark:bg-slate-950/50 p-6 rounded-3xl border border-slate-100 dark:border-slate-800">
+                            <Address />
+                        </div>
+                    </div>
                 </div>
                 <DeleteUser />
             </SettingsLayout>

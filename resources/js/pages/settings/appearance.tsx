@@ -20,9 +20,13 @@ export default function Appearance() {
             <Head title="Configuración de tema" />
 
             <SettingsLayout>
-                <div className="space-y-6">
-                    <HeadingSmall title="Configuración" description="Actualiza la configuración de tema" />
-                    <AppearanceTabs />
+                <div className="space-y-10">
+                    <HeadingSmall title="Personalización" description="Selecciona el tema que mejor se adapte a tu estilo de trabajo." />
+
+                    <div className="bg-slate-50 dark:bg-slate-950/50 p-8 rounded-3xl border border-slate-100 dark:border-slate-800">
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 ml-1">Preferencia de Color</p>
+                        <AppearanceTabs />
+                    </div>
                 </div>
             </SettingsLayout>
         </AppLayout>

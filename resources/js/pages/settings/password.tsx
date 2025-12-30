@@ -107,8 +107,10 @@ export default function Password() {
                             <InputError message={errors.password_confirmation} />
                         </div>
 
-                        <div className="flex items-center gap-4">
-                            <Button disabled={processing} className="bg-[#006CFA] hover:bg-[#FBCC13] hover:text-black cursor-pointer text-white">Guardar contraseña</Button>
+                        <div className="flex items-center gap-4 pt-4">
+                            <Button disabled={processing} className="bg-slate-900 hover:bg-slate-800 text-white cursor-pointer px-8 h-11 rounded-xl font-bold uppercase tracking-widest text-xs shadow-md transition-all">
+                                Guardar Contraseña
+                            </Button>
 
                             <Transition
                                 show={recentlySuccessful}
@@ -117,7 +119,7 @@ export default function Password() {
                                 leave="transition ease-in-out"
                                 leaveTo="opacity-0"
                             >
-                                <p className="text-sm text-neutral-600">Guardado</p>
+                                <p className="text-sm text-neutral-600 font-medium">Actualizada correctamente</p>
                             </Transition>
                         </div>
                     </form>
