@@ -151,6 +151,6 @@ class ShoppingCartController extends Controller
                 'disponibility' => (int) ($item->product->disponibility ?? 0),
                 'image'         => $item->product->image ?? 'images/default.png',
             ];
-        })->toArray();
+        })->values()->toArray();
     }
 }
