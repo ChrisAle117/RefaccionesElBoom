@@ -306,7 +306,7 @@ export function TabNavigation({
                             key={tab.id}
                             data-tab-id={tab.id}
                             href={typeof window !== 'undefined' ? makeUrlWithTab(tab.id) : '#'}
-                            className={`px-6 py-5 font-medium text-sm whitespace-nowrap transition-colors cursor-pointer flex-1 basis-0 text-center ${activeTab === tab.id
+                            className={`px-6 py-5 font-medium text-[17px] leading-none tracking-[0.2px] whitespace-nowrap transition-colors cursor-pointer flex-1 basis-0 text-center ${activeTab === tab.id
                                 ? 'text-slate-900 border-b-2 border-yellow-500 dark:text-[#FBCC13] dark:border-[#FBCC13]'
                                 : 'text-gray-500 hover:text-black dark:text-gray-400 dark:hover:text-[#FBCC13]'
                                 }`}
