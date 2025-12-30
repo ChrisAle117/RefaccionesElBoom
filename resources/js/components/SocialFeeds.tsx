@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 
 const IG_POST_URL = 'https://www.instagram.com/p/DNtJjIeZDcK/';
 const FB_REEL_URL = 'https://www.facebook.com/reel/1337334244009484/';
@@ -55,8 +56,8 @@ function IGEmbedScaled({ postUrl }: { postUrl: string }) {
                 style={{
                     width: BASE_W,
                     height: BASE_H,
-                    transform: `scale(${scale}) translateY(-20px)`, 
-                    clipPath: 'inset(0 0 60px 0)', 
+                    transform: `scale(${scale}) translateY(-20px)`,
+                    clipPath: 'inset(0 0 60px 0)',
                 }}
             >
                 <iframe
@@ -76,13 +77,37 @@ function IGEmbedScaled({ postUrl }: { postUrl: string }) {
 
 export default function SocialFeeds() {
     return (
-        <section className="w-full bg-gray-50 py-10">
-            <div className="max-w-5xl mx-auto px-4">
-                <div className="text-center mb-8">
-                    <h2 className="text-3xl font-bold text-gray-900">Redes sociales</h2>
-                    <p className="text-gray-600 mt-1">Conoce más de Refaccionaria El Boom Tractopartes en nuestras redes.</p>
+        <section className="w-full bg-gray-50 dark:bg-gray-950 py-20">
+            <div className="max-w-6xl mx-auto px-4">
+                <div className="text-center mb-16">
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        whileInView={{ opacity: 1, scale: 1 }}
+                        className="inline-block px-4 py-1.5 mb-6 text-sm font-bold tracking-widest text-yellow-500 uppercase bg-yellow-500/10 rounded-full border border-yellow-500/20"
+                    >
+                        SÍGUENOS EN NUESTRAS REDES
+                    </motion.div>
+                    <motion.h2
+                        initial={{ opacity: 0, y: -20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        className="text-4xl md:text-5xl lg:text-6xl font-black text-gray-900 dark:text-white tracking-tighter"
+                    >
+                        CONTENIDO <span
+                            className="text-yellow-500"
+                            style={{ textShadow: "2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000" }}
+                        >EXCLUSIVO</span>
+                    </motion.h2>
+                    <motion.p
+                        initial={{ opacity: 0 }}
+                        whileInView={{ opacity: 1 }}
+                        transition={{ delay: 0.2 }}
+                        className="text-gray-500 dark:text-gray-400 mt-6 text-xl max-w-2xl mx-auto leading-relaxed"
+                    >
+                        Descubre las últimas noticias y el día a día de <span className="font-bold text-gray-900 dark:text-white">Refaccionaria El Boom</span>.
+                    </motion.p>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 justify-center">
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-10 lg:gap-16 justify-center">
                     <SocialCard title="Facebook" headerClass="bg-blue-600" ctaHref="https://facebook.com/elboomtractopartes" ctaLabel="Ver más en Facebook">
                         <FacebookEmbed reelUrl={FB_REEL_URL} />
                     </SocialCard>

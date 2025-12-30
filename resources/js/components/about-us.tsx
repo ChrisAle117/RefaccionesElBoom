@@ -1,84 +1,111 @@
 import React from "react";
-import { Compass, Eye } from 'lucide-react';
-
-
+import { motion } from "framer-motion";
+import { Compass, Eye, Users, Award, ShieldCheck } from 'lucide-react';
 
 export default function AboutUs() {
     return (
+        <div className="pb-12 dark:bg-gray-900 dark:text-gray-100">
+            {/* Premium Header */}
+            <div className="text-center mb-16">
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    whileInView={{ opacity: 1, scale: 1 }}
+                    className="inline-block px-4 py-1.5 mb-6 text-sm font-bold tracking-widest text-yellow-500 uppercase bg-yellow-500/10 rounded-full border border-yellow-500/20"
+                >
+                    CONOCE NUESTRA TRAYECTORIA
+                </motion.div>
+                <motion.h2
+                    initial={{ opacity: 0, y: -20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    className="text-4xl md:text-5xl lg:text-6xl font-black text-gray-900 dark:text-white tracking-tighter uppercase"
+                >
+                    NUESTRA <span
+                        className="text-yellow-500"
+                        style={{ textShadow: "2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000" }}
+                    >HISTORIA</span>
+                </motion.h2>
+                <motion.p
+                    initial={{ opacity: 0 }}
+                    whileInView={{ opacity: 1 }}
+                    transition={{ delay: 0.2 }}
+                    className="text-gray-500 dark:text-gray-400 mt-6 text-xl max-w-2xl mx-auto leading-relaxed"
+                >
+                    Más de un siglo de compromiso con la <span className="font-bold text-gray-900 dark:text-white">excelencia en el transporte pesado</span> y la satisfacción de nuestros clientes.
+                </motion.p>
+            </div>
 
-        <div className="p-4 border-b-2 border-[#FBCC13]">
-            <h1 className="text-3xl font-bold mb-4">Acerca de nosotros.</h1>
-            {/* Video Section */}
-            {/* <div className="mt-4">
-                <h4 className="text-lg font-semibold mb-2">¡Nuestra marca!</h4>
-                <div className="aspect-w-16 aspect-h-9">
-                    <iframe
-                        className="w-full h-100 rounded-sm mb-5"
-                        src="https://www.youtube.com/embed/dQw4w9WgXcQ"
-                        title="Video Institucional"
-                        frameBorder="0"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowFullScreen
-                    ></iframe>
-                </div>
-            </div> */}
-
-                {/* Contenedor flex para los dos primeros párrafos */}
-                <div className="flex gap-4">
-                    
-                    <div className="flex-1">
-                        <p className="mb-2 text-justify">
-                            Refaccionaria El Boom es su destino integral para todo lo relacionado con refacciones para camiones.
-                            Desde tornillos hasta camiones completos, nuestra misión es proporcionar a nuestros clientes productos de alta calidad que
-                            satisfagan sus necesidades específicas. Somos una empresa 100% mexicana, comprometida con la comercialización y distribución de
-                            refacciones para camiones de carga y pasaje, tractocamiones y camiones pesados.
+            <div className="max-w-6xl mx-auto px-4">
+                {/* Intro Section */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mb-20">
+                    <motion.div
+                        initial={{ opacity: 0, x: -30 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        className="space-y-6"
+                    >
+                        <p className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed text-justify">
+                            <span className="font-bold text-gray-900 dark:text-white border-b-2 border-yellow-500">Refaccionaria El Boom</span> es su destino integral para todo lo relacionado con refacciones para camiones. Somos una empresa 100% mexicana, comprometida con la comercialización y distribución de refacciones para camiones de carga y pasaje.
                         </p>
-                    </div>
-                    
-                    <div className="flex-1">
-                        <p className="mb-2 text-justify">
-                            En Refaccionaria El Boom, entendemos la importancia de cada pieza en el funcionamiento de su vehículo. Por ello,
-                            nos especializamos en ofrecer una amplia variedad de tractopartes, partes y piezas usadas, así como accesorios y
-                            autopartes para camiones. Nuestro enfoque está en garantizar la satisfacción total del cliente, a través de productos
-                            de alta calidad y un servicio excepcional. Nos enorgullece nuestra capacidad para adaptarnos a las necesidades del mercado,
-                            siempre con un estricto apego a los lineamientos aprobados.
+                        <p className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed text-justify">
+                            Nuestra empresa fomenta la responsabilidad personal, la comunicación interna y la mejora continua en todos nuestros procesos. Creemos que estos valores son esenciales para ofrecer un servicio de excelencia.
                         </p>
-                    </div>
+                    </motion.div>
+
+                    <motion.div
+                        initial={{ opacity: 0, x: 30 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        className="bg-gray-50 dark:bg-gray-800 p-8 rounded-[2rem] border border-gray-100 dark:border-gray-700"
+                    >
+                        <p className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed text-justify italic">
+                            "Entendemos la importancia de cada pieza en el funcionamiento de su vehículo. Por ello, nos especializamos en ofrecer una amplia variedad de tractopartes, piezas usadas y accesorios con un estándar de calidad insuperable."
+                        </p>
+                        <div className="mt-6 flex items-center gap-4">
+                            <div className="w-12 h-12 bg-yellow-500 rounded-full flex items-center justify-center text-black font-black">EB</div>
+                            <div>
+                                <p className="font-bold text-gray-900 dark:text-white">Equipo El Boom</p>
+                                <p className="text-sm text-gray-500">Pasión por el servicio</p>
+                            </div>
+                        </div>
+                    </motion.div>
                 </div>
 
-                <div className="mt-4">
-                    <p className="mb-2 text-justify">
-                        Nuestra empresa fomenta la responsabilidad personal, la comunicación interna y la mejora continua en todos nuestros procesos.
-                        Creemos que estos valores son esenciales para ofrecer un servicio de excelencia y para sentirnos orgullosos de nuestro trabajo.
-                        Cada miembro de nuestro equipo está comprometido con estos principios, asegurando que cada cliente reciba la atención y el producto que merece.
-                    </p>
-                    <br />
-                </div>
-                <div className="flex gap-4">
+                {/* Mission & Vision Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                     {/* Misión */}
-                    <div className="flex-1">
-                        <h4 className="flex items-center gap-2 text-lg font-semibold">
-                            <Compass className="h-8 w-8 text-blue-500" />
-                            Misión
-                        </h4>
-                        <p className="mb-2 text-justify">
-                            Somos una empresa líder, en la comercialización de refacciones y productos para camiones de carga y pasaje,
-                            competitiva en las condiciones del mercado y enfocada en estar a la vanguardia, satisfaciendo la necesidad de
-                            los clientes basados en nuestro factor humano, un servicio de calidad y en procesos de mejora continua.
+                    <motion.div
+                        initial={{ opacity: 0, y: 30 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        whileHover={{ y: -10 }}
+                        className="group bg-white dark:bg-gray-900 p-10 rounded-[2.5rem] shadow-xl border border-gray-100 dark:border-gray-800 relative overflow-hidden"
+                    >
+                        <div className="mb-6 bg-blue-600 w-16 h-16 rounded-2xl flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform">
+                            <Compass size={32} />
+                        </div>
+                        <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-4 uppercase tracking-tighter">Misión</h2>
+                        <p className="text-gray-600 dark:text-gray-400 text-lg leading-relaxed text-justify">
+                            Somos una empresa líder en la comercialización de refacciones para camiones, competitiva y vanguardista, satisfaciendo las necesidades de nuestros clientes mediante un servicio de calidad y mejora continua.
                         </p>
-                    </div>
+                        <div className="absolute -right-4 -bottom-4 w-32 h-32 bg-blue-600/5 rounded-full" />
+                    </motion.div>
+
                     {/* Visión */}
-                    <div className="flex-1">
-                        <h4 className="flex items-center gap-2 text-lg font-semibold">
-                            <Eye className="h-8 w-8 text-green-500" />
-                            Visión
-                        </h4>
-                        <p className="mb-2 text-justify">
-                            Ser una empresa que esté posicionada dentro de los primeros 10 proveedores de refacciones para camiones de carga
-                            y pasaje en México. Innovadora en un sistema de mercadeo logrando su propia rentabilidad y la de sus socios comerciales.
+                    <motion.div
+                        initial={{ opacity: 0, y: 30 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        whileHover={{ y: -10 }}
+                        transition={{ delay: 0.1 }}
+                        className="group bg-white dark:bg-gray-900 p-10 rounded-[2.5rem] shadow-xl border border-gray-100 dark:border-gray-800 relative overflow-hidden"
+                    >
+                        <div className="mb-6 bg-yellow-500 w-16 h-16 rounded-2xl flex items-center justify-center text-black shadow-lg group-hover:scale-110 transition-transform">
+                            <Eye size={32} />
+                        </div>
+                        <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-4 uppercase tracking-tighter">Visión</h2>
+                        <p className="text-gray-600 dark:text-gray-400 text-lg leading-relaxed text-justify">
+                            Posicionarnos dentro de los primeros 10 proveedores de refacciones en México, siendo innovadores en mercadeo y logrando una alta rentabilidad para nosotros y nuestros socios comerciales.
                         </p>
-                    </div>
+                        <div className="absolute -right-4 -bottom-4 w-32 h-32 bg-yellow-500/5 rounded-full" />
+                    </motion.div>
                 </div>
+            </div>
         </div>
     );
 }

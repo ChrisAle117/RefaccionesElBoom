@@ -5,7 +5,8 @@ import { ProductCard } from './product-card';
 import { Pagination } from './pagination';
 
 import { ProductDetails } from './product-detail';
-import { BookOpen, MapPin, ArrowRight } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { BookOpen, MapPin, ArrowRight, ShoppingBag } from 'lucide-react';
 
 // Helpers globales para imÃ¡genes de tipos
 const slugifyType = (t: string) => (
@@ -390,8 +391,25 @@ export function ProductCatalog() {
             <div className="w-full bg-white dark:bg-gray-950">
                 {/* Header */}
                 <div className="relative w-full bg-white dark:bg-gray-950 py-8 sm:py-12 px-4 sm:px-6 flex items-center justify-between">
-                    <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-black dark:text-white drop-shadow-lg">NUESTROS PRODUCTOS</h1>
-
+                    <div className="flex flex-col items-start">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            whileInView={{ opacity: 1, scale: 1 }}
+                            className="inline-block px-4 py-1.5 mb-4 text-xs font-bold tracking-widest text-yellow-500 uppercase bg-yellow-500/10 rounded-full border border-yellow-500/20"
+                        >
+                            DASHBOARD
+                        </motion.div>
+                        <motion.h1
+                            initial={{ opacity: 0, y: -20 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-gray-900 dark:text-white tracking-tighter"
+                        >
+                            NUESTROS <span
+                                className="text-yellow-500"
+                                style={{ textShadow: "2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000" }}
+                            >PRODUCTOS</span>
+                        </motion.h1>
+                    </div>
                 </div>
 
                 {/* Categorías Hero */}
@@ -483,7 +501,9 @@ export function ProductCatalog() {
                                         <h3 className="text-white text-2xl md:text-4xl font-black tracking-tighter mb-2 drop-shadow-lg">
                                             CATÁLOGOS
                                         </h3>
-                                        <div className="flex items-center gap-2 text-[#FBCC13] font-black text-md uppercase tracking-[0.2em] opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 transition-all duration-500">
+                                        <div
+                                            className="flex items-center gap-2 text-[#FBCC13] font-black text-md uppercase tracking-[0.2em] opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 transition-all duration-500"
+                                        >
                                             Ver productos <ArrowRight className="w-5 h-5" />
                                         </div>
                                     </div>
