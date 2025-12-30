@@ -5,6 +5,7 @@ import { ProductCard } from './product-card';
 import { Pagination } from './pagination';
 
 import { ProductDetails } from './product-detail';
+import { BookOpen, MapPin, ArrowRight } from 'lucide-react';
 
 // Helpers globales para imÃ¡genes de tipos
 const slugifyType = (t: string) => (
@@ -458,28 +459,60 @@ export function ProductCatalog() {
 
 
 
-                        {/* Catalogos y donde comprar */}
-                        <div className="w-full flex flex-col items-center justify-center mt-24 mb-6">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-10 w-full max-w-3xl justify-center">
+                        {/* Catalogos y donde comprar - Rediseño Premium */}
+                        <div className="w-full flex flex-col items-center justify-center mt-24 mb-12">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl px-4">
                                 <a
                                     href="/catalogos"
-                                    className="relative rounded-2xl overflow-hidden shadow-xl transition-transform hover:scale-105 cursor-pointer flex items-end aspect-[4/3] min-h-[220px] md:min-h-[280px] bg-black"
-                                    style={{ backgroundImage: "url('/images/catalogos.webp')", backgroundSize: 'cover', backgroundPosition: 'center' }}
+                                    className="group relative rounded-[2.5rem] overflow-hidden shadow-2xl transition-all duration-500 hover:scale-[1.02] hover:-translate-y-2 cursor-pointer flex flex-col aspect-[4/3] min-h-[250px] md:min-h-[320px] bg-slate-900 border-4 border-white dark:border-slate-800"
                                 >
-                                    {/* Overlay removed */}
-                                    <span className="relative z-10 w-full text-white text-xl md:text-2xl font-extrabold text-center drop-shadow-lg pb-4 px-3">
-                                        CATÁLOGOS
-                                    </span>
+                                    {/* Imagen de Fondo con Zoom */}
+                                    <div
+                                        className="absolute inset-0 bg-cover bg-center transition-transform duration-1000 group-hover:scale-110"
+                                        style={{ backgroundImage: "url('/images/catalogos.webp')" }}
+                                    />
+
+                                    {/* Overlays Dinámicos */}
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/10 opacity-70 group-hover:opacity-85 transition-opacity" />
+                                    <div className="absolute inset-0 bg-[#FBCC13]/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
+                                    {/* Contenido Card */}
+                                    <div className="relative mt-auto p-8 flex flex-col items-center text-center">
+
+
+                                        <h3 className="text-white text-2xl md:text-4xl font-black tracking-tighter mb-2 drop-shadow-lg">
+                                            CATÁLOGOS
+                                        </h3>
+                                        <div className="flex items-center gap-2 text-[#FBCC13] font-black text-md uppercase tracking-[0.2em] opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 transition-all duration-500">
+                                            Ver productos <ArrowRight className="w-5 h-5" />
+                                        </div>
+                                    </div>
                                 </a>
+
                                 <a
                                     href="/sucursales"
-                                    className="relative rounded-2xl overflow-hidden shadow-xl transition-transform hover:scale-105 cursor-pointer flex items-end aspect-[4/3] min-h-[220px] md:min-h-[280px] bg-black"
-                                    style={{ backgroundImage: "url('/images/dondeComprar.webp')", backgroundSize: 'cover', backgroundPosition: 'center' }}
+                                    className="group relative rounded-[2.5rem] overflow-hidden shadow-2xl transition-all duration-500 hover:scale-[1.02] hover:-translate-y-2 cursor-pointer flex flex-col aspect-[4/3] min-h-[250px] md:min-h-[320px] bg-slate-900 border-4 border-white dark:border-slate-800"
                                 >
-                                    {/* Overlay removed */}
-                                    <span className="relative z-10 w-full text-white text-xl md:text-2xl font-extrabold text-center drop-shadow-lg pb-4 px-3">
-                                        DÓNDE COMPRAR
-                                    </span>
+                                    {/* Imagen de Fondo con Zoom */}
+                                    <div
+                                        className="absolute inset-0 bg-cover bg-center transition-transform duration-1000 group-hover:scale-110"
+                                        style={{ backgroundImage: "url('/images/dondeComprar.webp')" }}
+                                    />
+
+                                    {/* Overlays Dinámicos */}
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/10 opacity-70 group-hover:opacity-85 transition-opacity" />
+                                    <div className="absolute inset-0 bg-[#FBCC13]/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
+                                    {/* Contenido Card */}
+                                    <div className="relative mt-auto p-8 flex flex-col items-center text-center">
+
+                                        <h3 className="text-white text-2xl md:text-4xl font-black tracking-tighter mb-2 drop-shadow-lg">
+                                            DÓNDE COMPRAR
+                                        </h3>
+                                        <div className="flex items-center gap-2 text-[#FBCC13] font-black text-md uppercase tracking-[0.2em] opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 transition-all duration-500">
+                                            Nuestras Sucursales <ArrowRight className="w-5 h-5" />
+                                        </div>
+                                    </div>
                                 </a>
                             </div>
                         </div>

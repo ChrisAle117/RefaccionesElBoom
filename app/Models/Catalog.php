@@ -23,4 +23,15 @@ class Catalog extends Model
     protected $casts = [
         'active' => 'boolean',
     ];
+
+    /**
+     * Accesor para corregir la extensión de la imagen de fábrica si es necesario.
+     */
+    public function getImageAttribute($value)
+    {
+        if ($value && str_ends_with($value, 'fabrica.png')) {
+            return str_replace('fabrica.png', 'fabrica.webp', $value);
+        }
+        return $value;
+    }
 }
