@@ -111,13 +111,7 @@ export function Vacancies() {
         <div className="py-12 bg-white dark:bg-gray-950 min-h-screen">
             {/* Premium Header */}
             <div className="text-center mb-16 px-4">
-                <motion.div
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    whileInView={{ opacity: 1, scale: 1 }}
-                    className="inline-block px-4 py-1.5 mb-6 text-sm font-bold tracking-widest text-yellow-500 uppercase bg-yellow-500/10 rounded-full border border-yellow-500/20"
-                >
-                    TALENTO EL BOOM
-                </motion.div>
+
                 <motion.h2
                     initial={{ opacity: 0, y: -20 }}
                     whileInView={{ opacity: 1, y: 0 }}

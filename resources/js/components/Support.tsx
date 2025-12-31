@@ -93,13 +93,7 @@ export default function Support() {
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
             <div className="text-center mb-16">
-                <motion.div
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    whileInView={{ opacity: 1, scale: 1 }}
-                    className="inline-block px-4 py-1.5 mb-6 text-sm font-bold tracking-widest text-yellow-500 uppercase bg-yellow-500/10 rounded-full border border-yellow-500/20"
-                >
-                    ESTAMOS PARA AYUDARTE
-                </motion.div>
+
                 <motion.h1
                     initial={{ opacity: 0, y: -20 }}
                     whileInView={{ opacity: 1, y: 0 }}
@@ -190,6 +184,8 @@ export default function Support() {
                     <img
                         src="/images/dondeComprar.webp"
                         alt="Location Preview"
+                        width={800}
+                        height={600}
                         className="w-full h-full object-cover grayscale opacity-50 transition-all duration-1000 group-hover:scale-110 group-hover:grayscale-0 group-hover:opacity-100"
                     />
                     <div className="absolute inset-0 flex items-center justify-center">

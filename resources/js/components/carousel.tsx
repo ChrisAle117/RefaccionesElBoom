@@ -79,6 +79,8 @@ const Carousel: React.FC<CarouselProps> = React.memo(({
                     >
                         <img
                             src={src}
+                            width={1920}
+                            height={1080}
                             sizes="100vw"
                             alt={`Imagen del carrusel ${index + 1} - Refaccionaria El Boom`}
                             className="w-full h-full object-cover object-center"

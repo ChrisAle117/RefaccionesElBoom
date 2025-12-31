@@ -536,6 +536,8 @@ export function ProductCard({
                 <img
                     src={imgSrc}
                     alt={effectiveName}
+                    width={300}
+                    height={300}
                     className="object-contain h-full w-full"
                     loading="lazy"
                     decoding="async"

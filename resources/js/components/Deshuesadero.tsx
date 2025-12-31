@@ -124,13 +124,7 @@ export default function Deshuesadero({ brands }: DeshuesaderoProps) {
     return (
         <section className="pt-6 md:pt-10">
             <div className="text-center mb-16">
-                <motion.div
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    whileInView={{ opacity: 1, scale: 1 }}
-                    className="inline-block px-4 py-1.5 mb-6 text-sm font-bold tracking-widest text-yellow-500 uppercase bg-yellow-500/10 rounded-full border border-yellow-500/20"
-                >
-                    ALTA GAMA EN REFACCIONES
-                </motion.div>
+
                 <motion.h2
                     initial={{ opacity: 0, y: -20 }}
                     whileInView={{ opacity: 1, y: 0 }}
@@ -175,6 +169,8 @@ export default function Deshuesadero({ brands }: DeshuesaderoProps) {
                                     <img
                                         src={logoUrl}
                                         alt={brand.name}
+                                        width={400}
+                                        height={280}
                                         className={`h-full w-full object-cover ${isEven ? "object-left" : "object-right"
                                             }`}
                                         style={{
@@ -194,6 +190,8 @@ export default function Deshuesadero({ brands }: DeshuesaderoProps) {
                                         <img
                                             src={nameImageUrl}
                                             alt={brand.name}
+                                            width={160}
+                                            height={80}
                                             className="h-10 md:h-16 lg:h-20 w-auto object-contain inline-block mb-2"
                                         />
                                         {(() => {

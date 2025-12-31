@@ -80,13 +80,7 @@ export default function SocialFeeds() {
         <section className="w-full bg-gray-50 dark:bg-gray-950 py-20">
             <div className="max-w-6xl mx-auto px-4">
                 <div className="text-center mb-16">
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        whileInView={{ opacity: 1, scale: 1 }}
-                        className="inline-block px-4 py-1.5 mb-6 text-sm font-bold tracking-widest text-yellow-500 uppercase bg-yellow-500/10 rounded-full border border-yellow-500/20"
-                    >
-                        SÍGUENOS EN NUESTRAS REDES
-                    </motion.div>
+
                     <motion.h2
                         initial={{ opacity: 0, y: -20 }}
                         whileInView={{ opacity: 1, y: 0 }}

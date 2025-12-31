@@ -76,14 +76,14 @@ const CatalogForm: React.FC<CatalogFormProps> = ({ catalog, isEdit = false }) =>
                                             className={`w-full h-14 px-5 border-2 rounded-2xl bg-gray-50/50 hover:bg-white hover:border-indigo-100 focus:bg-white focus:border-indigo-600 focus:outline-none transition-all text-sm font-black shadow-inner ${errors.title ? 'border-red-200 bg-red-50' : 'border-gray-50'}`}
                                             value={data.title}
                                             onChange={(e) => setData('title', e.target.value)}
-                                            placeholder="Ej: Catálogo Iluminación 2024"
+                                            placeholder="Ej: Catálogo Tractores"
                                             required
                                         />
                                         {errors.title && <p className="text-red-500 text-[10px] font-black mt-2 uppercase px-1">{errors.title}</p>}
                                     </div>
 
                                     <div>
-                                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">TEXTO ALTERNATIVO (SEO/ACCESIBILIDAD)</label>
+                                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">TEXTO ALTERNATIVO</label>
                                         <input
                                             type="text"
                                             className={`w-full h-12 px-5 border-2 rounded-xl bg-gray-50/50 hover:bg-white hover:border-indigo-100 focus:bg-white focus:border-indigo-600 focus:outline-none transition-all text-sm font-medium ${errors.alt ? 'border-red-200 bg-red-50' : 'border-gray-50'}`}
@@ -95,7 +95,7 @@ const CatalogForm: React.FC<CatalogFormProps> = ({ catalog, isEdit = false }) =>
                                     </div>
 
                                     <div>
-                                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">ENLACE DE DESCARGA O VISTA (PDF/URL)</label>
+                                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">ENLACE DE IMAGEN</label>
                                         <div className="relative">
                                             <LinkIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
                                             <input
@@ -103,7 +103,7 @@ const CatalogForm: React.FC<CatalogFormProps> = ({ catalog, isEdit = false }) =>
                                                 className="w-full h-12 pl-12 pr-5 border-2 border-gray-50 rounded-xl bg-gray-50/50 focus:bg-white focus:border-indigo-600 focus:outline-none transition-all text-sm font-medium"
                                                 value={data.url}
                                                 onChange={(e) => setData('url', e.target.value)}
-                                                placeholder="https://drive.google.com/file/..."
+                                                placeholder="https://www.refaccioneselboom.com/images/..."
                                             />
                                         </div>
                                     </div>

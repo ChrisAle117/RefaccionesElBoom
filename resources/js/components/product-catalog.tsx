@@ -392,13 +392,7 @@ export function ProductCatalog() {
                 {/* Header */}
                 <div className="relative w-full bg-white dark:bg-gray-950 py-8 sm:py-12 px-4 sm:px-6 flex items-center justify-between">
                     <div className="flex flex-col items-start">
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            whileInView={{ opacity: 1, scale: 1 }}
-                            className="inline-block px-4 py-1.5 mb-4 text-xs font-bold tracking-widest text-yellow-500 uppercase bg-yellow-500/10 rounded-full border border-yellow-500/20"
-                        >
-                            DASHBOARD
-                        </motion.div>
+
                         <motion.h1
                             initial={{ opacity: 0, y: -20 }}
                             whileInView={{ opacity: 1, y: 0 }}

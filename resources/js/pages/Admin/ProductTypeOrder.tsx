@@ -141,17 +141,7 @@ const ProductTypeOrder: React.FC<Props> = ({ types }) => {
                             </div>
                         </section>
 
-                        <div className="p-8 bg-slate-50/50 rounded-[2rem] border border-slate-100 relative group overflow-hidden">
-                            <div className="absolute -bottom-4 -left-4 w-12 h-12 bg-white rounded-full opacity-50 group-hover:scale-110 transition-transform" />
-                            <div className="relative z-10">
-                                <p className="text-[10px] font-black text-slate-900 uppercase tracking-widest mb-2 leading-tight flex items-center gap-2">
-                                    <Layers className="w-3 h-3 text-slate-400" /> TIP DE GESTIÓN
-                                </p>
-                                <p className="text-[10px] text-slate-400 font-bold leading-relaxed uppercase italic">
-                                    Las categorías superiores suelen tener un volumen de búsqueda más alto. Mantén los tipos más populares al inicio.
-                                </p>
-                            </div>
-                        </div>
+
                     </div>
                 </div>
             </div>

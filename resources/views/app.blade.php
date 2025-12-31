@@ -7,8 +7,11 @@
         {{-- Performance Hints --}}
         <link rel="preconnect" href="https://resources.openpay.mx">
         <link rel="preconnect" href="https://fonts.bunny.net">
+        <link rel="preconnect" href="https://www.googletagmanager.com">
+        <link rel="preconnect" href="https://www.google-analytics.com">
         <link rel="dns-prefetch" href="https://resources.openpay.mx">
         <link rel="dns-prefetch" href="https://fonts.bunny.net">
+        <link rel="dns-prefetch" href="https://www.googletagmanager.com">
         
         {{-- Defer Openpay scripts to avoid render blocking --}}
         <script type="text/javascript" src="https://resources.openpay.mx/lib/openpay.v1.min.js" defer></script>

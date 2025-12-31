@@ -463,58 +463,52 @@ const VacancyForm: React.FC<VacancyFormProps> = ({ vacancy, departments, locatio
 
                         {/* Columna Lateral - Config y Contacto */}
                         <div className="space-y-6">
-                            <section className="bg-slate-900 p-8 rounded-[2.5rem] shadow-xl text-white">
-                                <h3 className="text-[10px] font-black text-sky-400 uppercase tracking-[0.3em] mb-6 flex items-center gap-2">
-                                    <Mail className="w-3 h-3" /> Canales de Recepción
-                                </h3>
+                            <section className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-gray-100 relative group overflow-hidden">
+                                <div className="absolute top-0 right-0 w-32 h-32 bg-sky-50 rounded-full opacity-50 -mr-16 -mt-16 group-hover:scale-110 transition-transform" />
 
-                                <div className="space-y-6">
-                                    <div>
-                                        <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3 ml-1">EMAIL DE CONTACTO</label>
-                                        <div className="relative">
-                                            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600" />
-                                            <input
-                                                type="email"
-                                                className="w-full h-12 pl-12 pr-4 bg-slate-800 border-none rounded-2xl text-sm font-bold text-white focus:ring-2 focus:ring-sky-500"
-                                                value={data.contact_email}
-                                                onChange={(e) => setData('contact_email', e.target.value)}
-                                                required
-                                            />
+                                <div className="relative z-10">
+                                    <h3 className="text-[10px] font-black text-sky-600 uppercase tracking-[0.3em] mb-8 flex items-center gap-2">
+                                        <Mail className="w-3 h-3" /> Canales de Recepción
+                                    </h3>
+
+                                    <div className="space-y-6">
+                                        <div>
+                                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 ml-1">EMAIL DE CONTACTO</label>
+                                            <div className="relative">
+                                                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                                <input
+                                                    type="email"
+                                                    className="w-full h-12 pl-12 pr-4 bg-gray-50/50 border-2 border-gray-50 rounded-2xl text-sm font-bold text-gray-900 focus:border-sky-600 focus:bg-white focus:outline-none transition-all shadow-inner"
+                                                    value={data.contact_email}
+                                                    onChange={(e) => setData('contact_email', e.target.value)}
+                                                    required
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="pt-6 border-t border-gray-50">
+                                            <label className="flex items-center gap-4 cursor-pointer group/toggle">
+                                                <div className="relative">
+                                                    <input
+                                                        type="checkbox"
+                                                        className="sr-only peer"
+                                                        checked={data.active}
+                                                        onChange={(e) => setData('active', e.target.checked)}
+                                                    />
+                                                    <div className="w-12 h-6 bg-gray-200 rounded-full peer-checked:bg-emerald-500 transition-colors shadow-inner" />
+                                                    <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full peer-checked:translate-x-6 transition-transform shadow-sm" />
+                                                </div>
+                                                <div>
+                                                    <p className="text-[10px] font-black text-gray-900 uppercase tracking-widest group-hover/toggle:text-emerald-600 transition-colors">VACANTE ACTIVA</p>
+                                                    <p className="text-[9px] font-bold text-gray-400 uppercase mt-0.5">Visible en portal de empleo</p>
+                                                </div>
+                                            </label>
                                         </div>
                                     </div>
-
-                                    <div className="pt-4 border-t border-slate-800">
-                                        <label className="flex items-center gap-4 cursor-pointer group">
-                                            <div className="relative">
-                                                <input
-                                                    type="checkbox"
-                                                    className="sr-only peer"
-                                                    checked={data.active}
-                                                    onChange={(e) => setData('active', e.target.checked)}
-                                                />
-                                                <div className="w-12 h-6 bg-slate-700 rounded-full peer-checked:bg-emerald-500 transition-colors" />
-                                                <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full peer-checked:translate-x-6 transition-transform" />
-                                            </div>
-                                            <div>
-                                                <p className="text-[10px] font-black uppercase tracking-widest">VACANTE ACTIVA</p>
-                                                <p className="text-[9px] font-bold text-slate-500 uppercase mt-0.5">Visible en portal de empleo</p>
-                                            </div>
-                                        </label>
-                                    </div>
                                 </div>
                             </section>
 
-                            <section className="bg-white p-8 rounded-[2rem] border border-gray-100">
-                                <div className="flex items-center gap-3 mb-4">
-                                    <div className="w-8 h-8 bg-sky-50 text-sky-600 rounded-lg flex items-center justify-center">
-                                        <Smartphone className="w-4 h-4" />
-                                    </div>
-                                    <h4 className="text-[10px] font-black text-gray-900 uppercase tracking-widest">Vista Móvil</h4>
-                                </div>
-                                <p className="text-[10px] text-gray-400 font-bold leading-relaxed uppercase">
-                                    Esta vacante se adaptará automáticamente para dispositivos móviles, asegurando que los candidatos puedan aplicar fácilmente desde cualquier lugar.
-                                </p>
-                            </section>
+
                         </div>
                     </div>
 
