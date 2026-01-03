@@ -20,9 +20,17 @@ function useMediaQuery(query: string) {
     return matches;
 }
 
+interface CarouselImage {
+    src: string;
+    title?: string;
+    description?: string;
+    ctaText?: string;
+    ctaHref?: string;
+}
+
 interface CarouselProps {
-    images: string[];
-    imagesMobile?: string[];
+    images: string[] | CarouselImage[];
+    imagesMobile?: string[] | CarouselImage[];
     interval?: number;
     className?: string;
 }
@@ -70,27 +78,58 @@ const Carousel: React.FC<CarouselProps> = React.memo(({
     return (
         <div className={`relative w-full ${className || ''}`}>
             <div className="relative w-full overflow-hidden" style={{ height: containerHeight }}>
-                {source.map((src, index) => (
-                    <div
-                        key={`${src}-${index}`}
-                        className={`absolute inset-0 transition-opacity duration-700 ${index === currentIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'
-                            }`}
-                        aria-hidden={index !== currentIndex}
-                    >
-                        <img
-                            src={src}
-                            width={1920}
-                            height={1080}
-                            sizes="100vw"
-                            alt={`Imagen del carrusel ${index + 1} - Refaccionaria El Boom`}
-                            className="w-full h-full object-cover object-center"
-                            loading={index === 0 ? 'eager' : 'lazy'}
-                            decoding="async"
-                            fetchPriority={index === 0 ? 'high' : undefined}
-                            draggable={false}
-                        />
-                    </div>
-                ))}
+                {source.map((item, index) => {
+                    const isObject = typeof item !== 'string';
+                    const src = isObject ? (item as CarouselImage).src : (item as string);
+                    const data = isObject ? (item as CarouselImage) : null;
+
+                    return (
+                        <div
+                            key={`${src}-${index}`}
+                            className={`absolute inset-0 transition-opacity duration-1000 ${index === currentIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'
+                                }`}
+                            aria-hidden={index !== currentIndex}
+                        >
+                            <img
+                                src={src}
+                                width={1920}
+                                height={1080}
+                                sizes="100vw"
+                                alt={data?.title || `Imagen del carrusel ${index + 1} - Refaccionaria El Boom`}
+                                className="w-full h-full object-cover object-center"
+                                loading={index === 0 ? 'eager' : 'lazy'}
+                                decoding="async"
+                                fetchPriority={index === 0 ? 'high' : undefined}
+                                draggable={false}
+                            />
+                            {/* Overlay con texto */}
+                            {index === currentIndex && data && (data.title || data.description) && (
+                                <div className="absolute inset-0 bg-black/40 flex items-center justify-center text-center p-6 z-20">
+                                    <div className="max-w-4xl px-4 flex flex-col items-center">
+                                        {data.title && (
+                                            <h2 className="text-3xl sm:text-5xl md:text-7xl font-black text-white mb-4 drop-shadow-2xl tracking-tighter uppercase">
+                                                {data.title}
+                                            </h2>
+                                        )}
+                                        {data.description && (
+                                            <p className="text-xl sm:text-2xl text-yellow-400 font-bold mb-8 drop-shadow-lg max-w-2xl">
+                                                {data.description}
+                                            </p>
+                                        )}
+                                        {data.ctaText && data.ctaHref && (
+                                            <a
+                                                href={data.ctaHref}
+                                                className="px-8 py-4 bg-yellow-500 hover:bg-yellow-600 text-black font-black text-xl rounded-full shadow-2xl transition-all transform hover:scale-110 active:scale-95"
+                                            >
+                                                {data.ctaText}
+                                            </a>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    );
+                })}
             </div>
 
             {/* Flechas */}

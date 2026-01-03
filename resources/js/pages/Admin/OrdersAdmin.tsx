@@ -288,7 +288,7 @@ const OrdersAdmin: React.FC<OrdersProps> = ({ orders, filters, pagination }) => 
                                                         <Clock className="w-4 h-4" />
                                                     </button>
                                                     <Link
-                                                        href={route('admin.orders.show', order.id_order)}
+                                                        href={route('orders.show', order.id_order)}
                                                         className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-all border border-transparent hover:border-blue-100"
                                                         title="Ver detalles"
                                                     >

@@ -56,11 +56,6 @@ class Product extends Model
 
     private const MISS = '__MISS__';
 
-    public function orderItems()
-    {
-        return $this->hasMany(OrderItem::class, 'product_id', 'id_product');
-    }
-
     protected static function boot()
     {
         parent::boot();

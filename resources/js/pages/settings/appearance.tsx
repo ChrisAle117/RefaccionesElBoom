@@ -17,7 +17,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 export default function Appearance() {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Configuración de tema" />
+            <Head title="Apariencia de la Cuenta | Refaccionaria El Boom" />
 
             <SettingsLayout>
                 <div className="space-y-10">

@@ -246,10 +246,15 @@ class OrderController extends Controller
         public function show($id)
     {
         // Cargar de forma estricta por id y usuario para evitar desajustes en algunos entornos
-        $order = Order::with(['items.product', 'address', 'payment_proofs'])
-            ->where('id_order', $id)
-            ->where('user_id', Auth::id())
-            ->first();
+        $query = Order::with(['items.product', 'address', 'payment_proofs', 'user'])
+            ->where('id_order', $id);
+
+        // Si no es admin, filtrar por su propio user_id
+        if (Auth::user()->role !== 'admin') {
+            $query->where('user_id', Auth::id());
+        }
+
+        $order = $query->first();
 
         if (!$order) {
             // Redirigir a la lista de pedidos en lugar del dashboard para una UX más clara
@@ -302,7 +307,12 @@ class OrderController extends Controller
                     'admin_notes' => $proof->admin_notes,
                     'created_at' => $proof->created_at->format('d/m/Y H:i')
                 ];
-            })
+            }),
+            'user' => $order->user ? [
+                'name' => $order->user->name,
+                'email' => $order->user->email,
+                'telefono' => $order->user->phone ?? $order->address->telefono ?? 'No disponible',
+            ] : null
         ];
 
         foreach ($order->items as $item) {

@@ -3,7 +3,7 @@ import { TabNavigation } from '@/components/TabNavigation';
 import AppLayout from '@/layouts/app-layout';
 import { type SharedData } from '@/types';
 import { Head, usePage } from '@inertiajs/react';
-import { Facebook, Instagram, MessageCircle } from 'lucide-react';
+import { Facebook, Instagram, MessageCircle, Truck, BookOpen } from 'lucide-react';
 import React from 'react';
 
 export default function Welcome() {
@@ -80,7 +80,7 @@ export default function Welcome() {
 
             <div className="min-h-screen bg-gray-50 dark:bg-gray-950 relative">
                 {/* Hero / Carousel - Full Width */}
-                <div className="relative z-10 w-full">
+                <div className="relative z-10 w-full font-sans">
                     <Carousel
                         images={carouselImages}
                         imagesMobile={carouselImagesMobile}

@@ -68,7 +68,7 @@ const Confirmation: React.FC = () => {
     }
     return (
         <div>
-            <Head title="Confirmación de compra" />
+            <Head title="Confirmación de Compra | Refaccionaria El Boom" />
             <DetailsPurchase product={product} />
         </div>
     );

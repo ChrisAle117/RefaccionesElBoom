@@ -10,7 +10,7 @@ import { ShoppingCartProvider } from '@/components/shopping-car-context';
 const appName = import.meta.env.VITE_APP_NAME;
 
 createInertiaApp({
-    title: (title) => `${title}  ${appName}`,
+    title: (title) => title ? title : (appName || 'Refaccionaria El Boom'),
     resolve: (name) => resolvePageComponent(`./pages/${name}.tsx`, import.meta.glob('./pages/**/*.tsx')),
     setup({ el, App, props }) {
         const root = createRoot(el);
