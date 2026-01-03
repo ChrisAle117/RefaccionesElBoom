@@ -78,9 +78,9 @@ class ProductListingController extends Controller
         
         $products = $query->get(['*']); 
 
+
         Product::primePrices($products);
         // Se elimina primeStock para priorizar el dato local de disponibilidad
-
         // Filtrar productos que realmente tienen stock (priorizando dato local si está configurado)
         $products = $products->filter(fn($p) => $p->disponibility > 0);
 
