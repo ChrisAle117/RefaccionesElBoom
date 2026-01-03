@@ -42,7 +42,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
 
     return (
         <AuthLayout title="Inicia sesión" description="Ingresa tu correo y tu contraseña para acceder">
-            <Head title="Iniciar sesion" />
+            <Head title="Iniciar Sesión | Refaccionaria El Boom" />
 
             <form className="flex flex-col gap-6" onSubmit={submit}>
                 <div className="grid gap-6">

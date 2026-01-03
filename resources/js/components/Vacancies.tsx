@@ -252,9 +252,22 @@ export function Vacancies() {
                                                                     </h4>
                                                                     <ul className="space-y-3">
                                                                         {vacancy.requirements.map((req, i) => (
-                                                                            <li key={i} className="flex gap-3 text-sm text-gray-700 dark:text-gray-300">
-                                                                                <span className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-2 shrink-0" />
-                                                                                {typeof req === 'string' ? req : req.title}
+                                                                            <li key={i} className="flex flex-col gap-1 text-sm text-gray-700 dark:text-gray-300">
+                                                                                <div className="flex gap-3">
+                                                                                    <span className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-2 shrink-0" />
+                                                                                    <span className={typeof req === 'object' ? 'font-black text-gray-900 dark:text-white' : ''}>
+                                                                                        {typeof req === 'string' ? req : req.title}
+                                                                                    </span>
+                                                                                </div>
+                                                                                {typeof req === 'object' && req.items && req.items.length > 0 && (
+                                                                                    <ul className="pl-8 space-y-1 mt-1 border-l-2 border-blue-100 dark:border-blue-900/30 ml-0.5">
+                                                                                        {req.items.map((sub, si) => (
+                                                                                            <li key={si} className="text-xs text-gray-500 dark:text-gray-400 pl-3 relative before:content-['-'] before:absolute before:left-0">
+                                                                                                {sub}
+                                                                                            </li>
+                                                                                        ))}
+                                                                                    </ul>
+                                                                                )}
                                                                             </li>
                                                                         ))}
                                                                     </ul>
@@ -268,9 +281,22 @@ export function Vacancies() {
                                                                     </h4>
                                                                     <ul className="space-y-3">
                                                                         {vacancy.benefits.map((benefit, i) => (
-                                                                            <li key={i} className="flex gap-3 text-sm text-gray-700 dark:text-gray-300">
-                                                                                <span className="w-1.5 h-1.5 rounded-full bg-green-500 mt-2 shrink-0" />
-                                                                                {typeof benefit === 'string' ? benefit : benefit.title}
+                                                                            <li key={i} className="flex flex-col gap-1 text-sm text-gray-700 dark:text-gray-300">
+                                                                                <div className="flex gap-3">
+                                                                                    <span className="w-1.5 h-1.5 rounded-full bg-green-500 mt-2 shrink-0" />
+                                                                                    <span className={typeof benefit === 'object' ? 'font-black text-gray-900 dark:text-white' : ''}>
+                                                                                        {typeof benefit === 'string' ? benefit : benefit.title}
+                                                                                    </span>
+                                                                                </div>
+                                                                                {typeof benefit === 'object' && benefit.items && benefit.items.length > 0 && (
+                                                                                    <ul className="pl-8 space-y-1 mt-1 border-l-2 border-green-100 dark:border-green-900/30 ml-0.5">
+                                                                                        {benefit.items.map((sub, si) => (
+                                                                                            <li key={si} className="text-xs text-gray-500 dark:text-gray-400 pl-3 relative before:content-['-'] before:absolute before:left-0">
+                                                                                                {sub}
+                                                                                            </li>
+                                                                                        ))}
+                                                                                    </ul>
+                                                                                )}
                                                                             </li>
                                                                         ))}
                                                                     </ul>

@@ -43,7 +43,7 @@ export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: 
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Configuración del perfil" />
+            <Head title="Mi Perfil | Refaccionaria El Boom" />
 
             <SettingsLayout>
                 <div className="space-y-6">

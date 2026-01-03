@@ -351,12 +351,6 @@ export default function AppSidebarLayout({
                     {isCartOpen ? (
                         <div className="fixed inset-0 z-[9999] bg-white dark:bg-gray-900 overflow-auto flex flex-col" style={{ height: '100vh', width: '100vw', top: 0, left: 0 }}>
                             <div className="relative flex-1 min-h-0">
-                                <button
-                                    onClick={toggleCart}
-                                    className="absolute top-4 right-4 text-[#000000] rounded-full p-2 hover:text-[#FBCC13] dark:text-white hover:cursor-pointer z-10"
-                                >
-                                    Cerrar
-                                </button>
                                 <div className="pt-16 px-2 sm:px-8">
                                     {(() => {
                                         try {

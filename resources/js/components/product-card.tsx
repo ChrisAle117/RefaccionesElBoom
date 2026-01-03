@@ -4,7 +4,7 @@ import { parseISO, differenceInBusinessDays, format } from 'date-fns';
 import { useShoppingCart } from './shopping-car-context';
 import React, { useState, useEffect, useRef } from 'react';
 import { ProductDetails } from './product-detail';
-import { Truck } from 'lucide-react';
+import { Truck, ShoppingCart, CreditCard } from 'lucide-react';
 import { router } from '@inertiajs/react';
 import { usePage } from '@inertiajs/react';
 import { es } from 'date-fns/locale';
@@ -564,19 +564,19 @@ export function ProductCard({
             </div>
 
             {/* Título y precio (ligeramente más grandes sin perder proporción) */}
-            <div className="flex flex-col px-1 sm:px-2">
+            <div className="flex flex-col px-2 sm:px-4 py-2">
                 <span
-                    className="text-lg sm:text-xl font-bold text-gray-900 mb-1.5 sm:mb-2 truncate dark:text-gray-100 cursor-pointer"
+                    className="text-lg sm:text-xl font-black text-gray-900 mb-1 sm:mb-2 line-clamp-2 dark:text-gray-100 cursor-pointer uppercase leading-tight group-hover:text-blue-600 transition-colors"
                     onClick={() => setShowDetails(true)}
                 >
                     {effectiveName}
                 </span>
-                <div className="flex items-center justify-between gap-1 mb-2 sm:mb-3">
+                <div className="flex items-center justify-between gap-1 mb-3">
                     <div className="flex items-baseline">
-                        <span className="text-xl sm:text-2xl font-extrabold text-green-700 dark:text-green-600">
+                        <span className="text-2xl sm:text-3xl font-black text-green-700 dark:text-green-500">
                             {formatPrice(effectivePrice)}
                         </span>
-                        <span className="text-sm ml-1 text-bold text-gray-500 dark:text-white">MXN</span>
+                        <span className="text-sm ml-1 font-bold text-gray-500 dark:text-gray-400">MXN</span>
                     </div>
                     <button
                         onClick={e => {
@@ -783,47 +783,41 @@ export function ProductCard({
                 {liveDisponibility > 0 ? (
                     <div className="flex flex-col gap-2 sm:gap-3 mt-1 sm:mt-2">
                         <button
-                            className={`w-full h-9 flex items-center justify-center gap-2 px-2 py-1 text-white font-bold rounded-sm transition duration-200 text-xs ${isAddingToCart
-                                ? "bg-gray-500 cursor-not-allowed dark:bg-gray-600"
-                                : isInCart
-                                    ? "bg-blue-600 cursor-not-allowed dark:bg-blue-700"
-                                    : "bg-red-700 cursor-pointer hover:bg-red-600 dark:bg-green-700 dark:hover:bg-green-800"
+                            className={`w-full h-11 flex items-center justify-center gap-2 px-4 py-2 text-white font-black rounded-lg transition-all duration-300 text-sm sm:text-base border-2 shadow-sm active:scale-95 cursor-pointer
+                                ${isAddingToCart
+                                    ? "bg-gray-500 border-gray-400 cursor-not-allowed"
+                                    : isInCart
+                                        ? "bg-blue-700 border-blue-800 cursor-not-allowed opacity-90"
+                                        : "bg-blue-600 border-blue-700 hover:bg-blue-500 hover:shadow-md"
                                 }`}
                             onClick={handleAddToCart}
                             disabled={isAddingToCart || isInCart}
                         >
                             {isAddingToCart ? (
-                                <>
-                                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                    </svg>
-                                    Agregando...
-                                </>
+                                <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full" />
                             ) : isInCart ? (
                                 <>
-                                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-                                    </svg>
-                                    Producto en el carrito
+                                    <ShoppingCart className="w-5 h-5 text-yellow-400" />
+                                    <span>EN EL CARRITO</span>
                                 </>
                             ) : (
                                 <>
-                                    <span className="text-lg">+</span> Agregar al carrito
+                                    <ShoppingCart className="w-5 h-5 text-yellow-500" />
+                                    <span>AGREGAR AL CARRITO</span>
                                 </>
                             )}
                         </button>
                         <button
-                            className="w-full h-9 cursor-pointer px-2 py-1 bg-[#FBCC13] text-black font-bold rounded-sm hover:bg-[#FBCC13] hover:text-black transition duration-200 text-xs dark:bg-[#FBBC13] dark:hover:bg-[#FBCC13] dark:hover:text-black"
+                            className="w-full h-11 cursor-pointer px-4 py-2 bg-yellow-400 text-black font-black rounded-lg hover:bg-yellow-500 transition-all duration-300 transform hover:scale-[1.02] active:scale-95 text-sm sm:text-base shadow-md hover:shadow-lg border-2 border-yellow-500"
                             onClick={handleBuyNow}
                             disabled={isAddingToCart}
                         >
-                            Comprar ahora
+                            COMPRAR AHORA
                         </button>
                     </div>
                 ) : (
-                    <div className="flex flex-col items-center justify-center bg-white bg-opacity-80 z-10 rounded-lg mt-2 dark:bg-gray-700">
-                        <span className="text-red-500 font-bold text-sm dark:text-red-400">Agotado</span>
+                    <div className="flex flex-col items-center justify-center bg-red-50 dark:bg-red-900 shadow-inner p-3 rounded-lg mt-2 border border-red-200 dark:border-red-800">
+                        <span className="text-red-700 font-extrabold text-sm uppercase dark:text-red-400">PRODUCTO AGOTADO</span>
                     </div>
                 )}
             </div>

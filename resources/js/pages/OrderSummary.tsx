@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Head, router, useForm } from '@inertiajs/react';
+import { Head, router, useForm, usePage, Link } from '@inertiajs/react';
+import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCountdown } from '@/hooks/use-countdown';
 import { CollapsibleSection } from '@/components/collapsible-section';
@@ -46,11 +47,25 @@ interface OrderProps {
         address: OrderAddress;
         items: OrderItem[];
         payment_proofs?: PaymentProof[];
+        user?: {
+            name: string;
+            email: string;
+            telefono: string;
+        };
     };
 }
 
 const OrderSummary: React.FC<OrderProps> = ({ order }) => {
+    const { auth } = usePage().props as any;
+    const isAdmin = auth.user?.role === 'admin';
+    const backRoute = isAdmin ? '/admin/orders' : '/dashboard';
+
     const { hours, minutes, seconds } = useCountdown(order.time_left);
+
+    React.useEffect(() => {
+        window.scrollTo(0, 0);
+    }, []);
+
     const { post } = useForm({
         payment_proof: null as File | null,
         notes: '',
@@ -110,7 +125,7 @@ const OrderSummary: React.FC<OrderProps> = ({ order }) => {
 
     return (
         <div className="container mx-auto p-4">
-            <Head title="Resumen de Orden" />
+            <Head title="Resumen de Pedido | Refaccionaria El Boom" />
 
 
             <Dialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
@@ -140,13 +155,24 @@ const OrderSummary: React.FC<OrderProps> = ({ order }) => {
                 </DialogContent>
             </Dialog>
 
-            <div className="flex justify-between items-center mb-4">
-                <h1 className="text-2xl font-bold">Resumen de orden #{order.id}</h1>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                {/* Botón de Regresar Integrado */}
+                <div className="flex items-center w-full sm:w-auto">
+                    <button
+                        className="w-full sm:w-auto bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 p-2 sm:px-6 rounded-xl shadow-md border-2 border-gray-300 dark:border-gray-500 transition-all duration-300 hover:scale-[1.02] flex items-center justify-center gap-3 cursor-pointer group"
+                        onClick={() => window.location.href = backRoute}
+                        type="button"
+                    >
+                        <ArrowLeft className="w-5 h-5 sm:w-6 sm:h-6 text-red-600 dark:text-red-500 group-hover:-translate-x-1 transition-transform" />
+                        <span className="font-black text-base sm:text-lg text-gray-800 dark:text-white uppercase">Regresar</span>
+                    </button>
+                </div>
+                <h1 className="text-xl sm:text-2xl font-bold dark:text-white">Orden #{order.id}</h1>
                 <img
-                    src="/images/logotipo.png"
-                    alt="Logotipo Refaccionaria El Boom"
-                    className="h-12 cursor-pointer"
-                    onClick={() => window.location.href = '/dashboard'}
+                    src={document.documentElement.classList.contains('dark') ? '/images/logotipo-claro.png' : '/images/logotipo.png'}
+                    alt="Logo"
+                    className="h-10 sm:h-12 cursor-pointer"
+                    onClick={() => window.location.href = backRoute}
                 />
             </div>
 
@@ -205,6 +231,27 @@ const OrderSummary: React.FC<OrderProps> = ({ order }) => {
                     ) : (
                         <p className="text-sm mt-1">No se especificó un motivo de rechazo.</p>
                     )}
+                </div>
+            )}
+
+
+            {isAdmin && order.user && (
+                <div className="bg-blue-50 border-l-4 border-blue-500 text-blue-700 p-4 mb-6 rounded shadow-sm">
+                    <p className="font-bold uppercase text-[10px] tracking-widest mb-2">Información de Contacto (Solo Admin)</p>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <p className="text-xs font-bold text-gray-500 uppercase">Cliente</p>
+                            <p className="text-sm font-black text-gray-900">{order.user.name}</p>
+                        </div>
+                        <div>
+                            <p className="text-xs font-bold text-gray-500 uppercase">Email</p>
+                            <p className="text-sm font-black text-gray-900">{order.user.email}</p>
+                        </div>
+                        <div>
+                            <p className="text-xs font-bold text-gray-500 uppercase">Teléfono</p>
+                            <p className="text-sm font-black text-gray-900">{order.user.telefono}</p>
+                        </div>
+                    </div>
                 </div>
             )}
 
@@ -337,7 +384,7 @@ const OrderSummary: React.FC<OrderProps> = ({ order }) => {
 
             <div className="flex justify-center">
                 <Button
-                    onClick={() => window.location.href = '/dashboard'}
+                    onClick={() => window.location.href = backRoute}
                     className="bg-gray-300 text-black hover:bg-gray-400 cursor-pointer"
                 >
                     Volver al Inicio

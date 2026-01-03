@@ -31,11 +31,17 @@ class ProductListingController extends Controller
 
         // Intentar obtener desde caché
         $cachedData = Cache::get($cacheKey);
-        if ($cachedData !== null && empty($search)) {
+        // Si hay búsqueda o tipo, ignoramos caché para asegurar frescura en filtros dinámicos
+        if ($cachedData !== null && empty($search) && empty($type)) {
             return Inertia::render($view, $cachedData);
         }
 
-    $query = Product::query()->where('active', true);
+        $query = Product::query()
+            ->where('active', true)
+            ->where('disponibility', '>', 0)
+            ->where('name', '!=', 'name')
+            ->whereRaw("COALESCE( NULLIF(created_at, '0000-00-00 00:00:00'), NULLIF(updated_at, '0000-00-00 00:00:00') ) >= ?", ['2023-01-01'])
+            ->orderBy('id_product', 'desc');
 
         if ($search !== '') {
             $keywords = preg_split('/\s+/', $search, -1, PREG_SPLIT_NO_EMPTY) ?: [];
@@ -72,8 +78,11 @@ class ProductListingController extends Controller
         
         $products = $query->get(['*']); 
 
-        
         Product::primePrices($products);
+        // Se elimina primeStock para priorizar el dato local de disponibilidad
+
+        // Filtrar productos que realmente tienen stock (priorizando dato local si está configurado)
+        $products = $products->filter(fn($p) => $p->disponibility > 0);
 
         
         $groups = [];
@@ -197,12 +206,8 @@ class ProductListingController extends Controller
             ]);
         }
 
-        $types = Product::query()
-            ->select('type')
-            ->where('active', true)
-            ->distinct()
-            ->pluck('type')
-            ->toArray();
+        // Obtener tipos de producto ÚNICAMENTE de los productos que pasaron el filtro de stock y edad
+        $types = $toRender->pluck('type')->unique()->filter()->values()->toArray();
         if (!empty($types) && !empty($savedOrder)) {
             usort($types, function ($a, $b) use ($savedOrder) {
                 $pa = array_search($a, $savedOrder, true);

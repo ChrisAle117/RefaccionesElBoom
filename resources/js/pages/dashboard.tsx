@@ -18,7 +18,7 @@ export default function Dashboard() {
             <Head title="El Boom Tractopartes" />
 
             {/* Componente de navegación por tabs */}
-            <TabNavigation stickyOffset="top-[72px]" showPurchases={true} fullWidth={true} />        
+            <TabNavigation stickyOffset="top-[72px]" showPurchases={true} fullWidth={true} />
         </AppLayout>
     );
 }
