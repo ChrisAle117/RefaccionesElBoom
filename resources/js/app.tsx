@@ -10,7 +10,13 @@ import { ShoppingCartProvider } from '@/components/shopping-car-context';
 const appName = import.meta.env.VITE_APP_NAME;
 
 createInertiaApp({
-    title: (title) => title ? title : (appName || 'Refaccionaria El Boom'),
+    title: (title) => {
+        const fallback = 'Refaccionaria El Boom';
+        if (!title) return fallback;
+        // If the title is just 'Laravel', replace it with something better or just use fallback
+        if (title === 'Laravel') return fallback;
+        return title;
+    },
     resolve: (name) => resolvePageComponent(`./pages/${name}.tsx`, import.meta.glob('./pages/**/*.tsx')),
     setup({ el, App, props }) {
         const root = createRoot(el);
