@@ -50,7 +50,7 @@ export default function Password() {
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Configuración del perfil" />
+            <Head title="Cambiar Contraseña | Refaccionaria El Boom" />
 
             <SettingsLayout>
                 <div className="space-y-6">

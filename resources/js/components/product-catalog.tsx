@@ -1,11 +1,12 @@
-﻿import React, { useState, useEffect, useRef, useLayoutEffect, useMemo, Suspense, lazy } from 'react';
+﻿import React, { useState, useEffect, useRef, useLayoutEffect, useMemo } from 'react';
 import { usePage } from '@inertiajs/react';
 import { type SharedData } from '@/types';
 import { ProductCard } from './product-card';
 import { Pagination } from './pagination';
 
 import { ProductDetails } from './product-detail';
-import { BookOpen, MapPin, ArrowRight } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { ArrowRight, ShoppingBag, ArrowLeft } from 'lucide-react';
 
 // Helpers globales para imÃ¡genes de tipos
 const slugifyType = (t: string) => (
@@ -127,6 +128,31 @@ export function ProductCatalog() {
             return a.disponibility > 0 ? -1 : 1;
         });
     }, [rawProducts]);
+    // Modo de vista: 'selector' (categorÃas) o 'grid' (productos)
+    const getInitialView = (): 'selector' | 'grid' => {
+        try {
+            const url = new URL(window.location.href);
+            // Si hay parÃ¡metros de bÃºsqueda, tipo o producto especÃfico, mostrar vista de grid
+            if (url.searchParams.has('search') || url.searchParams.has('type') || url.searchParams.has('openProduct')) {
+                return 'grid';
+            }
+            const v = (url.searchParams.get('view') || '').toLowerCase();
+            if (v === 'grid') return 'grid';
+        } catch { /* ignore */ }
+        return 'selector';
+    };
+    const [viewMode, setViewMode] = useState<'selector' | 'grid'>(getInitialView());
+    const updateViewInUrl = (mode: 'selector' | 'grid', replace = false) => {
+        try {
+            const url = new URL(window.location.href);
+            if (mode === 'selector') url.searchParams.delete('view');
+            else url.searchParams.set('view', 'grid');
+            const href = url.toString();
+            if (replace) window.history.replaceState(window.history.state, '', href);
+            else window.history.pushState(window.history.state, '', href);
+        } catch { /* ignore */ }
+    };
+
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
     // Abrir automáticamente producto si viene el parámetro openProduct
@@ -158,7 +184,14 @@ export function ProductCatalog() {
     const [columnsCount, setColumnsCount] = useState<number>(0);
     const gridRef = useRef<HTMLDivElement>(null);
 
-    useEffect(() => { window.scrollTo({ top: 0, behavior: 'smooth' }); }, [currentPage]);
+    const isProductSelected = !!selectedProduct;
+    useEffect(() => {
+        if (!titleRef.current) return;
+        // Reiniciar scroll suave cuando cambia la págna, el tipo de producto o se abre un detalle
+        titleRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, [currentPage, selectedType, viewMode, isProductSelected]);
+    const catalogRef = useRef<HTMLDivElement>(null);
+    const titleRef = useRef<HTMLDivElement>(null);
 
     // Detectar el número de columnas del grid y ajustar productos por página
     useLayoutEffect(() => {
@@ -276,30 +309,6 @@ export function ProductCatalog() {
     };
 
 
-    // Modo de vista: 'selector' (categorías) o 'grid' (productos)
-    const getInitialView = (): 'selector' | 'grid' => {
-        try {
-            const url = new URL(window.location.href);
-            // Si hay parámetros de búsqueda, tipo o producto específico, mostrar vista de grid
-            if (url.searchParams.has('search') || url.searchParams.has('type') || url.searchParams.has('openProduct')) {
-                return 'grid';
-            }
-            const v = (url.searchParams.get('view') || '').toLowerCase();
-            if (v === 'grid') return 'grid';
-        } catch { /* ignore */ }
-        return 'selector';
-    };
-    const [viewMode, setViewMode] = useState<'selector' | 'grid'>(getInitialView());
-    const updateViewInUrl = (mode: 'selector' | 'grid', replace = false) => {
-        try {
-            const url = new URL(window.location.href);
-            if (mode === 'selector') url.searchParams.delete('view');
-            else url.searchParams.set('view', 'grid');
-            const href = url.toString();
-            if (replace) window.history.replaceState(window.history.state, '', href);
-            else window.history.pushState(window.history.state, '', href);
-        } catch { /* ignore */ }
-    };
 
     // Vista: mostrar selector si viewMode = 'selector'
     const shouldShowTypeSelector = viewMode === 'selector';
@@ -390,8 +399,19 @@ export function ProductCatalog() {
             <div className="w-full bg-white dark:bg-gray-950">
                 {/* Header */}
                 <div className="relative w-full bg-white dark:bg-gray-950 py-8 sm:py-12 px-4 sm:px-6 flex items-center justify-between">
-                    <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-black dark:text-white drop-shadow-lg">NUESTROS PRODUCTOS</h1>
+                    <div className="flex flex-col items-start">
 
+                        <motion.h1
+                            initial={{ opacity: 0, y: -20 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-gray-900 dark:text-white tracking-tighter"
+                        >
+                            NUESTROS <span
+                                className="text-yellow-500"
+                                style={{ textShadow: "2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000" }}
+                            >PRODUCTOS</span>
+                        </motion.h1>
+                    </div>
                 </div>
 
                 {/* Categorías Hero */}
@@ -423,10 +443,14 @@ export function ProductCatalog() {
                                                         onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/images/default.jpg'; }}
                                                         loading="lazy"
                                                     />
-                                                    <div className="absolute inset-0 bg-black/20 transition-all z-10"></div>
-                                                    <span className="absolute left-0 right-0 bottom-0 flex items-end justify-center pb-6 sm:pb-8 text-white text-xl sm:text-2xl md:text-3xl lg:text-4xl font-extrabold drop-shadow-xl z-20 text-center px-2 sm:px-4 bg-gradient-to-t from-black/70 via-black/10 to-transparent h-1/2">
-                                                        {t || 'Otros'}
-                                                    </span>
+                                                    <div className="absolute inset-0 transition-all z-10 shine-effect"></div>
+                                                    <div className="absolute bottom-4 left-4 right-4 z-20">
+                                                        <div className="bg-black/40 backdrop-blur-md border border-white/20 rounded-2xl py-3 px-4 flex items-center justify-center">
+                                                            <span className="text-white text-xl sm:text-2xl font-black uppercase tracking-tight drop-shadow-md">
+                                                                {t || 'Otros'}
+                                                            </span>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                                 {/* Back Side */}
                                                 <div className="flip-card-back absolute inset-0 w-full h-full backface-hidden rotate-y-180">
@@ -436,20 +460,73 @@ export function ProductCatalog() {
                                                         className="w-full h-full object-cover"
                                                         loading="lazy"
                                                     />
-                                                    <div className="absolute inset-0 bg-black/40 transition-all z-10"></div>
-                                                    <span className="absolute left-0 right-0 bottom-0 flex items-end justify-center pb-6 sm:pb-8 text-white text-base sm:text-xl md:text-2xl lg:text-3xl font-bold drop-shadow-xl z-20 text-center px-2 sm:px-4 bg-gradient-to-t from-black/80 via-black/30 to-transparent h-2/3">
-                                                        {backText}
-                                                    </span>
+                                                    <div className="absolute inset-0 transition-all z-10 shine-effect"></div>
+                                                    <div className="absolute inset-0 flex flex-col items-center justify-center p-6 sm:p-8 z-20 bg-black/30 backdrop-blur-sm">
+                                                        <span className="text-white text-base sm:text-lg md:text-xl font-bold text-center drop-shadow-lg leading-tight">
+                                                            {backText}
+                                                        </span>
+                                                        <div className="mt-4 flex items-center gap-2 text-[#FBCC13] font-black text-xs sm:text-sm uppercase tracking-widest bg-black/40 py-2 px-4 rounded-full border border-[#FBCC13]/30">
+                                                            Ver Catálogo <ArrowRight className="w-4 h-4" />
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </button>
-                                        {/* Flip card CSS */}
+                                        {/* Flip card CSS & Premium Effects */}
                                         <style>{`
-                                            .perspective { perspective: 1200px; }
-                                            .flip-card-inner { position: relative; width: 100%; height: 100%; transform-style: preserve-3d; }
+                                            .perspective { perspective: 2000px; }
+                                            .flip-card-inner { 
+                                                position: relative; 
+                                                width: 100%; 
+                                                height: 100%; 
+                                                transform-style: preserve-3d; 
+                                                transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+                                            }
                                             .group:hover .flip-card-inner { transform: rotateY(180deg); }
-                                            .flip-card-front, .flip-card-back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 25px; overflow: hidden; }
+                                            .flip-card-front, .flip-card-back { 
+                                                position: absolute; 
+                                                width: 100%; 
+                                                height: 100%; 
+                                                backface-visibility: hidden; 
+                                                border-radius: 25px; 
+                                                overflow: hidden;
+                                                border: 2px solid transparent;
+                                                transition: border-color 0.5s ease, box-shadow 0.5s ease;
+                                            }
+                                            .group:hover .flip-card-front, .group:hover .flip-card-back {
+                                                border-color: rgba(251, 204, 19, 0.5);
+                                                box-shadow: 0 0 20px rgba(251, 204, 19, 0.3);
+                                            }
                                             .flip-card-back { transform: rotateY(180deg); }
+                                            
+                                            /* Shine Effect */
+                                            .shine-effect::after {
+                                                content: "";
+                                                position: absolute;
+                                                top: -110%;
+                                                left: -210%;
+                                                width: 200%;
+                                                height: 200%;
+                                                opacity: 0;
+                                                transform: rotate(30deg);
+                                                background: linear-gradient(
+                                                    to right,
+                                                    rgba(255, 255, 255, 0) 0%,
+                                                    rgba(255, 255, 255, 0.03) 1%,
+                                                    rgba(255, 255, 255, 0.2) 30%,
+                                                    rgba(255, 255, 255, 0.4) 50%,
+                                                    rgba(255, 255, 255, 0.2) 70%,
+                                                    rgba(255, 255, 255, 0.03) 99%,
+                                                    rgba(255, 255, 255, 0) 100%
+                                                );
+                                                transition: opacity 0.1s;
+                                            }
+                                            .group:hover .shine-effect::after {
+                                                opacity: 1;
+                                                top: -30%;
+                                                left: -30%;
+                                                transition: all 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+                                            }
                                         `}</style>
                                     </div>
                                 );
@@ -464,7 +541,7 @@ export function ProductCatalog() {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl px-4">
                                 <a
                                     href="/catalogos"
-                                    className="group relative rounded-[2.5rem] overflow-hidden shadow-2xl transition-all duration-500 hover:scale-[1.02] hover:-translate-y-2 cursor-pointer flex flex-col aspect-[4/3] min-h-[250px] md:min-h-[320px] bg-slate-900 border-4 border-white dark:border-slate-800"
+                                    className="group relative rounded-[2.5rem] overflow-hidden shadow-2xl transition-all duration-500 hover:scale-[1.02] hover:-translate-y-2 cursor-pointer flex flex-col aspect-[4/3] min-h-[250px] md:min-h-[320px] bg-slate-900 border-2 border-transparent hover:border-[#FBCC13]/50 hover:shadow-[0_0_30px_rgba(251,204,19,0.3)]"
                                 >
                                     {/* Imagen de Fondo con Zoom */}
                                     <div
@@ -473,7 +550,7 @@ export function ProductCatalog() {
                                     />
 
                                     {/* Overlays Dinámicos */}
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/10 opacity-70 group-hover:opacity-85 transition-opacity" />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-70 group-hover:opacity-90 transition-opacity shine-effect" />
                                     <div className="absolute inset-0 bg-[#FBCC13]/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
                                     {/* Contenido Card */}
@@ -483,7 +560,9 @@ export function ProductCatalog() {
                                         <h3 className="text-white text-2xl md:text-4xl font-black tracking-tighter mb-2 drop-shadow-lg">
                                             CATÁLOGOS
                                         </h3>
-                                        <div className="flex items-center gap-2 text-[#FBCC13] font-black text-md uppercase tracking-[0.2em] opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 transition-all duration-500">
+                                        <div
+                                            className="flex items-center gap-2 text-[#FBCC13] font-black text-md uppercase tracking-[0.2em] opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 transition-all duration-500"
+                                        >
                                             Ver productos <ArrowRight className="w-5 h-5" />
                                         </div>
                                     </div>
@@ -491,7 +570,7 @@ export function ProductCatalog() {
 
                                 <a
                                     href="/sucursales"
-                                    className="group relative rounded-[2.5rem] overflow-hidden shadow-2xl transition-all duration-500 hover:scale-[1.02] hover:-translate-y-2 cursor-pointer flex flex-col aspect-[4/3] min-h-[250px] md:min-h-[320px] bg-slate-900 border-4 border-white dark:border-slate-800"
+                                    className="group relative rounded-[2.5rem] overflow-hidden shadow-2xl transition-all duration-500 hover:scale-[1.02] hover:-translate-y-2 cursor-pointer flex flex-col aspect-[4/3] min-h-[250px] md:min-h-[320px] bg-slate-900 border-2 border-transparent hover:border-[#FBCC13]/50 hover:shadow-[0_0_30px_rgba(251,204,19,0.3)]"
                                 >
                                     {/* Imagen de Fondo con Zoom */}
                                     <div
@@ -500,7 +579,7 @@ export function ProductCatalog() {
                                     />
 
                                     {/* Overlays Dinámicos */}
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/10 opacity-70 group-hover:opacity-85 transition-opacity" />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-70 group-hover:opacity-90 transition-opacity shine-effect" />
                                     <div className="absolute inset-0 bg-[#FBCC13]/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
                                     {/* Contenido Card */}
@@ -527,22 +606,26 @@ export function ProductCatalog() {
     }
 
     return (
-        <div className="p-2 sm:p-4 border-b-2 border-[#FBCC13]  text-bold text-white rounded shadow overflow-y-auto overflow-x-hidden relative w-full  max-w-none w-screen -ml-[calc(50vw-50%)] left-0 px-4 sm:px-6">
+        <div ref={catalogRef} className="p-2 sm:p-4 border-b-2 border-[#FBCC13]  text-bold text-white rounded shadow overflow-y-auto overflow-x-hidden relative w-full  max-w-none w-screen -ml-[calc(50vw-50%)] left-0 px-4 sm:px-6">
+            {/* Botón de Regresar Superior */}
+            <div className="mb-6">
+                <button
+                    className="flex items-center justify-center gap-3 px-8 py-4 bg-white hover:bg-gray-50 text-gray-800 font-black rounded-xl border-2 border-gray-300 transition-all duration-300 cursor-pointer shadow-md hover:shadow-lg dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-white dark:border-gray-500 hover:scale-[1.02] active:scale-95 group w-full sm:w-auto"
+                    onClick={() => { setViewMode('selector'); updateViewInUrl('selector'); }}
+                    type="button"
+                >
+                    <ArrowLeft className="w-8 h-8 text-red-600 group-hover:-translate-x-1 transition-transform" />
+                    <span className="text-xl">REGRESAR A CATEGORÍAS</span>
+                </button>
+            </div>
+
             {/* Header y acciones */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 flex-wrap bg-white p-3 rounded-md shadow-sm mb-3 dark:bg-gray-800">
-                <h2 className="text-xl sm:text-2xl font-bold mb-1 sm:mb-2 text-black dark:text-white">Catálogo de productos.</h2>
-                <div className="flex flex-row items-center gap-2 sm:gap-3 ">
+            <div ref={titleRef} className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 flex-wrap bg-white p-4 sm:p-5 rounded-xl shadow-md mb-8 dark:bg-gray-800 border-b-4 border-[#FBCC13]">
+                <h2 className="text-2xl sm:text-3xl font-black mb-2 sm:mb-0 text-black dark:text-white uppercase tracking-tight">Catálogo de productos</h2>
+                <div className="flex flex-wrap items-center gap-3 sm:gap-6">
                     {search.trim() && (
-                        <p className="text-lg mb-2 mr-0 sm:mr-4 dark:text-gray-300">Resultado de búsqueda: {search}</p>
+                        <p className="text-lg font-medium dark:text-gray-300">Búsqueda: <span className="font-black text-blue-600">{search}</span></p>
                     )}
-                    <button
-                        className="text-black text-sm sm:text-base hover:text-black transition duration-300 flex items-center cursor-pointer underline-offset-2 hover:underline dark:text-white dark:hover:text-yellow-400"
-                        onClick={() => { setViewMode('selector'); updateViewInUrl('selector'); }}
-                        type="button"
-                    >
-                        Ver categorías
-                    </button>
-                    <span className="text-gray-300 mx-1">|</span>
                     <button
                         className="text-black text-sm sm:text-base hover:text-black transition duration-300 flex items-center cursor-pointer underline-offset-2 hover:underline dark:text-white dark:hover:text-yellow-400"
                         onClick={() => setShowFilters(!showFilters)}
@@ -688,6 +771,10 @@ export function ProductCatalog() {
                                             disponibility: product.disponibility || 0
                                         };
                                         setSelectedProduct(fullProduct);
+                                        // Scroll suave al inicio del encabezado del catálogo
+                                        if (titleRef.current) {
+                                            titleRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                        }
                                     }}
                                     className="cursor-pointer"
                                 >
@@ -701,7 +788,25 @@ export function ProductCatalog() {
                             ))}
                         </>
                     ) : (
-                        <p className="col-span-full text-center py-8 bg-white dark:bg-gray-800 rounded-md p-4 font-medium">No hay productos disponibles con los filtros seleccionados.</p>
+                        <div className="col-span-full flex flex-col items-center justify-center py-16 px-4 bg-white dark:bg-gray-800 rounded-3xl shadow-sm border-2 border-dashed border-gray-200 dark:border-gray-700">
+                            <div className="bg-yellow-50 dark:bg-yellow-500/10 p-4 rounded-full mb-6">
+                                <ShoppingBag className="w-12 h-12 text-[#FBCC13]" />
+                            </div>
+                            <h3 className="text-2xl font-black text-gray-900 dark:text-white mb-2 text-center uppercase">Sin disponibilidad</h3>
+                            <p className="max-w-md text-center text-gray-600 dark:text-gray-400 text-lg">
+                                Lo sentimos, por el momento no contamos con stock o este producto no está disponible para la venta.
+                            </p>
+                            <button
+                                onClick={() => {
+                                    const url = new URL(window.location.href);
+                                    url.search = '';
+                                    window.location.href = url.pathname;
+                                }}
+                                className="mt-8 px-6 py-2 bg-gray-900 dark:bg-white dark:text-gray-900 text-white font-bold rounded-xl hover:scale-105 transition-transform active:scale-95"
+                            >
+                                Ver todos los productos
+                            </button>
+                        </div>
                     )}
                 </div>
             )}

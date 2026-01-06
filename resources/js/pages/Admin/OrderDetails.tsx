@@ -1,9 +1,8 @@
 import React from 'react';
 import { Head, Link } from '@inertiajs/react';
 import AdminLayout from '@/layouts/admin-layout';
-import { CollapsibleSection } from '@/components/collapsible-section';
 import {
-    ShoppingBag, User, MapPin, CreditCard, Calendar,
+    User, MapPin, CreditCard,
     ArrowLeft, Package, Truck, Phone, Mail,
     FileText, CheckCircle2, AlertCircle, Clock, ExternalLink, X, Info
 } from 'lucide-react';
@@ -57,7 +56,7 @@ interface OrderDetailsProps {
 }
 
 const OrderDetails: React.FC<OrderDetailsProps> = ({ order }) => {
-    const translateStatus = (status: string): { label: string; icon: any; color: string } => {
+    const translateStatus = (status: string): { label: string; icon: React.ElementType; color: string } => {
         switch (status) {
             case 'pending_payment': return { label: 'Pendiente Pago', icon: Clock, color: 'text-amber-600 bg-amber-50 border-amber-100' };
             case 'payment_uploaded': return { label: 'Comprobante Subido', icon: FileText, color: 'text-blue-600 bg-blue-50 border-blue-100' };

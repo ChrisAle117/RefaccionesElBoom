@@ -123,26 +123,27 @@ export default function Deshuesadero({ brands }: DeshuesaderoProps) {
 
     return (
         <section className="pt-6 md:pt-10">
-            <div className="w-screen -mx-[calc(50vw-50%)] px-3 sm:px-4 md:px-6">
-                <h2 className="text-2xl md:text-3xl font-bold mb-3 text-[#006CFA]">
-                    Tractopartes nuevas y usadas
-                </h2>
-                <p className="text-gray-700 dark:text-gray-300 mb-6 max-w-3xl">
-                    Si bien dentro de este portal no encuentras mas que accesorios para su compra, te dejamos algunas de las tantas marcas que manejamos
-                    para refacciones nuevas.
+            <div className="text-center mb-16">
 
-                </p>
+                <motion.h2
+                    initial={{ opacity: 0, y: -20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    className="text-4xl md:text-5xl lg:text-6xl font-black text-gray-900 dark:text-white tracking-tighter"
+                >
+                    TRACTOPARTES <span
+                        className="text-yellow-500"
+                        style={{ textShadow: "2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000" }}
+                    >NUEVAS Y USADAS</span>
+                </motion.h2>
+                <motion.p
+                    initial={{ opacity: 0 }}
+                    whileInView={{ opacity: 1 }}
+                    transition={{ delay: 0.2 }}
+                    className="text-gray-500 dark:text-gray-400 mt-6 text-xl max-w-2xl mx-auto leading-relaxed"
+                >
+                    Explora nuestra amplia selección de <span className="font-bold text-gray-900 dark:text-white">marcas líderes</span>. Calidad garantizada para mantener tu flota en movimiento.
+                </motion.p>
             </div>
-            {/* 
-            <div className="container mx-auto px-4 mb-8 md:mb-12">
-                <div className="relative rounded-xl overflow-hidden border border-gray-200 dark:border-gray-800 shadow-sm bg-white dark:bg-gray-900">
-                    <img
-                        src={heroSrc}
-                        alt="Hero deshuesadero"
-                        className="w-full h-56 md:h-80 lg:h-96 object-contain object-center"
-                    />
-                </div>
-            </div> */}
             <div className="space-y-6">
                 {items.map((brand, idx) => {
                     const bg = idx % 2 === 0 ? BLUE_BG : YELLOW_BG;
@@ -152,8 +153,12 @@ export default function Deshuesadero({ brands }: DeshuesaderoProps) {
                     const nameImageUrl = `${imageBase}/${brand.id}.webp`;
 
                     return (
-                        <article
+                        <motion.article
                             key={brand.id}
+                            initial={{ opacity: 0, x: isEven ? -50 : 50 }}
+                            whileInView={{ opacity: 1, x: 0 }}
+                            viewport={{ once: true, margin: "-100px" }}
+                            transition={{ duration: 0.6, delay: 0.1 }}
                             className={`w-screen -mx-[calc(50vw-50%)] ${bg} border-y border-gray-300 dark:border-gray-800 shadow-sm`}
                         >
                             <div
@@ -164,6 +169,8 @@ export default function Deshuesadero({ brands }: DeshuesaderoProps) {
                                     <img
                                         src={logoUrl}
                                         alt={brand.name}
+                                        width={400}
+                                        height={280}
                                         className={`h-full w-full object-cover ${isEven ? "object-left" : "object-right"
                                             }`}
                                         style={{
@@ -183,6 +190,8 @@ export default function Deshuesadero({ brands }: DeshuesaderoProps) {
                                         <img
                                             src={nameImageUrl}
                                             alt={brand.name}
+                                            width={160}
+                                            height={80}
                                             className="h-10 md:h-16 lg:h-20 w-auto object-contain inline-block mb-2"
                                         />
                                         {(() => {
@@ -237,7 +246,7 @@ export default function Deshuesadero({ brands }: DeshuesaderoProps) {
                                     </div>
                                 </div>
                             </div>
-                        </article>
+                        </motion.article>
                     );
                 })}
             </div>

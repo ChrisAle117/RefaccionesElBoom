@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useShoppingCart } from './shopping-car-context';
-import { Trash2, ShoppingCart, CreditCard, ChevronDown, X, Truck } from 'lucide-react';
+import { Trash2, ShoppingCart, CreditCard, ChevronDown, X, Truck, ArrowLeft } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { router } from '@inertiajs/react';
 import { Address } from './address';
@@ -13,6 +13,15 @@ type AddressDto = {
     codigo_postal: string;
     ciudad: string;
     estado: string;
+};
+
+type AddressMapped = {
+    id: number;
+    street: string;
+    colony: string;
+    postalCode: string;
+    city: string;
+    state: string;
 };
 
 const toInt = (v: unknown, fallback = 0) => {
@@ -81,7 +90,7 @@ export function ShoppingCarView() {
     const [showMaxAlert, setShowMaxAlert] = useState<boolean>(false);
     const [showShippingOptions, setShowShippingOptions] = useState(false);
     const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
-    const [addresses, setAddresses] = useState<AddressDto[]>([]);
+    const [addresses, setAddresses] = useState<AddressMapped[]>([]);
     const [loadingAddresses, setLoadingAddresses] = useState(true);
     const [selectedAddress, setSelectedAddress] = useState('');
     const [shipping, setShipping] = useState<{ price: number; eta: string, free_shipping?: boolean, original_price?: number } | null>(null);
@@ -89,6 +98,10 @@ export function ShoppingCarView() {
     const [shippingError, setShippingError] = useState<string | null>(null);
     const [showConfetti, setShowConfetti] = useState(false);
     const [hasReachedThreshold, setHasReachedThreshold] = useState(false);
+
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, []);
 
     const finalTotal = totalPrice + (shipping?.price || 0);
 
@@ -230,6 +243,18 @@ export function ShoppingCarView() {
                 </div>
             )}
             <div className="sticky top-0 z-10 bg-gradient-to-b from-white to-transparent dark:from-gray-900 dark:to-gray-800 backdrop-blur-md p-6 border-b-2 border-[#FBCC13] dark:border-gray-700 shadow-lg rounded-b-xl hidden sm:block w-full">
+                {/* Botón de Regresar Integrado (Desktop) */}
+                <div className="flex items-center mb-4">
+                    <button
+                        className="w-full sm:w-auto bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 p-2 sm:px-6 rounded-xl shadow-md border-2 border-gray-300 dark:border-gray-500 transition-all duration-300 hover:scale-[1.02] flex items-center justify-center gap-3 cursor-pointer group"
+                        onClick={() => window.location.href = '/dashboard'}
+                        type="button"
+                    >
+                        <ArrowLeft className="w-5 h-5 sm:w-6 sm:h-6 text-red-600 dark:text-red-500 group-hover:-translate-x-1 transition-transform" />
+                        <span className="font-black text-base sm:text-lg text-gray-800 dark:text-white uppercase">Regresar al catálogo</span>
+                    </button>
+                </div>
+
                 <div className="flex justify-between items-center flex-wrap gap-4">
                     <h2 className="text-2xl font-extrabold text-black dark:text-white flex items-center gap-2">
                         <ShoppingCart className="h-6 w-6" /> Carrito de compras
@@ -321,6 +346,18 @@ export function ShoppingCarView() {
             </div>
 
             <div className="sticky top-0 z-10 bg-gradient-to-b from-white to-transparent dark:from-gray-900 dark:to-gray-800 backdrop-blur-md p-4 border-b-2 border-[#FBCC13] dark:border-gray-700 shadow-lg rounded-b-xl sm:hidden w-full">
+                {/* Botón de Regresar Integrado (Mobile) */}
+                <div className="flex items-center mb-3">
+                    <button
+                        className="w-full bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 p-2 rounded-xl shadow-md border-2 border-gray-300 dark:border-gray-500 transition-all duration-300 hover:scale-[1.02] flex items-center justify-center gap-2 cursor-pointer group"
+                        onClick={() => window.location.href = '/dashboard'}
+                        type="button"
+                    >
+                        <ArrowLeft className="w-4 h-4 text-red-600 dark:text-red-500 group-hover:-translate-x-1 transition-transform" />
+                        <span className="font-black text-xs text-gray-800 dark:text-white uppercase">Regresar al catálogo</span>
+                    </button>
+                </div>
+
                 <div className="flex flex-col gap-2">
                     <div className="flex items-center gap-3 mb-2">
                         <span className="text-xl font-extrabold text-black dark:text-white flex items-center gap-2"><ShoppingCart className="h-5 w-5" /> Carrito</span>
@@ -366,6 +403,7 @@ export function ShoppingCarView() {
                 </div>
             </div>
             <AddressModal isOpen={isAddressModalOpen} onClose={() => setIsAddressModalOpen(false)} onAddressAdded={handleAddressAdded} />
+
             {cartItems.length === 0 ? (
                 <div className="p-8 text-center text-black dark:text-white flex flex-col items-center justify-center">
                     <ShoppingCart className="h-24 w-24 mb-4 text-gray-400" />

@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import AdminLayout from '@/layouts/admin-layout';
 import { Head, Link } from '@inertiajs/react';
-import { AlertTriangle, RefreshCw, Layers, ChevronRight, XCircle, ShieldCheck, ArrowLeft, Package } from 'lucide-react';
+import { AlertTriangle, RefreshCw, Layers, ChevronRight, XCircle, ShieldCheck, ArrowLeft } from 'lucide-react';
 
 interface Incidence {
     id_product: number;
@@ -73,7 +73,7 @@ const ProductIncidences: React.FC<PageProps> = ({ incidences, total }) => {
                             className="flex-1 lg:flex-none h-11 px-6 bg-slate-800 text-white rounded-lg hover:bg-slate-900 font-black transition-all text-xs uppercase tracking-widest flex items-center justify-center gap-2 shadow-md"
                         >
                             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-                            {loading ? 'Refrescando...' : 'Fuerza Bruta'}
+                            {loading ? 'Refrescando...' : 'Actualizar'}
                         </button>
 
                         <button

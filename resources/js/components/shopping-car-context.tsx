@@ -43,8 +43,26 @@ type RawCartItem = {
 
 const ShoppingCartContext = createContext<ShoppingCartContextProps | undefined>(undefined);
 
-export const ShoppingCartProvider: React.FC<{ children: React.ReactNode; isAuthenticated?: boolean }> = ({ children, isAuthenticated = false }) => {
+export const ShoppingCartProvider: React.FC<{ children: React.ReactNode; isAuthenticated?: boolean }> = ({ children, isAuthenticated: initialIsAuthenticated = false }) => {
     const [cartItems, setCartItems] = useState<CartItem[]>([]);
+    const [isAuthenticated, setIsAuthenticated] = useState(initialIsAuthenticated);
+
+    // Sync authentication status with Initial prop and subsequent Inertia navigation
+    useEffect(() => {
+        setIsAuthenticated(initialIsAuthenticated);
+    }, [initialIsAuthenticated]);
+
+    useEffect(() => {
+        const unbind = router.on('success', (event) => {
+            const props = event.detail.page.props as unknown as { auth?: { user?: unknown } };
+            const currentAuth = !!props.auth?.user;
+            if (currentAuth !== isAuthenticated) {
+                setIsAuthenticated(currentAuth);
+            }
+        });
+        return () => unbind();
+    }, [isAuthenticated]);
+
     // Clear cart when user is not logged in
     useEffect(() => {
         if (!isAuthenticated) {
@@ -52,8 +70,10 @@ export const ShoppingCartProvider: React.FC<{ children: React.ReactNode; isAuthe
         }
     }, [isAuthenticated]);
 
-    const mapItems = (items: RawCartItem[]) => {
-        return items.map((it) => ({
+    const mapItems = (items: RawCartItem[] | Record<string, RawCartItem>) => {
+        // Laravel returns collection as object if keys are non-sequential
+        const itemsArray = Array.isArray(items) ? items : Object.values(items);
+        return itemsArray.map((it) => ({
             id_product: toInt(it.id_product),
             name: String(it.name ?? ''),
             price: toFloat(it.price),

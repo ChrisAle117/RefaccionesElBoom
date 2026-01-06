@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Head, router, Link } from '@inertiajs/react';
 import AdminLayout from '@/layouts/admin-layout';
-import { Truck, Search, Calendar, Tag, ChevronLeft, ChevronRight, XCircle, ExternalLink, Clock } from 'lucide-react';
+import { Truck, Search, Calendar, Tag, ChevronLeft, ChevronRight, XCircle, Clock } from 'lucide-react';
 
 interface Pickup {
     id: number;
@@ -140,7 +140,7 @@ const DhlPickups: React.FC<Props> = ({ pickups, filters, pagination }) => {
                                             </td>
 
                                             <td className="px-6 py-4">
-                                                <Link href={route('admin.orders.show', p.order_id)} className="text-sm font-black text-blue-600 hover:underline">
+                                                <Link href={route('orders.show', p.order_id)} className="text-sm font-black text-blue-600 hover:underline">
                                                     #{p.order_id}
                                                 </Link>
                                             </td>

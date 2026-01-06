@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Head, useForm, Link } from '@inertiajs/react';
 import AdminLayout from '@/layouts/admin-layout';
-import { ReceiptText, CheckCircle2, XCircle, FileText, Download, Check, Eye, Clock, AlertCircle } from 'lucide-react';
+import { ReceiptText, CheckCircle2, XCircle, FileText, Download, Check, Eye, AlertCircle } from 'lucide-react';
 
 interface PaymentProofItem {
     id: number;
@@ -216,7 +216,7 @@ const PaymentProofs: React.FC<PaymentProofsProps> = ({ pendingProofs }) => {
                                                         <XCircle className="w-3 h-3" /> NO
                                                     </button>
                                                     <Link
-                                                        href={route('admin.orders.show', proof.order_id)}
+                                                        href={route('orders.show', proof.order_id)}
                                                         className="h-9 w-9 flex items-center justify-center bg-gray-50 text-gray-400 hover:bg-gray-100 rounded-lg border border-gray-100 transition-all"
                                                         title="Detalles"
                                                     >

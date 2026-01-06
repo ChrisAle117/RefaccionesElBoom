@@ -2,7 +2,7 @@ import React, { ReactNode, useEffect, useState } from 'react';
 import { Head, usePage } from '@inertiajs/react';
 import { Link } from '@inertiajs/react';
 import WhatsAppWidget from '@/components/WhatsAppWidget';
-import { Menu, X, ChevronRight, LayoutDashboard, ReceiptText, ClipboardList, Package, Layers, Users, BookOpen, Store, Truck, AlertTriangle, ArrowLeft } from 'lucide-react';
+import { ChevronRight, LayoutDashboard, ReceiptText, ClipboardList, Package, Layers, Users, BookOpen, Store, Truck, AlertTriangle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface AdminLayoutProps {
@@ -11,7 +11,14 @@ interface AdminLayoutProps {
     fullWidth?: boolean;
 }
 
-type AdminPageProps = { auth: unknown };
+type AdminPageProps = {
+    auth: {
+        user: {
+            name: string;
+            role: string;
+        };
+    };
+};
 
 const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title = 'Admin', fullWidth = false }) => {
     const { auth } = usePage<AdminPageProps>().props;
@@ -113,8 +120,8 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title = 'Admin', fu
 
                         <div className="flex items-center gap-1 sm:gap-2">
                             <div className="hidden md:block mr-2 text-right">
-                                <span className="block text-xs font-semibold text-gray-900">{(auth as any).user.name}</span>
-                                <span className="block text-[10px] text-gray-500 capitalize">{(auth as any).user.role}</span>
+                                <span className="block text-xs font-semibold text-gray-900">{auth.user.name}</span>
+                                <span className="block text-[10px] text-gray-500 capitalize">{auth.user.role}</span>
                             </div>
 
                             <Link

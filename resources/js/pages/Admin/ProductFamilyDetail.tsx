@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 import { Head, router, Link } from '@inertiajs/react';
 import AdminLayout from '@/layouts/admin-layout';
 import {
-    Layers, Search, ArrowLeft, Plus, X,
-    Palette, Check, Trash2, ShieldQuestion,
-    ChevronRight, Save, Info
+    Layers, Search, ArrowLeft, Plus,
+    Trash2, ShieldQuestion,
+    ChevronRight, Save
 } from 'lucide-react';
 
 interface Item {

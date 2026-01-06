@@ -23,7 +23,7 @@ export default function ForgotPassword({ status }: { status?: string }) {
 
     return (
         <AuthLayout title="Contraseña olvidada" description="Ingresa tu correo electrónico para restablecer tu contraseña">
-            <Head title="Contraseña olvidada" />
+            <Head title="Recuperar Contraseña | Refaccionaria El Boom" />
 
             {status && <div className="mb-4 text-center text-sm font-medium text-green-600">{status}</div>}
 
