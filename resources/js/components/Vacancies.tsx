@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MessageCircle, Briefcase, MapPin, Mail, Phone, ChevronDown, CheckCircle2, Search, Filter } from 'lucide-react';
@@ -23,12 +23,11 @@ type Vacancy = {
 export function Vacancies() {
     const [vacancies, setVacancies] = useState<Vacancy[]>([]);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
     const [expandedVacancy, setExpandedVacancy] = useState<number | null>(null);
     const [filterDepartment, setFilterDepartment] = useState<string>('');
     const [searchQuery, setSearchQuery] = useState<string>('');
 
-    const [highlightedVacancy, setHighlightedVacancy] = useState<number | null>(null);
+
 
     const WHATSAPP_NUMBER = '527775005017';
     const buildWhatsAppUrl = (title: string) =>
@@ -41,7 +40,6 @@ export function Vacancies() {
                 setVacancies(response.data);
                 setLoading(false);
             } catch {
-                setError('No se pudieron cargar las vacantes. Por favor, inténtalo más tarde.');
                 setLoading(false);
             }
         };

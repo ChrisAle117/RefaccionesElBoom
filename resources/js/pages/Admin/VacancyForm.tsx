@@ -2,10 +2,10 @@ import React, { useMemo, useState } from 'react';
 import { Head, useForm, Link } from '@inertiajs/react';
 import AdminLayout from '@/layouts/admin-layout';
 import {
-    Briefcase, Save, X, Info, MapPin, Building2,
+    Briefcase, Save, X, Info,
     Mail, CheckCircle2, GripVertical, Plus,
     Trash2, FolderPlus, Ungroup, ArrowLeft,
-    Clock, Smartphone
+    Clock
 } from 'lucide-react';
 
 // Tipos de entrada: item simple o grupo con subitems
@@ -541,7 +541,7 @@ interface DynamicRowProps {
     item: Item;
     index: number;
     type: string;
-    groups: any[];
+    groups: { i: number; g: Group | null }[];
     onChange: (i: number, val: string) => void;
     onRemove: () => void;
     onConvertToGroup: () => void;

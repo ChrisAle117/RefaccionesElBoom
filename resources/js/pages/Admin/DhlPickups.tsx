@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Head, router, Link } from '@inertiajs/react';
 import AdminLayout from '@/layouts/admin-layout';
-import { Truck, Search, Calendar, Tag, ChevronLeft, ChevronRight, XCircle, ExternalLink, Clock } from 'lucide-react';
+import { Truck, Search, Calendar, Tag, ChevronLeft, ChevronRight, XCircle, Clock } from 'lucide-react';
 
 interface Pickup {
     id: number;

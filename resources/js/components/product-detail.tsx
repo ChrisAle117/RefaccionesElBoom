@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import AppLayout from '@/layouts/app-layout';
 import { ArrowLeft, X, Truck, ZoomIn, ShoppingCart, CreditCard, ChevronDown } from 'lucide-react';
 import { useShoppingCart } from './shopping-car-context';
 import { usePage } from '@inertiajs/react';

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Head, router, Link } from '@inertiajs/react';
 import AdminLayout from '@/layouts/admin-layout';
-import { Search, Filter, Eye, Tag, FileText, CheckCircle2, XCircle, Clock, Package, ChevronRight, ChevronLeft } from 'lucide-react';
+import { Search, Eye, Tag, FileText, XCircle, Clock, ChevronRight, ChevronLeft } from 'lucide-react';
 
 interface Order {
     id_order: number;

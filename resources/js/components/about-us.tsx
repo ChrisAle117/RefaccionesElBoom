@@ -1,6 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { Compass, Eye, Users, Award, ShieldCheck } from 'lucide-react';
+import { Compass, Eye } from 'lucide-react';
 
 export default function AboutUs() {
     return (

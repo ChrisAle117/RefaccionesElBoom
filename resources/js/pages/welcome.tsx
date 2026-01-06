@@ -3,7 +3,7 @@ import { TabNavigation } from '@/components/TabNavigation';
 import AppLayout from '@/layouts/app-layout';
 import { type SharedData } from '@/types';
 import { Head, usePage } from '@inertiajs/react';
-import { Facebook, Instagram, MessageCircle, Truck, BookOpen } from 'lucide-react';
+import { Facebook, Instagram, MessageCircle } from 'lucide-react';
 import React from 'react';
 
 export default function Welcome() {
@@ -117,7 +117,7 @@ export default function Welcome() {
                                 <SocialLink href="https://www.facebook.com/boomtractopartes/?locale=es_LA" icon={<Facebook />} label="Facebook" color="hover:text-blue-600" />
                                 <SocialLink href="https://www.instagram.com/elboomtractopartes/?hl=es" icon={<Instagram />} label="Instagram" color="hover:text-pink-600" />
                                 <SocialLink
-                                    href="https://www.tiktok.com"
+                                    href="https://www.tiktok.com/@elboomtractopartes"
                                     icon={
                                         <svg viewBox="0 0 24 24" fill="currentColor" stroke="none" className="w-full h-full">
                                             <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.17-2.86-.6-4.12-1.31a8.15 8.15 0 0 1-1.33-1.01c-.13 3.1-.11 6.22-.12 9.33-.01 2.01-.5 4.16-1.92 5.62-1.51 1.56-3.83 2.15-5.91 1.9-2.18-.17-4.29-1.31-5.39-3.21-1.22-1.99-1.23-4.66-.23-6.68.91-1.84 2.82-3.13 4.87-3.41 1.02-.15 2.06-.05 3.03.27V12.44a5.13 5.13 0 0 0-2.88-.04c-1.84.47-3.32 2.1-3.6 4-.29 1.72.33 3.63 1.7 4.75 1.45 1.19 3.56 1.41 5.25.64 1.47-.64 2.32-2.18 2.33-3.76.01-4.71.01-9.42.01-14.13-.01-.39-.06-.78-.06-1.17z" />

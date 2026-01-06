@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Head, useForm, Link } from '@inertiajs/react';
 import AdminLayout from '@/layouts/admin-layout';
-import { ReceiptText, CheckCircle2, XCircle, FileText, Download, Check, Eye, Clock, AlertCircle } from 'lucide-react';
+import { ReceiptText, CheckCircle2, XCircle, FileText, Download, Check, Eye, AlertCircle } from 'lucide-react';
 
 interface PaymentProofItem {
     id: number;

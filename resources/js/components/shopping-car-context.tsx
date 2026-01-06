@@ -54,7 +54,7 @@ export const ShoppingCartProvider: React.FC<{ children: React.ReactNode; isAuthe
 
     useEffect(() => {
         const unbind = router.on('success', (event) => {
-            const props = event.detail.page.props as any;
+            const props = event.detail.page.props as unknown as { auth?: { user?: unknown } };
             const currentAuth = !!props.auth?.user;
             if (currentAuth !== isAuthenticated) {
                 setIsAuthenticated(currentAuth);

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Head, router, useForm, usePage, Link } from '@inertiajs/react';
+import { Head, router, useForm, usePage } from '@inertiajs/react';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCountdown } from '@/hooks/use-countdown';
@@ -56,7 +56,7 @@ interface OrderProps {
 }
 
 const OrderSummary: React.FC<OrderProps> = ({ order }) => {
-    const { auth } = usePage().props as any;
+    const { auth } = usePage<{ auth: { user: { role: string } } }>().props;
     const isAdmin = auth.user?.role === 'admin';
     const backRoute = isAdmin ? '/admin/orders' : '/dashboard';
 

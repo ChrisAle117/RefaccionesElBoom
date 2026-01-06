@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { Head, useForm, Link } from '@inertiajs/react';
 import AdminLayout from '@/layouts/admin-layout';
-import { Package, Save, X, Image as ImageIcon, Music, Ruler, Info, ArrowLeft, Plus } from 'lucide-react';
+import { Package, Save, X, Image as ImageIcon, Music, Ruler, Info, ArrowLeft } from 'lucide-react';
 
 interface ProductFormProps {
     product?: {
@@ -23,39 +23,35 @@ interface ProductFormProps {
     types: string[];
 }
 
+const normalizeImagePath = (raw: string): string => {
+    if (!raw) return '';
+    let url = raw.trim();
+    const multi = url.match(/https?:\/\/[^\s]+/g);
+    if (multi && multi.length > 1) {
+        url = multi[multi.length - 1];
+    }
+    const storageIdx = url.indexOf('/storage/');
+    if (storageIdx !== -1) {
+        url = url.substring(storageIdx + '/storage/'.length);
+    }
+    url = url.replace(/^\/+/, '');
+    return url;
+};
+
+const buildPreview = (value: string): string => {
+    if (!value) return '';
+    if (value.startsWith('http://') || value.startsWith('https://')) return value;
+    return `/storage/${value.replace(/^storage\//, '')}`;
+};
+
 const ProductForm: React.FC<ProductFormProps> = ({ product, types }) => {
     const isEditing = !!product;
     const [imagePreview, setImagePreview] = useState<string>('');
     const [useCustomType, setUseCustomType] = useState<boolean>(false);
 
-    const normalizeImagePath = (raw: string): string => {
-        if (!raw) return '';
-        let url = raw.trim();
-        const multi = url.match(/https?:\/\/[^\s]+/g);
-        if (multi && multi.length > 1) {
-            url = multi[multi.length - 1];
-        }
-        const storageIdx = url.indexOf('/storage/');
-        if (storageIdx !== -1) {
-            url = url.substring(storageIdx + '/storage/'.length);
-        }
-        url = url.replace(/^\/+/, '');
-        return url;
-    };
 
-    const buildPreview = (value: string): string => {
-        if (!value) return '';
-        if (value.startsWith('http://') || value.startsWith('https://')) return value;
-        return `/storage/${value.replace(/^storage\//, '')}`;
-    };
 
-    React.useEffect(() => {
-        if (product?.image) {
-            const normalized = normalizeImagePath(product.image);
-            setData('image', normalized);
-            setImagePreview(buildPreview(normalized));
-        }
-    }, [product]);
+
 
     const selectTypes = useMemo(() => {
         const list = Array.isArray(types) ? [...types] : [];
@@ -79,6 +75,14 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, types }) => {
         type: product?.type || '',
         image: product?.image || ''
     });
+
+    React.useEffect(() => {
+        if (product?.image) {
+            const normalized = normalizeImagePath(product.image);
+            setData('image', normalized);
+            setImagePreview(buildPreview(normalized));
+        }
+    }, [product, setData]);
 
     const audioInitialUrl = product?.audio_url ?? null;
     const [audioPreview, setAudioPreview] = useState<string | null>(audioInitialUrl);

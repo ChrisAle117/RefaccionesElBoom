@@ -4,7 +4,7 @@ import { parseISO, differenceInBusinessDays, format } from 'date-fns';
 import { useShoppingCart } from './shopping-car-context';
 import React, { useState, useEffect, useRef } from 'react';
 import { ProductDetails } from './product-detail';
-import { Truck, ShoppingCart, CreditCard } from 'lucide-react';
+import { Truck, ShoppingCart } from 'lucide-react';
 import { router } from '@inertiajs/react';
 import { usePage } from '@inertiajs/react';
 import { es } from 'date-fns/locale';

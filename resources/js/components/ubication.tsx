@@ -1,6 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { Phone, MessageCircle, MapPin, Clock, Globe } from "lucide-react";
+import { Phone, MessageCircle, MapPin, Clock } from "lucide-react";
 
 export default function Ubication() {
     const branches = [

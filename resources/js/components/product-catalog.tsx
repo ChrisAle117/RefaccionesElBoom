@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useRef, useLayoutEffect, useMemo, Suspense, lazy } from 'react';
+﻿import React, { useState, useEffect, useRef, useLayoutEffect, useMemo } from 'react';
 import { usePage } from '@inertiajs/react';
 import { type SharedData } from '@/types';
 import { ProductCard } from './product-card';
@@ -6,7 +6,7 @@ import { Pagination } from './pagination';
 
 import { ProductDetails } from './product-detail';
 import { motion } from 'framer-motion';
-import { BookOpen, MapPin, ArrowRight, ShoppingBag, ArrowLeft } from 'lucide-react';
+import { ArrowRight, ShoppingBag, ArrowLeft } from 'lucide-react';
 
 // Helpers globales para imÃ¡genes de tipos
 const slugifyType = (t: string) => (
@@ -184,11 +184,12 @@ export function ProductCatalog() {
     const [columnsCount, setColumnsCount] = useState<number>(0);
     const gridRef = useRef<HTMLDivElement>(null);
 
+    const isProductSelected = !!selectedProduct;
     useEffect(() => {
         if (!titleRef.current) return;
-        // Reiniciar scroll suave cuando cambia la pÃ¡gina, el tipo de producto o se abre un detalle
+        // Reiniciar scroll suave cuando cambia la págna, el tipo de producto o se abre un detalle
         titleRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, [currentPage, selectedType, viewMode, !!selectedProduct]);
+    }, [currentPage, selectedType, viewMode, isProductSelected]);
     const catalogRef = useRef<HTMLDivElement>(null);
     const titleRef = useRef<HTMLDivElement>(null);
 

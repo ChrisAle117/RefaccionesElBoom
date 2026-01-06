@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import AdminLayout from '@/layouts/admin-layout';
 import { Head, Link } from '@inertiajs/react';
-import { AlertTriangle, RefreshCw, Layers, ChevronRight, XCircle, ShieldCheck, ArrowLeft, Package } from 'lucide-react';
+import { AlertTriangle, RefreshCw, Layers, ChevronRight, XCircle, ShieldCheck, ArrowLeft } from 'lucide-react';
 
 interface Incidence {
     id_product: number;
