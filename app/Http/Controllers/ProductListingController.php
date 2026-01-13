@@ -60,13 +60,32 @@ class ProductListingController extends Controller
         }
 
         
-        $savedOrder = Cache::get('product_types.sort_order', []);
+        // Orden solicitado por el usuario: plafon, cubretuerca, faroled, modulo led, bocina, otros
+        $defaultOrder = ['plafon', 'cubretuerca', 'faroled', 'modulo-led', 'bocina', 'otros'];
+        
+        $savedOrder = Cache::get('product_types.sort_order', $defaultOrder);
+        
         if (!empty($savedOrder) && is_array($savedOrder)) {
+            // Normalizar el orden guardado/default para comparación
+            $normalizedOrder = array_map(fn($t) => strtolower(trim((string)$t)), $savedOrder);
+            
             $case = 'CASE';
             $bindings = [];
-            foreach ($savedOrder as $idx => $t) {
-                $case .= ' WHEN type = ? THEN ?';
-                $bindings[] = $t;
+            foreach ($normalizedOrder as $idx => $t) {
+                // Manejar variaciones comunes para asegurar que el orden se aplique correctamente
+                if ($t === 'faroled' || $t === 'faro-led') {
+                    $case .= ' WHEN LOWER(type) = ? OR LOWER(type) = ? THEN ?';
+                    $bindings[] = 'faroled';
+                    $bindings[] = 'faro-led';
+                } elseif ($t === 'modulo led' || $t === 'modulo-led' || $t === 'modulos-led') {
+                    $case .= ' WHEN LOWER(type) = ? OR LOWER(type) = ? OR LOWER(type) = ? THEN ?';
+                    $bindings[] = 'modulo led';
+                    $bindings[] = 'modulo-led';
+                    $bindings[] = 'modulos-led';
+                } else {
+                    $case .= ' WHEN LOWER(type) = ? THEN ?';
+                    $bindings[] = $t;
+                }
                 $bindings[] = $idx + 1;
             }
             $case .= ' ELSE 9999 END';
@@ -208,17 +227,37 @@ class ProductListingController extends Controller
 
         // Obtener tipos de producto ÚNICAMENTE de los productos que pasaron el filtro de stock y edad
         $types = $toRender->pluck('type')->unique()->filter()->values()->toArray();
-        if (!empty($types) && !empty($savedOrder)) {
-            usort($types, function ($a, $b) use ($savedOrder) {
-                $pa = array_search($a, $savedOrder, true);
-                $pb = array_search($b, $savedOrder, true);
+        
+        $currentOrder = !empty($savedOrder) ? $savedOrder : $defaultOrder;
+        $normalizedCurrentOrder = array_map(fn($t) => strtolower(trim((string)$t)), $currentOrder);
+
+        if (!empty($types)) {
+            usort($types, function ($a, $b) use ($normalizedCurrentOrder) {
+                $ta = strtolower(trim((string)$a));
+                $tb = strtolower(trim((string)$b));
+                
+                // Helper para encontrar la posición considerando alias
+                $findPos = function($type) use ($normalizedCurrentOrder) {
+                    $pos = array_search($type, $normalizedCurrentOrder, true);
+                    if ($pos !== false) return $pos;
+                    
+                    // Manejar alias si no se encuentra exacto
+                    if ($type === 'faro-led') return array_search('faroled', $normalizedCurrentOrder, true);
+                    if ($type === 'faroled') return array_search('faro-led', $normalizedCurrentOrder, true);
+                    if ($type === 'modulo-led' || $type === 'modulos-led') return array_search('modulo led', $normalizedCurrentOrder, true);
+                    
+                    return false;
+                };
+
+                $pa = $findPos($ta);
+                $pb = $findPos($tb);
+                
                 $oa = $pa === false ? 9999 : $pa;
                 $ob = $pb === false ? 9999 : $pb;
+                
                 if ($oa === $ob) return strcmp((string) $a, (string) $b);
                 return $oa <=> $ob;
             });
-        } else {
-            sort($types, SORT_NATURAL | SORT_FLAG_CASE);
         }
         $productTypes = collect($types);
 

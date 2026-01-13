@@ -7,8 +7,6 @@ import { createRoot } from 'react-dom/client';
 import { initializeTheme } from './hooks/use-appearance';
 import { ShoppingCartProvider } from '@/components/shopping-car-context';
 
-const appName = import.meta.env.VITE_APP_NAME;
-
 createInertiaApp({
     title: (title) => {
         const fallback = 'Refaccionaria El Boom';

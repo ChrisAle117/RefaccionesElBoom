@@ -39,6 +39,11 @@ class ProductTypeOrderController extends Controller
         $order = array_values(array_filter($data['order'], fn ($v) => $v !== null && $v !== ''));
         Cache::forever(self::CACHE_KEY, $order);
 
+        // Limpiar cachés de listado de productos para que los cambios se vean de inmediato
+        // Se limpian las versiones base de welcome y dashboard (sin filtros de búsqueda/tipo)
+        Cache::forget('products_listing_welcome_' . md5(''));
+        Cache::forget('products_listing_dashboard_' . md5(''));
+
         return back()->with('success', 'Orden de tipos actualizado');
     }
 }
