@@ -29,6 +29,7 @@ class ProductController extends Controller
             'active',
         ]);
 
+        // 1. Database-level filters (Very fast)
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
@@ -49,84 +50,66 @@ class ProductController extends Controller
             }
         }
 
-        $totalOutOfStock = Product::where('disponibility', 0)->count();
-
+        $totalOutOfStock = (clone $query)->where('disponibility', 0)->count();
         $query->orderBy('id_product', 'desc');
 
-
-        $all = $query->get();
-
-
-        \App\Models\Product::primePrices($all);
-        \App\Models\Product::primeStock($all);
-
+        // 2. Determine if we have "Live" filters that require warehouse data
         $availability = $request->input('availability', 'all');
         $minPrice = $request->filled('min_price') ? (float) $request->input('min_price') : null;
         $maxPrice = $request->filled('max_price') ? (float) $request->input('max_price') : null;
 
-        $filtered = $all->filter(function (Product $p) use ($availability, $minPrice, $maxPrice) {
+        $hasLiveFilters = ($availability && $availability !== 'all') || $minPrice !== null || $maxPrice !== null;
 
-            if ($availability && $availability !== 'all') {
-                $stock = (int) $p->disponibility; 
-                switch ($availability) {
-                    case 'in_stock':
-                        if (!($stock > 0)) return false;
-                        break;
-                    case 'low_stock':
-                        if (!($stock > 0 && $stock <= 10)) return false;
-                        break;
-                    case 'out_of_stock':
-                        if (!($stock === 0)) return false;
-                        break;
-                    case 'high_stock':
-                        if (!($stock >= 20)) return false;
-                        break;
+        if ($hasLiveFilters) {
+            // If filtering by live data, we must fetch a larger set, prime them, and filter in memory.
+            // We limit to 500 to prevent memory exhaustion while still being useful.
+            $all = $query->limit(500)->get();
+            
+            Product::primePrices($all);
+            Product::primeStock($all);
+
+            $filtered = $all->filter(function (Product $p) use ($availability, $minPrice, $maxPrice) {
+                if ($availability && $availability !== 'all') {
+                    $stock = (int) $p->disponibility; 
+                    switch ($availability) {
+                        case 'in_stock': if (!($stock > 0)) return false; break;
+                        case 'low_stock': if (!($stock > 0 && $stock <= 10)) return false; break;
+                        case 'out_of_stock': if (!($stock === 0)) return false; break;
+                        case 'high_stock': if (!($stock >= 20)) return false; break;
+                    }
                 }
-            }
+                $price = $p->price; 
+                if ($minPrice !== null && !($price >= $minPrice)) return false;
+                if ($maxPrice !== null && !($price <= $maxPrice)) return false;
+                return true;
+            })->values();
 
-            $price = $p->price; 
-            if ($minPrice !== null && !($price >= $minPrice)) return false;
-            if ($maxPrice !== null && !($price <= $maxPrice)) return false;
-
-            return true;
-        })->values();
-
-
-        $perPage = (int) ($request->input('per_page') ?: 10);
-        $currentPage = (int) ($request->input('page') ?: 1);
-        $total = $filtered->count();
-        $items = $filtered->slice(($currentPage - 1) * $perPage, $perPage)->values();
-        $products = new LengthAwarePaginator(
-            $items,
-            $total,
-            $perPage,
-            $currentPage,
-            ['path' => $request->url(), 'query' => $request->query()] 
-        );
-
-
-        \App\Models\Product::primePrices($products->getCollection());
-
-        $firstModel = $products->getCollection()->first();
-        $firstModelArray = $firstModel ? $firstModel->toArray() : null;
-        $firstDbRow = $firstModel
-            ? DB::table('products')->where('id_product', $firstModel->id_product)->select([
-                'id_product','name','code','type','description','price','disponibility','reserved_stock','image','active'
-            ])->first()
-            : null;
-        // \Log::info('admin.products MODEL first', $firstModelArray ?: []);
-        // \Log::info('admin.products DB first', (array) ($firstDbRow ?: []));
-
+            $perPage = (int) ($request->input('per_page') ?: 10);
+            $currentPage = (int) ($request->input('page') ?: 1);
+            $total = $filtered->count();
+            $items = $filtered->slice(($currentPage - 1) * $perPage, $perPage)->values();
+            
+            $products = new LengthAwarePaginator(
+                $items,
+                $total,
+                $perPage,
+                $currentPage,
+                ['path' => $request->url(), 'query' => $request->query()]
+            );
+        } else {
+            // Standard DB pagination (extremely fast)
+            $perPage = (int) ($request->input('per_page') ?: 10);
+            $products = $query->paginate($perPage);
+            
+            // Prime ONLY the items on the current page
+            Product::primePrices($products->getCollection());
+            Product::primeStock($products->getCollection());
+        }
 
         $productsArray = $products->getCollection()->map(function (Product $p) {
             $image = $p->image;
-
             if ($image && !Str::startsWith($image, ['http://', 'https://', '//'])) {
-                try {
-                    $image = Storage::url($image);
-                } catch (\Throwable $e) {
-                    
-                }
+                try { $image = Storage::url($image); } catch (\Throwable $e) {}
             }
 
             return [
@@ -144,8 +127,7 @@ class ProductController extends Controller
             ];
         })->values()->all();
 
-        // Tipos únicos para el filtro
-        $types = Product::query()->select('type')->distinct()->pluck('type');
+        $types = Product::query()->whereNotNull('type')->distinct()->pluck('type');
 
         // Log compacto para confirmar payload final
         // \Log::info('admin.products payload example', [

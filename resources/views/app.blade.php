@@ -42,7 +42,7 @@
         {{-- SEO Meta Tags --}}
         <title inertia>{{ $title }}</title>
         <meta name="description" content="{{ $description }}">
-        <meta name="keywords" content="tractopartes, refacciones, tractocamiones, El Boom, diesel, partes de motor, transmisión, colisión">
+        <meta name="keywords" content="tractopartes, refacciones, tractocamiones, El Boom, diesel, partes de motor, transmisión, colisión, refaccionaria, deshuesadero,tractopartes usadas">
         <meta name="author" content="Refaccionaria El Boom">
 
         {{-- Open Graph / Facebook --}}

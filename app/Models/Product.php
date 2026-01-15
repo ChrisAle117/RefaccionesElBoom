@@ -217,8 +217,27 @@ class Product extends Model
 
     // --- HELPER METHODS ---
 
-    public static function primePrices($products): void { /* ... lógica de prime idéntica ... */ }
-    public static function primeStock($products): void { /* ... lógica de prime idéntica ... */ }
+    public static function primePrices($products): void
+    {
+        if (empty($products)) return;
+        $ids = is_iterable($products)
+            ? (new Collection($products))->pluck('id_product')->unique()->all()
+            : [$products->id_product];
+
+        $map = static::fetchPriceMap($ids);
+        static::$livePriceBuffer = static::$livePriceBuffer + $map;
+    }
+
+    public static function primeStock($products): void
+    {
+        if (empty($products)) return;
+        $ids = is_iterable($products)
+            ? (new Collection($products))->pluck('id_product')->unique()->all()
+            : [$products->id_product];
+
+        $map = static::fetchStockMap($ids);
+        static::$liveStockBuffer = static::$liveStockBuffer + $map;
+    }
 
     public function getAudioUrlAttribute(): ?string
     {
