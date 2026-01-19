@@ -36,11 +36,12 @@ class ProductListingController extends Controller
             return Inertia::render($view, $cachedData);
         }
 
+        $recentCondition = "COALESCE( NULLIF(created_at, '0000-00-00 00:00:00'), NULLIF(updated_at, '0000-00-00 00:00:00') ) >= '2023-01-01'";
         $query = Product::query()
             ->where('active', true)
             ->where('disponibility', '>', 0)
             ->where('name', '!=', 'name')
-            ->whereRaw("COALESCE( NULLIF(created_at, '0000-00-00 00:00:00'), NULLIF(updated_at, '0000-00-00 00:00:00') ) >= ?", ['2023-01-01'])
+            ->orderByRaw("($recentCondition) DESC")
             ->orderBy('id_product', 'desc');
 
         if ($search !== '') {
@@ -226,7 +227,12 @@ class ProductListingController extends Controller
         }
 
         // Obtener tipos de producto ÚNICAMENTE de los productos que pasaron el filtro de stock y edad
-        $types = $toRender->pluck('type')->unique()->filter()->values()->toArray();
+        $types = $toRender->pluck('type')
+            ->map(fn($t) => trim((string)$t))
+            ->unique(fn($t) => strtolower($t))
+            ->filter()
+            ->values()
+            ->toArray();
         
         $currentOrder = !empty($savedOrder) ? $savedOrder : $defaultOrder;
         $normalizedCurrentOrder = array_map(fn($t) => strtolower(trim((string)$t)), $currentOrder);

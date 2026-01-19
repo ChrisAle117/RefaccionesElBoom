@@ -94,6 +94,7 @@ class Product extends Model
 
     protected static function fetchPriceMap(array $ids): array
     {
+
         $ids = array_values(array_unique(array_filter($ids, fn ($v) => $v !== null)));
         if (empty($ids)) return [];
 
@@ -243,5 +244,10 @@ class Product extends Model
     {
         $path = (string) ($this->attributes['audio_path'] ?? '');
         return ($path !== '') ? \Illuminate\Support\Facades\Storage::url($path) : null;
+    }
+
+    public function orderItems(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(OrderItem::class, 'product_id', 'id_product');
     }
 }

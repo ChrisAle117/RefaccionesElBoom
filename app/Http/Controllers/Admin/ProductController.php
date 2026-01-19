@@ -51,7 +51,7 @@ class ProductController extends Controller
         }
 
         $totalOutOfStock = (clone $query)->where('disponibility', 0)->count();
-        $query->orderBy('id_product', 'desc');
+        // $query->orderBy('id_product', 'desc');
 
         // 2. Determine if we have "Live" filters that require warehouse data
         $availability = $request->input('availability', 'all');

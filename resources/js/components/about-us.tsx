@@ -24,7 +24,7 @@ export default function AboutUs() {
                     transition={{ delay: 0.2 }}
                     className="text-gray-500 dark:text-gray-400 mt-6 text-xl max-w-2xl mx-auto leading-relaxed"
                 >
-                    Más de un siglo de compromiso con la <span className="font-bold text-gray-900 dark:text-white">excelencia en el transporte pesado</span> y la satisfacción de nuestros clientes.
+                    Más de 25 años de compromiso con la <span className="font-bold text-gray-900 dark:text-white">excelencia en el transporte pesado</span> y la satisfacción de nuestros clientes.
                 </motion.p>
             </div>
 

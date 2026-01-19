@@ -210,24 +210,55 @@ function MemberRow({ item, onClear }: { item: Item; onClear: () => void }) {
             </div>
 
             <div className="bg-white/50 border border-gray-100 p-4 rounded-2xl space-y-4">
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <div className="relative group/pal">
-                            <div className="w-10 h-10 rounded-xl border-2 border-white shadow-md cursor-pointer group-hover/pal:scale-105 transition-transform" style={preview} />
-                            <input
-                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                                type="color"
-                                value={/^#([0-9a-f]{6})$/i.test(hex1) ? hex1 : '#000000'}
-                                onChange={(e) => {
-                                    setHex1(e.target.value);
-                                    if (!bicolor) setHex2('');
-                                }}
-                            />
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                    <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-2">
+                            {/* Primer Color Picker */}
+                            <div className="relative group/pal1">
+                                <div
+                                    className="w-10 h-10 rounded-xl border-2 border-white shadow-md cursor-pointer hover:scale-105 transition-transform"
+                                    style={{ background: hex1 || '#eee' }}
+                                />
+                                <input
+                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                    type="color"
+                                    value={/^#([0-9a-f]{6})$/i.test(hex1) ? hex1 : '#000000'}
+                                    onChange={(e) => {
+                                        setHex1(e.target.value.toUpperCase());
+                                        if (!bicolor) setHex2('');
+                                    }}
+                                />
+                            </div>
+
+                            {/* Segundo Color Picker (Solo si es bicolor) */}
+                            {bicolor && (
+                                <div className="relative group/pal2 animate-in zoom-in-95 duration-200">
+                                    <div
+                                        className="w-10 h-10 rounded-xl border-2 border-white shadow-md cursor-pointer hover:scale-105 transition-transform"
+                                        style={{ background: hex2 || '#eee' }}
+                                    />
+                                    <input
+                                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                        type="color"
+                                        value={/^#([0-9a-f]{6})$/i.test(hex2) ? hex2 : '#000000'}
+                                        onChange={(e) => setHex2(e.target.value.toUpperCase())}
+                                    />
+                                </div>
+                            )}
+
+                            {/* Preview Combinado */}
+                            <div className="ml-2">
+                                <div className="w-12 h-12 rounded-2xl border-4 border-white shadow-lg overflow-hidden" style={preview} />
+                                <div className="text-[8px] font-black text-gray-400 text-center uppercase tracking-tighter mt-1">VISTA</div>
+                            </div>
                         </div>
+
+                        <div className="h-10 w-px bg-gray-100 mx-1" />
+
                         <div>
-                            <div className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">SELECTOR DE VARIANTE</div>
+                            <div className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">MODO DE COLOR</div>
                             <div className="flex items-center gap-2">
-                                <label className="flex items-center gap-1.5 cursor-pointer select-none">
+                                <label className="flex items-center gap-2 cursor-pointer select-none group/toggle">
                                     <div className="relative flex items-center">
                                         <input
                                             type="checkbox"
@@ -240,43 +271,59 @@ function MemberRow({ item, onClear }: { item: Item; onClear: () => void }) {
                                                 if (!on) setHex2('');
                                             }}
                                         />
-                                        <div className="w-8 h-4 bg-gray-200 rounded-full peer-checked:bg-orange-500 transition-colors" />
-                                        <div className="absolute left-1 w-2 h-2 bg-white rounded-full peer-checked:translate-x-4 transition-transform shadow-sm" />
+                                        <div className="w-9 h-5 bg-gray-200 rounded-full peer-checked:bg-orange-500 transition-colors" />
+                                        <div className="absolute left-1 w-3 h-3 bg-white rounded-full peer-checked:translate-x-4 transition-transform shadow-sm" />
                                     </div>
-                                    <span className="text-[10px] font-bold text-gray-500 uppercase tracking-tight">Doble Tono</span>
+                                    <span className="text-[10px] font-bold text-gray-500 uppercase tracking-tight group-hover/toggle:text-orange-600 transition-colors">Doble Tono</span>
                                 </label>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div className="flex flex-wrap gap-3 items-end">
-                    <div className="flex-1 min-w-[120px]">
-                        <label className="block text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">ELEGIR COLORES</label>
-                        <div className="flex gap-1.5">
-                            <input
-                                className="flex-1 h-9 px-2 bg-gray-50 border border-gray-100 rounded-lg text-[9px] font-black uppercase shadow-inner"
-                                type="text"
-                                placeholder="#HEX1"
-                                value={hex1}
-                                onChange={(e) => setHex1(e.target.value.toUpperCase())}
-                            />
-                            {bicolor && (
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
+                    <div className="md:col-span-4">
+                        <label className="block text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">CÓDIGOS HEX</label>
+                        <div className="flex gap-2">
+                            <div className="relative flex-1">
+                                <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[9px] font-black text-gray-300">#</span>
                                 <input
-                                    className="flex-1 h-9 px-2 bg-gray-50 border border-gray-100 rounded-lg text-[9px] font-black uppercase shadow-inner animate-in zoom-in-95"
+                                    className="w-full h-9 pl-5 pr-2 bg-gray-50 border border-gray-100 rounded-lg text-[9px] font-black uppercase shadow-inner focus:ring-1 focus:ring-orange-500 outline-none"
                                     type="text"
-                                    placeholder="#HEX2"
-                                    value={hex2}
-                                    onChange={(e) => setHex2(e.target.value.toUpperCase())}
+                                    placeholder="HEX1"
+                                    maxLength={7}
+                                    value={hex1.startsWith('#') ? hex1.slice(1) : hex1}
+                                    onChange={(e) => {
+                                        let v = e.target.value.toUpperCase().replace(/[^0-9A-F]/g, '');
+                                        if (v.length > 6) v = v.slice(0, 6);
+                                        setHex1('#' + v);
+                                    }}
                                 />
+                            </div>
+                            {bicolor && (
+                                <div className="relative flex-1 animate-in slide-in-from-left-2 duration-200">
+                                    <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[9px] font-black text-gray-300">#</span>
+                                    <input
+                                        className="w-full h-9 pl-5 pr-2 bg-gray-50 border border-gray-100 rounded-lg text-[9px] font-black uppercase shadow-inner focus:ring-1 focus:ring-orange-500 outline-none"
+                                        type="text"
+                                        placeholder="HEX2"
+                                        maxLength={7}
+                                        value={hex2.startsWith('#') ? hex2.slice(1) : hex2}
+                                        onChange={(e) => {
+                                            let v = e.target.value.toUpperCase().replace(/[^0-9A-F]/g, '');
+                                            if (v.length > 6) v = v.slice(0, 6);
+                                            setHex2('#' + v);
+                                        }}
+                                    />
+                                </div>
                             )}
                         </div>
                     </div>
 
-                    <div className="flex-1 min-w-[160px]">
+                    <div className="md:col-span-5">
                         <label className="block text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">ETIQUETA COMERCIAL</label>
                         <input
-                            className="w-full h-9 px-3 bg-gray-50 border border-gray-100 rounded-lg text-[10px] font-bold"
+                            className="w-full h-9 px-3 bg-gray-50 border border-gray-100 rounded-lg text-[10px] font-bold focus:ring-1 focus:ring-orange-500 outline-none"
                             type="text"
                             placeholder="Ej: Ámbar Cristal, Blanco Puro..."
                             value={label}
@@ -284,14 +331,16 @@ function MemberRow({ item, onClear }: { item: Item; onClear: () => void }) {
                         />
                     </div>
 
-                    <button
-                        onClick={save}
-                        disabled={saving}
-                        className={`h-9 px-4 rounded-lg font-black text-[9px] uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2 shadow-lg ${saving ? 'bg-gray-100 text-gray-400 shadow-none' : 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-emerald-50 active:scale-95'}`}
-                    >
-                        {saving ? <div className="w-3 h-3 border-2 border-gray-400 border-t-transparent animate-spin rounded-full" /> : <Save className="w-3 h-3" />}
-                        {saving ? '...' : 'ACTUALIZAR'}
-                    </button>
+                    <div className="md:col-span-3">
+                        <button
+                            onClick={save}
+                            disabled={saving}
+                            className={`w-full h-9 px-4 rounded-lg font-black text-[9px] uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2 shadow-lg ${saving ? 'bg-gray-100 text-gray-400 shadow-none' : 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-emerald-50 active:scale-95'}`}
+                        >
+                            {saving ? <div className="w-3 h-3 border-2 border-gray-400 border-t-transparent animate-spin rounded-full" /> : <Save className="w-3 h-3" />}
+                            {saving ? 'Cargando' : 'ACTUALIZAR'}
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
