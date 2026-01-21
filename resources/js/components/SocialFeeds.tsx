@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 
 const IG_POST_URL = 'https://www.instagram.com/p/DNtJjIeZDcK/';
 const FB_REEL_URL = 'https://www.facebook.com/reel/1337334244009484/';
-const TT_VIDEO_ID = '7554482077643590924';
+const TT_VIDEO_ID = '7431707692655201541';
 const YT_VIDEO_ID = 'D70y8NI7nrM';
 const YT_CHANNEL_URL = 'https://www.youtube.com/@elboomtractopartes2528';
 

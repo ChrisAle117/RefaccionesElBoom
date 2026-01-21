@@ -62,7 +62,7 @@ class ProductListingController extends Controller
 
         
         // Orden solicitado por el usuario: plafon, cubretuerca, faroled, modulo led, bocina, otros
-        $defaultOrder = ['plafon', 'cubretuerca', 'faroled', 'modulo-led', 'bocina', 'otros'];
+        $defaultOrder = ['plafon', 'cubretuerca', 'faroled', 'modulo-led', 'bocina', 'filtros', 'otros'];
         
         $savedOrder = Cache::get('product_types.sort_order', $defaultOrder);
         

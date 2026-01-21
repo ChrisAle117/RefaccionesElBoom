@@ -33,6 +33,7 @@ const TYPE_IMAGE_MAP: Record<string, string> = {
     'mantenimiento-y-quimicos': '/images/mantenimiento-y-quimicos.webp', // Cemento, siliconas, sprays, grasas
     'accesorios-y-herramientas': '/images/accesorios-y-herramientas.webp', // Abrazaderas, conectores, cinchos
     'espejos': '/images/espejos.webp', // Espejos retrovisores laterales y panorámicos para camiones
+    'filtros': '/images/filtros.webp', // Filtros de aceite, aire y diesel
     'otros': '/images/otros.webp',
     'sin-clasificar': '/images/otros.webp',
     'default': '/images/otros.webp',
@@ -373,6 +374,10 @@ export function ProductCatalog() {
                 image: '/images/accesorios-y-herramientas.webp',
                 info: 'Abrazaderas, conectores de aire, válvulas de frenos y cinchos.'
             },
+            'filtros': {
+                image: '/images/filtros.webp',
+                info: 'Filtros de aceite, aire y diesel de alto rendimiento para su camión.'
+            },
             'otros': {
                 image: '/images/otros.webp',
                 info: 'Otras refacciones y accesorios para camiones.'
@@ -620,7 +625,7 @@ export function ProductCatalog() {
             </div>
 
             {/* Header y acciones */}
-            <div ref={titleRef} className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 flex-wrap bg-white p-4 sm:p-5 rounded-xl shadow-md mb-8 dark:bg-gray-800 border-b-4 border-[#FBCC13]">
+            <div id="catalog-header" ref={titleRef} className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 flex-wrap bg-white p-4 sm:p-5 rounded-xl shadow-md mb-8 dark:bg-gray-800 border-b-4 border-[#FBCC13]">
                 <h2 className="text-2xl sm:text-3xl font-black mb-2 sm:mb-0 text-black dark:text-white uppercase tracking-tight">Catálogo de productos</h2>
                 <div className="flex flex-wrap items-center gap-3 sm:gap-6">
                     {search.trim() && (
@@ -751,6 +756,8 @@ export function ProductCatalog() {
                     code={selectedProduct.code}
                     variants={selectedProduct.variants}
                     onClose={() => setSelectedProduct(null)}
+                    allProducts={initialProducts}
+                    onSelectProduct={(p: Product) => setSelectedProduct(p)}
                 />
             ) : (
                 <div
