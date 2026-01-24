@@ -38,7 +38,7 @@ interface ProductCardProps {
         price?: number;
         image?: string;
         audio_url?: string | null;
-        disponibility: number;
+        disponibility?: number;
         color_hex?: string;
         color_label?: string;
     }>;

@@ -17,12 +17,8 @@ export function Pagination({
     currentPage,
     totalPages,
     totalItems,
-    itemsPerPage,
     currentItems,
     onPageChange,
-    onItemsPerPageChange,
-    itemsPerPageOptions = [10, 20, 30],
-    showItemsPerPageSelector = true,
     className = ''
 }: PaginationProps) {
     // Estado para el input de ir a página específica

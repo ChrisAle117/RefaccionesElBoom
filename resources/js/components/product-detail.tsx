@@ -26,6 +26,19 @@ interface Address {
     ciudad: string;
 }
 
+interface Product {
+    id_product: number;
+    name: string;
+    price: number;
+    description: string;
+    disponibility: number;
+    image: string;
+    active: boolean;
+    type?: string;
+    code?: string;
+    variants?: Variant[];
+}
+
 interface ProductDetailsProps {
     id_product: number;
     name: string;
@@ -37,8 +50,8 @@ interface ProductDetailsProps {
     code?: string;
     variants?: Variant[];
     onClose: () => void;
-    allProducts?: any[];
-    onSelectProduct?: (product: any) => void;
+    allProducts?: Product[];
+    onSelectProduct?: (product: Product) => void;
 }
 
 export function ProductDetails({

@@ -57,15 +57,15 @@ interface Product {
     code?: string;
     variants?: Array<{
         id_product: number;
-        code: string;
-        name: string;
-        description: string;
-        price: number;
-        image: string;
+        code?: string;
+        name?: string;
+        description?: string;
+        price?: number;
+        image?: string;
         audio_url?: string | null;
-        disponibility: number;
-        color_hex: string;
-        color_label: string;
+        disponibility?: number;
+        color_hex?: string;
+        color_label?: string;
     }>;
 }
 
