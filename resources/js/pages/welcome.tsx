@@ -28,6 +28,9 @@ export default function Welcome() {
             } else if (path.includes('/nosotros')) {
                 setPageTitle('Sobre Nosotros | Refaccionaria El Boom');
                 setMetaDescription('Conoce la historia y el compromiso de Refaccionaria El Boom con el transporte de carga en México.');
+            } else if (path.includes('/fabrica')) {
+                setPageTitle('Fábrica | Refaccionaria El Boom');
+                setMetaDescription('Cotiza servicios de fabricación y proyectos especiales con nosotros.');
             } else if (path.includes('/sucursales')) {
                 setPageTitle('Nuestras Sucursales | Refaccionaria El Boom');
                 setMetaDescription('Encuentra la sucursal de Refaccionaria El Boom más cercana a ti.');
