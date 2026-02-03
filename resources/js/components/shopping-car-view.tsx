@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useShoppingCart } from './shopping-car-context';
 import { Trash2, ShoppingCart, CreditCard, ChevronDown, X, Truck, ArrowLeft } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { router } from '@inertiajs/react';
+import { router, Head } from '@inertiajs/react';
 import { Address } from './address';
 import { Button } from './ui/button';
 
@@ -226,6 +226,7 @@ export function ShoppingCarView() {
 
     return (
         <div className="relative w-full mx-auto bg-white dark:bg-gray-900 min-h-screen pb-20">
+            <Head title="Carrito de Compras | Refaccionaria El Boom" />
             <AnimatePresence>
                 {showConfetti && <Confetti />}
             </AnimatePresence>

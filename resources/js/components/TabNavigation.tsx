@@ -11,6 +11,7 @@ const AboutUs = lazy(() => import('./about-us'));
 const Support = lazy(() => import('./Support'));
 const SocialFeeds = lazy(() => import('./SocialFeeds'));
 const Deshuesadero = lazy(() => import('./Deshuesadero'));
+const Fabrica = lazy(() => import('./Fabrica'));
 
 const LoadingFallback = () => (
     <div className="flex items-center justify-center py-20 min-h-[400px]">
@@ -57,14 +58,14 @@ export function TabNavigation({
             )
         },
         {
-            id: 'deshuesadero',
-            label: 'Tractopartes nuevas y usadas',
-            content: <Deshuesadero />
-        },
-        {
             id: 'catalogos',
             label: 'Catálogos',
             content: <Catalog />
+        },
+        {
+            id: 'fabrica',
+            label: 'Fábrica',
+            content: <Fabrica />
         },
         {
             id: 'nosotros',
@@ -75,50 +76,17 @@ export function TabNavigation({
                 </div>
             )
         },
+
         {
             id: 'sucursales',
             label: 'Sucursales',
             content: <Ubication />
         },
-        // {
-        //     id: 'promociones',
-        //     label: '¡Promociones!',
-        //     content: (
-        //         <div className="pt-10">
-        //             <h2 className="text-2xl font-bold mb-4 text-[#006CFA]">Promociones Especiales</h2>
-        //             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        //                 <div className="bg-white rounded-lg shadow-md overflow-hidden">
-        //                     <div className="p-6">
-        //                         <h3 className="text-xl font-semibold mb-2">¡Oferta especial!</h3>
-        //                         <p className="text-gray-600">Contenido de promoción aquí...</p>
-        //                     </div>
-        //                 </div>
-        //             </div>
-        //         </div>
-        //     )
-        // },
         {
             id: 'vacantes',
             label: 'Bolsa de trabajo',
             content: <Vacancies />
         },
-        // {
-        //     id: 'servicios',
-        //     label: 'Fabricación',
-        //     content: (
-        //         <div className="pt-10">
-        //             <h2 className="text-2xl font-bold mb-4 text-[#006CFA]">Fabricación</h2>
-        //             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        //                 <div className="bg-white rounded-lg shadow-md overflow-hidden">
-        //                     <div className="p-6">
-        //                         <h3 className="text-xl font-semibold mb-2">¡Tanques de agua!</h3>
-        //                         <p className="text-gray-600">Info de pipas</p>
-        //                     </div>
-        //                 </div>
-        //             </div>
-        //         </div>
-        //     )
-        // },
         {
             id: 'datos',
             label: 'Redes sociales',
@@ -137,6 +105,11 @@ export function TabNavigation({
             id: 'soporte',
             label: 'Soporte',
             content: <Support />
+        },
+        {
+            id: 'deshuesadero',
+            label: 'Tractopartes nuevas y usadas',
+            content: <Deshuesadero />
         },
         // {
         //     id: 'Otros',
@@ -194,6 +167,7 @@ export function TabNavigation({
         terminos: 'terminos',
         soporte: 'soporte',
         deshuesadero: 'deshuesadero',
+        fabrica: 'fabrica',
     }), []);
     const slugToId: Record<string, string> = useMemo(() => Object.fromEntries(Object.entries(idToSlug).map(([k, v]) => [v, k])), [idToSlug]);
 
@@ -202,9 +176,17 @@ export function TabNavigation({
             const url = new URL(window.location.href);
 
             const segs = url.pathname.split('/').filter(Boolean);
-            if (segs.length > 0) {
-                const last = segs[segs.length - 1];
-                const bySlug = slugToId[last];
+
+            // Determinar posible slug basado en la estructura de la URL
+            let potentialSlug = null;
+            if (segs[0] === 'dashboard') {
+                if (segs.length > 1) potentialSlug = segs[1];
+            } else if (segs.length > 0) {
+                potentialSlug = segs[0];
+            }
+
+            if (potentialSlug) {
+                const bySlug = slugToId[potentialSlug];
                 if (bySlug && validTabIds.has(bySlug)) return bySlug;
             }
             return null;
@@ -219,22 +201,18 @@ export function TabNavigation({
             const params = new URLSearchParams(url.search);
             params.delete('tab');
 
-            const segments = url.pathname.split('/').filter(Boolean);
-            if (segments.length > 0) {
-                const last = segments[segments.length - 1];
-                if (slugToId[last]) segments.pop();
-            }
-            let base = '';
-            if (segments[0] === 'dashboard') {
-                base = '/dashboard';
-            }
+            const segs = url.pathname.split('/').filter(Boolean);
+            const isDashboard = segs[0] === 'dashboard';
+
+            const base = isDashboard ? '/dashboard' : '';
             const slug = idToSlug[tabId] || tabId;
+
             const qs = params.toString();
             return `${base}/${slug}`.replace(/\/+/g, '/').replace(/\/$/, '') + (qs ? `?${qs}` : '');
         } catch {
             return `?tab=${encodeURIComponent(tabId)}`;
         }
-    }, [idToSlug, slugToId]);
+    }, [idToSlug]);
 
     const pushTabToHistory = useCallback((tabId: string, replace = false) => {
         const href = makeUrlWithTab(tabId);
@@ -332,7 +310,7 @@ export function TabNavigation({
 
             {/* Contenido principal */}
             <div className={`${fullWidth ? 'px-0' : contentPadding}`}>
-                <div className={`${contentMinHeight} pb-20 dark:bg-gray-900 dark:text-gray-100 ${fullWidth ? 'w-full' : ''}`}>
+                <div className={`${contentMinHeight} pb-20 dark:bg-gray-900 dark:text-gray-100 ${fullWidth ? 'w-full' : ''} overflow-x-hidden md:overflow-x-visible`}>
                     <AnimatePresence mode="wait">
                         {tabs.map((tab) => (
                             activeTab === tab.id && (

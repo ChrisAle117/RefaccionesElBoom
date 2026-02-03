@@ -382,7 +382,12 @@ const ProductsAdmin: React.FC<ProductsProps> = ({ products, filters, types, pagi
                                             <td className="px-6 py-4">
                                                 <div className="w-16 h-16 flex items-center justify-center overflow-hidden rounded-xl bg-gray-50 border border-gray-100 transition-transform group-hover:scale-105">
                                                     {product.image ? (
-                                                        <img src={product.image} alt={product.name ?? 'Producto'} className="object-contain w-full h-full p-1" />
+                                                        <img
+                                                            src={product.image}
+                                                            alt={product.name ?? 'Producto'}
+                                                            className="object-contain w-full h-full p-1"
+                                                            loading="lazy"
+                                                        />
                                                     ) : (
                                                         <Package className="w-6 h-6 text-gray-200" />
                                                     )}

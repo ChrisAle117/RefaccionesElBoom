@@ -1,5 +1,5 @@
 ﻿import React, { useState, useEffect, useRef, useLayoutEffect, useMemo } from 'react';
-import { usePage } from '@inertiajs/react';
+import { usePage, router } from '@inertiajs/react';
 import { type SharedData } from '@/types';
 import { ProductCard } from './product-card';
 import { Pagination } from './pagination';
@@ -33,6 +33,7 @@ const TYPE_IMAGE_MAP: Record<string, string> = {
     'mantenimiento-y-quimicos': '/images/mantenimiento-y-quimicos.webp', // Cemento, siliconas, sprays, grasas
     'accesorios-y-herramientas': '/images/accesorios-y-herramientas.webp', // Abrazaderas, conectores, cinchos
     'espejos': '/images/espejos.webp', // Espejos retrovisores laterales y panorámicos para camiones
+    'filtros': '/images/filtros.webp', // Filtros de aceite, aire y diesel
     'otros': '/images/otros.webp',
     'sin-clasificar': '/images/otros.webp',
     'default': '/images/otros.webp',
@@ -56,15 +57,15 @@ interface Product {
     code?: string;
     variants?: Array<{
         id_product: number;
-        code: string;
-        name: string;
-        description: string;
-        price: number;
-        image: string;
+        code?: string;
+        name?: string;
+        description?: string;
+        price?: number;
+        image?: string;
         audio_url?: string | null;
-        disponibility: number;
-        color_hex: string;
-        color_label: string;
+        disponibility?: number;
+        color_hex?: string;
+        color_label?: string;
     }>;
 }
 
@@ -116,10 +117,11 @@ export function ProductCatalog() {
         search?: string;
         type?: string;
         productTypes?: string[];
+        initialProductSlug?: string;
     };
 
     // Destructurar props ANTES de cualquier uso
-    const { products: rawProducts = [], search = '', type = '', productTypes = [] } = usePage<PageProps>().props;
+    const { products: rawProducts = [], search = '', type = '', productTypes = [], initialProductSlug = '' } = usePage<PageProps>().props;
 
     // Use useMemo to ensure stable reference unless underlying data changes
     const initialProducts = useMemo(() => {
@@ -142,21 +144,12 @@ export function ProductCatalog() {
         return 'selector';
     };
     const [viewMode, setViewMode] = useState<'selector' | 'grid'>(getInitialView());
-    const updateViewInUrl = (mode: 'selector' | 'grid', replace = false) => {
-        try {
-            const url = new URL(window.location.href);
-            if (mode === 'selector') url.searchParams.delete('view');
-            else url.searchParams.set('view', 'grid');
-            const href = url.toString();
-            if (replace) window.history.replaceState(window.history.state, '', href);
-            else window.history.pushState(window.history.state, '', href);
-        } catch { /* ignore */ }
-    };
 
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
-    // Abrir automáticamente producto si viene el parámetro openProduct
+    // Abrir automáticamente producto si viene el parámetro openProduct o initialProductSlug
     useEffect(() => {
+        // 1. Check legacy query param
         const urlParams = new URLSearchParams(window.location.search);
         const openProductId = urlParams.get('openProduct');
 
@@ -164,13 +157,29 @@ export function ProductCatalog() {
             const productToOpen = initialProducts.find(p => p.id_product === parseInt(openProductId));
             if (productToOpen) {
                 setSelectedProduct(productToOpen);
-                // Limpiar el parámetro del URL
+                // Limpiar el parámetro del URL legacy
                 urlParams.delete('openProduct');
                 const newUrl = window.location.pathname + (urlParams.toString() ? '?' + urlParams.toString() : '');
                 window.history.replaceState({}, '', newUrl);
+                return;
             }
         }
-    }, [initialProducts]);
+
+        // 2. Check slug from props
+        if (initialProductSlug && initialProducts.length > 0) {
+            // Normalizar slug para buscar
+            const targetSlug = initialProductSlug.toLowerCase();
+            const productToOpen = initialProducts.find(p => {
+                const nameSlug = slugifyType(p.name); // Using slugifyType for consistency as it handles accents/spaces
+                return nameSlug === targetSlug || p.code?.toLowerCase() === targetSlug;
+            });
+
+            if (productToOpen) {
+                setSelectedProduct(productToOpen);
+                setViewMode('grid'); // Asegurar que estamos en grid
+            }
+        }
+    }, [initialProducts, initialProductSlug]);
 
     // Estado para manejar los productos filtrados
     const [filteredProducts, setFilteredProducts] = useState<Product[]>(initialProducts);
@@ -229,19 +238,33 @@ export function ProductCatalog() {
     const [showFilters, setShowFilters] = useState(false);
 
     // Funcion para manejar el cambio de tipo de producto
-    const handleTypeFilter = (type: string) => {
-        setSelectedType(type);
+    const handleTypeFilter = (newType: string) => {
+        setSelectedType(newType);
         setViewMode('grid');
+
+        // Construir URL segmentada
+        const currentPath = window.location.pathname;
+        const isDashboard = currentPath.startsWith('/dashboard');
+        const basePath = isDashboard ? '/dashboard/productos' : '/productos';
+
+        // Mantener query params existentes (como search)
+        const url = new URL(window.location.href);
+        const searchParam = url.searchParams.get('search');
+
+        let newPath = basePath;
+        if (newType) {
+            newPath += `/${newType}`;
+        }
+
+        if (searchParam) {
+            newPath += `?search=${encodeURIComponent(searchParam)}`;
+        }
+
+        // Navegación SPA simple
         try {
-            const url = new URL(window.location.href);
-            if (type) url.searchParams.set('type', type); else url.searchParams.delete('type');
-            url.searchParams.set('view', 'grid');
-            window.history.pushState(window.history.state, '', url.toString());
+            window.history.pushState({}, '', newPath);
         } catch {
-            const url = new URL(window.location.href);
-            if (type) url.searchParams.set('type', type); else url.searchParams.delete('type');
-            url.searchParams.set('view', 'grid');
-            window.location.href = url.toString();
+            window.location.href = newPath;
         }
     };
 
@@ -372,6 +395,10 @@ export function ProductCatalog() {
             'accesorios-y-herramientas': {
                 image: '/images/accesorios-y-herramientas.webp',
                 info: 'Abrazaderas, conectores de aire, válvulas de frenos y cinchos.'
+            },
+            'filtros': {
+                image: '/images/filtros.webp',
+                info: 'Filtros de aceite, aire y diesel de alto rendimiento para su camión.'
             },
             'otros': {
                 image: '/images/otros.webp',
@@ -611,7 +638,22 @@ export function ProductCatalog() {
             <div className="mb-6">
                 <button
                     className="flex items-center justify-center gap-3 px-8 py-4 bg-white hover:bg-gray-50 text-gray-800 font-black rounded-xl border-2 border-gray-300 transition-all duration-300 cursor-pointer shadow-md hover:shadow-lg dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-white dark:border-gray-500 hover:scale-[1.02] active:scale-95 group w-full sm:w-auto"
-                    onClick={() => { setViewMode('selector'); updateViewInUrl('selector'); }}
+                    onClick={() => {
+                        setViewMode('selector');
+                        setSelectedType('');
+
+                        // Determinar ruta base
+                        const isDashboard = window.location.pathname.startsWith('/dashboard');
+                        const targetPath = isDashboard ? '/dashboard/productos' : '/productos';
+
+                        // Recargar la página sin parámetros de búsqueda para mostrar todas las categorías
+                        router.visit(targetPath, {
+                            data: {},
+                            replace: true,
+                            preserveScroll: true,
+                            preserveState: false // Reset state to ensure fresh data
+                        });
+                    }}
                     type="button"
                 >
                     <ArrowLeft className="w-8 h-8 text-red-600 group-hover:-translate-x-1 transition-transform" />
@@ -620,7 +662,7 @@ export function ProductCatalog() {
             </div>
 
             {/* Header y acciones */}
-            <div ref={titleRef} className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 flex-wrap bg-white p-4 sm:p-5 rounded-xl shadow-md mb-8 dark:bg-gray-800 border-b-4 border-[#FBCC13]">
+            <div id="catalog-header" ref={titleRef} className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 flex-wrap bg-white p-4 sm:p-5 rounded-xl shadow-md mb-8 dark:bg-gray-800 border-b-4 border-[#FBCC13]">
                 <h2 className="text-2xl sm:text-3xl font-black mb-2 sm:mb-0 text-black dark:text-white uppercase tracking-tight">Catálogo de productos</h2>
                 <div className="flex flex-wrap items-center gap-3 sm:gap-6">
                     {search.trim() && (
@@ -750,7 +792,32 @@ export function ProductCatalog() {
                     type={selectedProduct.type}
                     code={selectedProduct.code}
                     variants={selectedProduct.variants}
-                    onClose={() => setSelectedProduct(null)}
+                    onClose={() => {
+                        setSelectedProduct(null);
+                        // Regresar a la URL de categoría o listado
+                        const currentPath = window.location.pathname;
+                        const isDashboard = currentPath.startsWith('/dashboard');
+                        const basePath = isDashboard ? '/dashboard/productos' : '/productos';
+
+                        let newPath = basePath;
+                        if (selectedType) {
+                            newPath += `/${selectedType}`;
+                        }
+                        window.history.pushState({}, '', newPath);
+                    }}
+                    allProducts={initialProducts}
+                    onSelectProduct={(p: Product) => {
+                        setSelectedProduct(p);
+                        // Actualizar URL con slug
+                        const currentPath = window.location.pathname;
+                        const isDashboard = currentPath.startsWith('/dashboard');
+                        const basePath = isDashboard ? '/dashboard/productos' : '/productos';
+                        const typeSlug = p.type || 'otros';
+                        const nameSlug = slugifyType(p.name);
+
+                        const newPath = `${basePath}/${typeSlug}/${nameSlug}`;
+                        window.history.pushState({}, '', newPath);
+                    }}
                 />
             ) : (
                 <div
@@ -771,6 +838,17 @@ export function ProductCatalog() {
                                             disponibility: product.disponibility || 0
                                         };
                                         setSelectedProduct(fullProduct);
+
+                                        // Actualizar URL con slug
+                                        const currentPath = window.location.pathname;
+                                        const isDashboard = currentPath.startsWith('/dashboard');
+                                        const basePath = isDashboard ? '/dashboard/productos' : '/productos';
+                                        const typeSlug = product.type || 'otros'; // Fallback
+                                        const nameSlug = slugifyType(product.name);
+
+                                        const newPath = `${basePath}/${typeSlug}/${nameSlug}`;
+                                        window.history.pushState({}, '', newPath);
+
                                         // Scroll suave al inicio del encabezado del catálogo
                                         if (titleRef.current) {
                                             titleRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });

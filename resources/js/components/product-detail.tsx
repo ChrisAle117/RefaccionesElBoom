@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ArrowLeft, X, Truck, ZoomIn, ShoppingCart, CreditCard, ChevronDown } from 'lucide-react';
+import { ArrowLeft, X, Truck, ZoomIn, ShoppingCart, CreditCard, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useShoppingCart } from './shopping-car-context';
 import { usePage } from '@inertiajs/react';
 import { router } from '@inertiajs/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import type { SharedProps } from './product-card';
 
 interface Variant {
@@ -25,6 +26,19 @@ interface Address {
     ciudad: string;
 }
 
+interface Product {
+    id_product: number;
+    name: string;
+    price: number;
+    description: string;
+    disponibility: number;
+    image: string;
+    active: boolean;
+    type?: string;
+    code?: string;
+    variants?: Variant[];
+}
+
 interface ProductDetailsProps {
     id_product: number;
     name: string;
@@ -36,6 +50,8 @@ interface ProductDetailsProps {
     code?: string;
     variants?: Variant[];
     onClose: () => void;
+    allProducts?: Product[];
+    onSelectProduct?: (product: Product) => void;
 }
 
 export function ProductDetails({
@@ -49,6 +65,8 @@ export function ProductDetails({
     code,
     variants,
     onClose,
+    allProducts = [],
+    onSelectProduct,
 }: ProductDetailsProps) {
     const { cartItems, addToCart, isProductInCart } = useShoppingCart();
     const { props } = usePage<SharedProps>();
@@ -102,14 +120,28 @@ export function ProductDetails({
     const [shipping, setShipping] = useState<{ price: number; eta: string } | null>(null);
     const [loadingShipping, setLoadingShipping] = useState(false);
     const [shippingError, setShippingError] = useState<string | null>(null);
+    const [carouselIndex, setCarouselIndex] = useState(0);
 
     useEffect(() => {
-        // Subir al tope al abrir el detalle
-        window.scrollTo({ top: 0, behavior: 'auto' });
+        // Subir al nivel del catálogo al abrir o cambiar de producto
+        const header = document.getElementById('catalog-header');
+        if (header) {
+            header.scrollIntoView({ behavior: 'auto', block: 'start' });
+        } else {
+            window.scrollTo({ top: 0, behavior: 'auto' });
+        }
+
         // Permitir scroll natural de la pÃ¡gina
         document.body.style.overflow = 'auto';
         return () => { document.body.style.overflow = ''; };
-    }, []);
+    }, [id_product]); // Re-run when product changes
+
+    const relatedProducts = React.useMemo(() => {
+        if (!allProducts || allProducts.length === 0 || !type) return [];
+        return allProducts
+            .filter(p => p.type === type && p.id_product !== id_product)
+            .slice(0, 8);
+    }, [allProducts, type, id_product]);
 
     useEffect(() => {
         if (!auth?.user) return;
@@ -610,6 +642,98 @@ export function ProductDetails({
                                     }}
                                 />
                             </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Related Products Section */}
+            {relatedProducts.length > 0 && (
+                <div className="w-full px-4 sm:px-6 py-16 border-t border-gray-100 dark:border-gray-800 bg-gray-50/30 dark:bg-gray-900/40 relative overflow-hidden">
+                    <div className="max-w-7xl mx-auto">
+                        <div className="flex flex-col sm:flex-row items-center justify-between mb-10 gap-4">
+                            <h2 className="text-3xl sm:text-4xl font-black text-gray-900 dark:text-white tracking-tighter uppercase">
+                                PRODUCTOS QUE TE <span className="text-yellow-500">PODRÍAN INTERESAR</span>
+                            </h2>
+
+                            {relatedProducts.length > 4 && (
+                                <div className="flex items-center gap-3">
+                                    <button
+                                        onClick={() => setCarouselIndex(0)}
+                                        className={`p-3 rounded-full border-2 transition-all ${carouselIndex === 0 ? 'bg-yellow-500 border-yellow-500 text-black shadow-lg shadow-yellow-500/30' : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-400 hover:border-yellow-500 hover:text-yellow-500'}`}
+                                        aria-label="Página 1"
+                                    >
+                                        <ChevronLeft className="w-6 h-6" />
+                                    </button>
+                                    <span className="text-sm font-bold text-gray-500 dark:text-gray-400 font-mono">
+                                        {carouselIndex + 1} / 2
+                                    </span>
+                                    <button
+                                        onClick={() => setCarouselIndex(1)}
+                                        className={`p-3 rounded-full border-2 transition-all ${carouselIndex === 1 ? 'bg-yellow-500 border-yellow-500 text-black shadow-lg shadow-yellow-500/30' : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-400 hover:border-yellow-500 hover:text-yellow-500'}`}
+                                        aria-label="Página 2"
+                                    >
+                                        <ChevronRight className="w-6 h-6" />
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="relative">
+                            <AnimatePresence mode="wait">
+                                <motion.div
+                                    key={carouselIndex}
+                                    initial={{ opacity: 0, x: carouselIndex === 0 ? -50 : 50 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: carouselIndex === 0 ? 50 : -50 }}
+                                    transition={{ duration: 0.4, ease: "circOut" }}
+                                    className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-8"
+                                >
+                                    {relatedProducts.slice(carouselIndex * 4, (carouselIndex + 1) * 4).map((product) => (
+                                        <div
+                                            key={product.id_product}
+                                            onClick={() => {
+                                                if (onSelectProduct) {
+                                                    onSelectProduct(product);
+                                                    const header = document.getElementById('catalog-header');
+                                                    if (header) {
+                                                        header.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                                    }
+                                                }
+                                            }}
+                                            className="group cursor-pointer bg-white dark:bg-gray-800 rounded-3xl border-2 border-transparent hover:border-yellow-500 shadow-sm hover:shadow-2xl transition-all duration-500 flex flex-col overflow-hidden h-full transform hover:-translate-y-2"
+                                        >
+                                            <div className="aspect-[4/5] relative w-full bg-slate-50 dark:bg-slate-900/50 overflow-hidden">
+                                                <img
+                                                    src={product.image || '/images/logotipo.png'}
+                                                    alt={product.name}
+                                                    className="w-full h-full object-contain p-6 group-hover:scale-110 transition-transform duration-700"
+                                                    loading="lazy"
+                                                />
+                                                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors duration-500" />
+                                                {product.disponibility > 0 && product.disponibility < 5 && (
+                                                    <div className="absolute top-4 left-4 bg-red-600 text-white text-[11px] font-black px-3 py-1.5 rounded-full shadow-lg">
+                                                        ¡ÚLTIMOS!
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div className="p-5 sm:p-6 flex flex-col flex-1">
+                                                <h3 className="text-sm sm:text-base font-extrabold text-gray-900 dark:text-gray-100 line-clamp-2 uppercase leading-tight mb-4 group-hover:text-blue-600 transition-colors h-10">
+                                                    {product.name}
+                                                </h3>
+                                                <div className="mt-auto flex items-center justify-between gap-2">
+                                                    <span className="text-lg sm:text-xl font-black text-green-700 dark:text-green-500">
+                                                        {formatPrice(product.price)}
+                                                    </span>
+                                                    <div className="bg-yellow-500 p-2 rounded-xl text-black transform group-hover:rotate-12 transition-all">
+                                                        <ShoppingCart className="w-5 h-5" />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </motion.div>
+                            </AnimatePresence>
                         </div>
                     </div>
                 </div>
