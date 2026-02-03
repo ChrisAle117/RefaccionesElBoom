@@ -9,7 +9,7 @@ import React from 'react';
 export default function Welcome() {
     usePage<SharedData>();
 
-    // SEO dinámico basado en la pestaña activa
+
     const [pageTitle, setPageTitle] = React.useState('Refaccionaria El Boom | Tractopartes Nuevas y Usadas');
     const [metaDescription, setMetaDescription] = React.useState('Especialistas en tractopartes nuevas y usadas. Calidad y servicio para tu tractocamión en México.');
 
@@ -81,7 +81,7 @@ export default function Welcome() {
                 />
             </Head>
 
-            <div className="min-h-screen bg-gray-50 dark:bg-gray-950 relative">
+            <div className="min-h-screen bg-gray-50 dark:bg-gray-950 relative flex flex-col overflow-x-hidden">
                 {/* Hero / Carousel - Full Width */}
                 <div className="relative z-10 w-full font-sans">
                     <Carousel
@@ -133,7 +133,9 @@ export default function Welcome() {
 
                             {/* Trust Badge */}
                             <div className="opacity-80 hover:opacity-100 transition-opacity">
-                                <img src="/images/openpay.png" alt="Pagos Seguros" className="h-8 w-auto mix-blend-multiply dark:mix-blend-normal" />
+                                <a href="https://www.openpay.mx/" target="_blank" rel="noopener noreferrer" title="Más información sobre OpenPay">
+                                    <img src="/images/openpay.png" alt="Pagos Seguros con OpenPay" className="h-8 w-auto mix-blend-multiply dark:mix-blend-normal" />
+                                </a>
                             </div>
                         </div>
                     </div>

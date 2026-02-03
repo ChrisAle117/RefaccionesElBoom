@@ -15,6 +15,7 @@ use App\Http\Controllers\PostalCodeController;
 use App\Http\Controllers\AddressController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\FabricationQuoteController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\DB;
 use App\Models\Product;
@@ -24,10 +25,16 @@ use Inertia\Inertia;
 //APERTURA DE RUTAS PÚBLICAS
 Route::get('/', [ProductListingController::class, 'welcome'])->name('home');
 
+// Rutas segmentadas de productos (SEO friendly)
+Route::get('/productos/{type}/{slug?}', [ProductListingController::class, 'welcome'])
+    ->name('home.products.segmented');
+
 // Rutas públicas amigables para tabs del home (SPA): /productos, /nosotros, etc.
 Route::get('/{tab}', [ProductListingController::class, 'welcome'])
-    ->where('tab', 'productos|nosotros|sucursales|vacantes|catalogos|deshuesadero|datos|terminos|soporte')
+    ->where('tab', 'productos|nosotros|sucursales|vacantes|catalogos|deshuesadero|datos|terminos|soporte|fabrica')
     ->name('home.tab');
+
+Route::post('/fabrication-quotes', [FabricationQuoteController::class, 'store'])->name('fabrication-quotes.store');
 
 // RUTAS API para vacantes y catálogos públicos
 Route::prefix('api')->group(function () {
@@ -40,6 +47,10 @@ Route::prefix('api')->group(function () {
 Route::middleware(['auth', 'verified'])->group(function () {
     // Dashboard
     Route::get('dashboard', [ProductListingController::class, 'dashboard'])->name('dashboard');
+
+    // Rutas segmentadas de productos en dashboard (SEO friendly)
+    Route::get('dashboard/productos/{type}/{slug?}', [ProductListingController::class, 'dashboard'])
+        ->name('dashboard.products.segmented');
 
     // Rutas amigables de dashboard para tabs: /dashboard/productos, /dashboard/nosotros, etc.
     Route::get('dashboard/{tab}', [ProductListingController::class, 'dashboard'])
@@ -104,7 +115,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/products/sync-stock', [ProductController::class, 'syncStock'])->name('products.sync-stock');
         Route::post('/products/sync-stock-incidences', [ProductController::class, 'syncStockIncidences'])->name('products.sync-stock-incidences');
         // Audio management for bocina products
-        Route::post('/products/{id}/audio', [ProductController::class, 'uploadAudio'])->name('products.audio.upload');
+        Route::post('/productz|s/{id}/audio', [ProductController::class, 'uploadAudio'])->name('products.audio.upload');
         Route::delete('/products/{id}/audio', [ProductController::class, 'deleteAudio'])->name('products.audio.delete');
         // Incidencias de stock (sobreventa) 
         Route::get('/products/incidences', [ProductController::class, 'incidences'])->name('products.incidences');

@@ -10,20 +10,21 @@ use Illuminate\Support\Facades\Cache;
 class ProductListingController extends Controller
 {
 
-    public function welcome(Request $request)
+    public function welcome(Request $request, $tab = null, $type = null, $slug = null)
     {
-        return $this->renderListing($request, 'welcome');
+        return $this->renderListing($request, 'welcome', $type, $slug);
     }
 
-    public function dashboard(Request $request)
+    public function dashboard(Request $request, $tab = null, $type = null, $slug = null)
     {
-        return $this->renderListing($request, 'dashboard');
+        return $this->renderListing($request, 'dashboard', $type, $slug);
     }
 
-    private function renderListing(Request $request, string $view)
+    private function renderListing(Request $request, string $view, $routeType = null, $routeSlug = null)
     {
         $search = (string) ($request->input('search') ?? '');
-        $type   = (string) ($request->input('type') ?? '');
+        // Priorizar el tipo que viene en la URL, si no, el query param
+        $type   = $routeType ? (string) $routeType : (string) ($request->input('type') ?? '');
 
         // Crear una clave de caché basada en los parámetros de búsqueda
         $cacheKey = "products_listing_{$view}_" . md5($search . $type);
@@ -272,6 +273,7 @@ class ProductListingController extends Controller
             'search'       => $search,
             'type'         => $type,
             'productTypes' => $productTypes,
+            'initialProductSlug' => $routeSlug,
         ];
 
         // Cachear si no hay búsqueda activa

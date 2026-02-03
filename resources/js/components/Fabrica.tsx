@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
+import { usePage } from '@inertiajs/react';
 import { motion, AnimatePresence, useMotionTemplate, useMotionValue } from 'framer-motion';
-import { FileText, ChevronDown, CheckCircle, Download, Zap, Settings, ArrowRight, AlertCircle } from 'lucide-react';
+import { ChevronDown, Zap, Settings, ArrowRight, AlertCircle, Download } from 'lucide-react';
 
 const mexicanStates = [
     "Aguascalientes", "Baja California", "Baja California Sur", "Campeche", "Coahuila",
@@ -16,7 +17,7 @@ export default function Fabrica() {
     const mouseY = useMotionValue(0);
 
     function handleMouseMove({ currentTarget, clientX, clientY }: React.MouseEvent) {
-        let { left, top } = currentTarget.getBoundingClientRect();
+        const { left, top } = currentTarget.getBoundingClientRect();
         mouseX.set(clientX - left);
         mouseY.set(clientY - top);
     }
@@ -125,6 +126,10 @@ function HeroSection() {
 }
 
 function QuoteSection() {
+    const { props } = usePage();
+    // Safely access csrf_token from props, defaulting to empty string if not present
+    // Type assertion to any to bypass strict typing for now if PageProps isn't fully defined with csrf_token
+    const csrfToken = (props as { csrf_token?: string }).csrf_token || '';
     const [formData, setFormData] = useState({
         nombre: '',
         apellido: '',
@@ -145,6 +150,8 @@ function QuoteSection() {
 
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [touched, setTouched] = useState<Record<string, boolean>>({});
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const validateField = (name: string, value: string) => {
         let error = "";
@@ -220,9 +227,11 @@ function QuoteSection() {
                 }
 
                 // Valid File
+                setSelectedFile(file);
                 setFormData(prev => ({ ...prev, [name]: file.name }));
                 setErrors(prev => ({ ...prev, [name]: "" })); // Clear error
             } else {
+                setSelectedFile(null);
                 setFormData(prev => ({ ...prev, [name]: "" }));
             }
             return;
@@ -249,6 +258,7 @@ function QuoteSection() {
 
     const clearFile = () => {
         setFormData(prev => ({ ...prev, archivo: "" }));
+        setSelectedFile(null);
         setErrors(prev => ({ ...prev, archivo: "" }));
         // Reset file input value manually if needed, but since we control it via key or ref, 
         // a simple way is to use a key on the input or a ref. 
@@ -261,7 +271,7 @@ function QuoteSection() {
         setErrors(prev => ({ ...prev, [name]: validateField(name, value) }));
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         const newErrors: Record<string, string> = {};
         Object.keys(formData).forEach(key => {
@@ -273,14 +283,56 @@ function QuoteSection() {
         setTouched(Object.keys(formData).reduce((acc, key) => ({ ...acc, [key]: true }), {}));
 
         if (Object.keys(newErrors).length === 0) {
-            alert("Formulario válido. Enviando cotización...");
-            // Submit logic here
+            setIsSubmitting(true);
+            const data = new FormData();
+
+            // Append all string fields
+            Object.keys(formData).forEach(key => {
+                if (key !== 'archivo' && formData[key as keyof typeof formData]) {
+                    data.append(key, formData[key as keyof typeof formData] as string);
+                }
+            });
+
+            // Append File if exists
+            if (selectedFile) {
+                data.append('archivo', selectedFile);
+            }
+
+            try {
+                const response = await fetch('/fabrication-quotes', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': csrfToken || (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || ''
+                    },
+                    body: data
+                });
+
+                if (response.ok) {
+                    alert('¡Cotización enviada con éxito! Nos pondremos en contacto contigo pronto.');
+                    // Reset Form
+                    setFormData({
+                        nombre: '', apellido: '', telefono: '', email: '', estado: '', servicio: '', descripcion: '',
+                        material: '', espesor: '', dimensiones: '', angulo: '', longitud: '', cantidad_dobleces: '', archivo: ''
+                    });
+                    setSelectedFile(null);
+                    setTouched({});
+                } else {
+                    const resData = await response.json();
+                    alert('Error al enviar la cotización: ' + (resData.message || 'Inténtalo de nuevo.'));
+                }
+            } catch (error) {
+                console.error('Submission error:', error);
+                alert('Hubo un error de conexión. Por favor revisa tu internet e inténtalo de nuevo.');
+            } finally {
+                setIsSubmitting(false);
+            }
         }
     };
 
     const serviceType = formData.servicio;
-    const isLaser = serviceType === 'Corte Láser';
-    const isDobladora = serviceType === 'Dobladora';
+    // Variables used for conditional logic in render
+    // const isLaser = serviceType === 'Corte Láser';
+    // const isDobladora = serviceType === 'Dobladora';
 
     const isFormValid =
         Object.values(errors).every(err => !err) &&
@@ -499,18 +551,22 @@ function QuoteSection() {
 
                         <motion.button
                             type="submit"
-                            disabled={!isFormValid}
-                            whileHover={isFormValid ? { scale: 1.02, boxShadow: "0px 10px 20px rgba(255, 215, 0, 0.4)" } : {}}
-                            whileTap={isFormValid ? { scale: 0.95 } : {}}
-                            className={`w-full py-5 font-black text-xl rounded-xl transition-all flex items-center justify-center gap-3 uppercase tracking-wider relative overflow-hidden group ${isFormValid
+                            disabled={!isFormValid || isSubmitting}
+                            whileHover={isFormValid && !isSubmitting ? { scale: 1.02, boxShadow: "0px 10px 20px rgba(255, 215, 0, 0.4)" } : {}}
+                            whileTap={isFormValid && !isSubmitting ? { scale: 0.95 } : {}}
+                            className={`w-full py-5 font-black text-xl rounded-xl transition-all flex items-center justify-center gap-3 uppercase tracking-wider relative overflow-hidden group ${isFormValid && !isSubmitting
                                 ? "bg-[#FFD700] text-slate-900 shadow-lg cursor-pointer"
                                 : "bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-600 shadow-none cursor-not-allowed"
                                 }`}
                         >
                             <span className="relative z-10 flex items-center gap-3">
-                                Enviar Cotización <ArrowRight className={`w-6 h-6 ${isFormValid ? "" : "opacity-50"}`} />
+                                {isSubmitting ? (
+                                    <>Enviando... <div className="w-5 h-5 border-2 border-slate-600 border-t-transparent rounded-full animate-spin"></div></>
+                                ) : (
+                                    <>Enviar Cotización <ArrowRight className={`w-6 h-6 ${isFormValid ? "" : "opacity-50"}`} /></>
+                                )}
                             </span>
-                            {isFormValid && (
+                            {isFormValid && !isSubmitting && (
                                 <div className="absolute inset-0 bg-white/30 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out" />
                             )}
                         </motion.button>
@@ -521,7 +577,18 @@ function QuoteSection() {
     );
 }
 
-function InputField({ label, placeholder, type = "text", name, value, onChange, onBlur, error }: any) {
+interface InputFieldProps {
+    label: string;
+    placeholder: string;
+    type?: string;
+    name: string;
+    value: string;
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    onBlur: (e: React.FocusEvent<HTMLInputElement>) => void;
+    error?: string;
+}
+
+function InputField({ label, placeholder, type = "text", name, value, onChange, onBlur, error }: InputFieldProps) {
     return (
         <div className="space-y-2">
             <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 ml-1">{label}</label>
@@ -546,7 +613,17 @@ function InputField({ label, placeholder, type = "text", name, value, onChange, 
     );
 }
 
-function SelectField({ label, children, name, value, onChange, onBlur, error }: any) {
+interface SelectFieldProps {
+    label: string;
+    children: React.ReactNode;
+    name: string;
+    value: string;
+    onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+    onBlur: (e: React.FocusEvent<HTMLSelectElement>) => void;
+    error?: string;
+}
+
+function SelectField({ label, children, name, value, onChange, onBlur, error }: SelectFieldProps) {
     return (
         <div className="space-y-2">
             <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 ml-1">{label}</label>
@@ -668,17 +745,19 @@ function CapabilitiesSection() {
 function GallerySection() {
     const imagesRow1 = [
         "/images/laser-cut.png",
+        "/images/laser dina.jpeg",
         "/images/fabrica-hero.png",
+        "/images/laserzebra.jpeg",
         "/images/cnc-bending.png",
-        "/images/laser-cut.png",
-        "/images/fabrica-hero.png",
+        "/images/lazer vaso.jpeg",
     ];
     const imagesRow2 = [
+        "/images/laserzebra.jpeg",
         "/images/cnc-bending.png",
+        "/images/lazer vaso.jpeg",
         "/images/laser-cut.png",
+        "/images/laser dina.jpeg",
         "/images/fabrica-hero.png",
-        "/images/cnc-bending.png",
-        "/images/laser-cut.png",
     ];
 
     return (

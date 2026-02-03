@@ -21,6 +21,11 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin' => App\Http\Middleware\AdminMiddleware::class,
         ]);
 
+        $middleware->validateCsrfTokens(except: [
+            '/fabrication-quotes',
+            '/openpay/webhook' // Asegurando que webhooks también estén exentos si es necesario
+        ]);
+
         $middleware->web(append: [
             HandleAppearance::class,
             HandleInertiaRequests::class,

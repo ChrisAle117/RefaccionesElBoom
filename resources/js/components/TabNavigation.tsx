@@ -176,9 +176,17 @@ export function TabNavigation({
             const url = new URL(window.location.href);
 
             const segs = url.pathname.split('/').filter(Boolean);
-            if (segs.length > 0) {
-                const last = segs[segs.length - 1];
-                const bySlug = slugToId[last];
+
+            // Determinar posible slug basado en la estructura de la URL
+            let potentialSlug = null;
+            if (segs[0] === 'dashboard') {
+                if (segs.length > 1) potentialSlug = segs[1];
+            } else if (segs.length > 0) {
+                potentialSlug = segs[0];
+            }
+
+            if (potentialSlug) {
+                const bySlug = slugToId[potentialSlug];
                 if (bySlug && validTabIds.has(bySlug)) return bySlug;
             }
             return null;
@@ -193,22 +201,18 @@ export function TabNavigation({
             const params = new URLSearchParams(url.search);
             params.delete('tab');
 
-            const segments = url.pathname.split('/').filter(Boolean);
-            if (segments.length > 0) {
-                const last = segments[segments.length - 1];
-                if (slugToId[last]) segments.pop();
-            }
-            let base = '';
-            if (segments[0] === 'dashboard') {
-                base = '/dashboard';
-            }
+            const segs = url.pathname.split('/').filter(Boolean);
+            const isDashboard = segs[0] === 'dashboard';
+
+            const base = isDashboard ? '/dashboard' : '';
             const slug = idToSlug[tabId] || tabId;
+
             const qs = params.toString();
             return `${base}/${slug}`.replace(/\/+/g, '/').replace(/\/$/, '') + (qs ? `?${qs}` : '');
         } catch {
             return `?tab=${encodeURIComponent(tabId)}`;
         }
-    }, [idToSlug, slugToId]);
+    }, [idToSlug]);
 
     const pushTabToHistory = useCallback((tabId: string, replace = false) => {
         const href = makeUrlWithTab(tabId);
@@ -306,7 +310,7 @@ export function TabNavigation({
 
             {/* Contenido principal */}
             <div className={`${fullWidth ? 'px-0' : contentPadding}`}>
-                <div className={`${contentMinHeight} pb-20 dark:bg-gray-900 dark:text-gray-100 ${fullWidth ? 'w-full' : ''}`}>
+                <div className={`${contentMinHeight} pb-20 dark:bg-gray-900 dark:text-gray-100 ${fullWidth ? 'w-full' : ''} overflow-x-hidden md:overflow-x-visible`}>
                     <AnimatePresence mode="wait">
                         {tabs.map((tab) => (
                             activeTab === tab.id && (
