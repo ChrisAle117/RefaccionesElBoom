@@ -8,7 +8,7 @@ export default function Ubication() {
             id: 1,
             name: "Sucursal Matriz Alpuyeca",
             address: "REFACCIONES EL BOOM, Carr. Federal Mexico-Acapulco Km. 29, 62660 Puente de Ixtla, MORELOS",
-            phones: ["777-181-0370", "734-344-5155"],
+            phones: ["777-181-0370"],
             whatsapp: "527771810370",
             mapUrl: "https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d968614.9847190331!2d-100.136292!3d18.499403!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x85cddf88156feb99%3A0x52215aad906626e5!2sRefaccionaria%20EL%20BOOM%20Tractopartes%20Alpuyeca!5e0!3m2!1ses-419!2smx!4v1743438339844!5m2!1ses-419!2smx",
         },
@@ -16,7 +16,7 @@ export default function Ubication() {
             id: 2,
             name: "Sucursal Acapulco",
             address: "Refaccionaria EL BOOM, Avenida Lázaro Cárdenas, No. 2, Manzana 18. Colonia La Popular, Acapulco, Guerrero",
-            phones: ["744-383-5814", "777-274-0249"],
+            phones: ["777-274-0249", "744-383-5814"],
             whatsapp: "527443835814",
             mapUrl: "https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d15271.232386979467!2d-99.832457!3d16.885385000000003!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x85ca574050c25b93%3A0x3faf11878a9b5e6!2sRefaccionaria%20EL%20BOOM%20Tractopartes%20Acapulco!5e0!3m2!1ses-419!2smx!4v1743438369847!5m2!1ses-419!2smx",
         },
@@ -32,7 +32,7 @@ export default function Ubication() {
             id: 4,
             name: "Sucursal Tizoc",
             address: "Refaccionaria EL BOOM, Boulevard Cuauhnáhuac Km 3.5, No. 25. Colonia Buganbilias, Jiutepec, Morelos",
-            phones: ["777-288-2005", "777-321-1950"],
+            phones: ["777-288-2005"],
             whatsapp: "527772882005",
             mapUrl: "https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d15097.35773851505!2d-99.185934!3d18.916364!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x85ce757ee8ff1be1%3A0x62d09f4369d36965!2sRefaccionaria%20EL%20BOOM%20Tractopartes%20Tizoc%2C%20Jiutepec!5e0!3m2!1ses-419!2smx!4v1743438424259!5m2!1ses-419!2smx",
         }
@@ -141,7 +141,7 @@ export default function Ubication() {
                                             <div>
                                                 <p className="text-xs text-gray-500 uppercase font-bold tracking-wider mb-1">Horario</p>
                                                 <p className="text-sm font-semibold text-gray-900 dark:text-white">
-                                                    Lun - Vie: 9:00 - 18:30 <br />
+                                                    Lun - Vie: 9:00 - 18:00 <br />
                                                     Sáb: 9:00 - 14:00
                                                 </p>
                                             </div>
