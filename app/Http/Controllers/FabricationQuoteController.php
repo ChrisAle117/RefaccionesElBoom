@@ -76,8 +76,11 @@ class FabricationQuoteController extends Controller
         try {
             \Illuminate\Support\Facades\Mail::to($adminEmail)->send(new \App\Mail\FabricationQuoteRequest($quote));
         } catch (\Exception $e) {
-            // Log error but don't fail the request
             \Illuminate\Support\Facades\Log::error('Error sending quote email: ' . $e->getMessage());
+            // RETURN THE ERROR TO THE FRONTEND FOR DEBUGGING
+            return response()->json([
+                'message' => 'Error enviando correo: ' . $e->getMessage()
+            ], 500);
         }
 
         return response()->json([
