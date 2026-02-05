@@ -45,7 +45,7 @@ export const Catalog = React.memo(function Catalog() {
     };
 
     return (
-        <div className="min-h-screen bg-white dark:bg-gray-950 py-12 px-4 sm:px-6">
+        <div className="min-h-screen bg-white dark:bg-gray-950 py-4 sm:py-12 px-0 sm:px-6">
             {/* Header Mini Hero */}
             <div className="max-w-7xl mx-auto text-center mb-16">
 
@@ -75,7 +75,7 @@ export const Catalog = React.memo(function Catalog() {
                     <p className="mt-4 text-gray-500 animate-pulse font-medium">Cargando biblioteca...</p>
                 </div>
             ) : activeCatalogs.length > 0 ? (
-                <div className="max-w-[1600px] mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                <div className="max-w-[1600px] mx-auto grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-6 lg:gap-8 cursor-pointer">
                     {activeCatalogs.map((catalog, index) => (
                         <motion.div
                             key={catalog.id_catalog}
@@ -83,7 +83,7 @@ export const Catalog = React.memo(function Catalog() {
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: index * 0.05 }}
                             whileHover={{ y: -10 }}
-                            className="group relative flex flex-col bg-white dark:bg-gray-900 rounded-[2.5rem] overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-500 border border-gray-100 dark:border-gray-800 cursor-pointer"
+                            className="group relative flex flex-col bg-white dark:bg-gray-900 rounded-2xl sm:rounded-[2.5rem] overflow-hidden shadow-lg sm:shadow-xl hover:shadow-2xl transition-all duration-500 border border-gray-100 dark:border-gray-800"
                             onClick={() => handleCatalogClick(catalog)}
                         >
                             {/* Imagen del Catálogo (Foto Real) */}
@@ -94,8 +94,8 @@ export const Catalog = React.memo(function Catalog() {
                                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                                 />
 
-                                {/* Overlay Gradiente Sutil */}
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-8">
+                                {/* Overlay Gradiente Sutil - Visible en Desktop */}
+                                <div className="hidden sm:flex absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 items-end justify-center pb-8">
                                     <div className="bg-yellow-500 text-black font-bold px-6 py-2 rounded-full flex items-center gap-2 shadow-lg">
                                         <ExternalLink size={16} />
                                         Abrir Catálogo
@@ -104,10 +104,14 @@ export const Catalog = React.memo(function Catalog() {
                             </div>
 
                             {/* Título */}
-                            <div className="p-6 text-center">
-                                <h3 className="text-lg font-bold text-gray-900 dark:text-white group-hover:text-yellow-500 transition-colors line-clamp-2 leading-tight">
+                            <div className="p-3 sm:p-6 text-center">
+                                <h3 className="text-xs sm:text-lg font-bold text-gray-900 dark:text-white group-hover:text-yellow-500 transition-colors line-clamp-2 leading-tight">
                                     {catalog.title}
                                 </h3>
+                                {/* Mobile indicator */}
+                                <p className="text-[10px] text-gray-400 mt-1 sm:hidden">
+                                    Toca para ver
+                                </p>
                             </div>
                         </motion.div>
                     ))}

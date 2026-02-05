@@ -73,7 +73,7 @@ class FabricationQuoteController extends Controller
             ]);
 
             // Send Email Notification
-            $adminEmail = 'elboomcel2@gmail.com'; 
+            $adminEmail = 'marketingelboom@gmail.com'; 
             
             try {
                 \Illuminate\Support\Facades\Mail::to($adminEmail)->send(new \App\Mail\FabricationQuoteRequest($quote));

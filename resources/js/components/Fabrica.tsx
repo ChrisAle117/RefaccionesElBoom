@@ -716,11 +716,11 @@ function CapabilitiesSection() {
                                 <div className="w-20 h-1 bg-[#FFD700] transform origin-left transition-all duration-300 group-hover:w-full" />
                             </div>
 
-                            <p className="text-gray-300 text-lg mb-6 opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500 delay-100">
+                            <p className="text-gray-300 text-lg mb-6 opacity-100 translate-y-0 md:opacity-0 md:translate-y-4 md:group-hover:opacity-100 md:group-hover:translate-y-0 transition-all duration-500 delay-100">
                                 {proc.description}
                             </p>
 
-                            <div className="flex flex-wrap gap-2 opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500 delay-200 mb-6">
+                            <div className="flex flex-wrap gap-2 opacity-100 translate-y-0 md:opacity-0 md:translate-y-4 md:group-hover:opacity-100 md:group-hover:translate-y-0 transition-all duration-500 delay-200 mb-6">
                                 {proc.specs.map((spec, i) => (
                                     <span key={i} className="border border-white/30 text-white px-3 py-1 rounded-full text-sm font-medium backdrop-blur-sm">
                                         {spec}

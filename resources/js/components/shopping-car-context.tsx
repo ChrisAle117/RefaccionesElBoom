@@ -182,6 +182,9 @@ export const ShoppingCartProvider: React.FC<{ children: React.ReactNode; isAuthe
     // Función para eliminar un ítem del carrito
     const removeFromCart = async (id_product: number) => {
         try {
+            // Optimistic update: Remove from local state immediately
+            setCartItems(prev => prev.filter(item => item.id_product !== id_product));
+
             const response = await fetch(`/cart/remove/${id_product}`, {
                 method: 'DELETE',
                 headers: {
@@ -192,15 +195,19 @@ export const ShoppingCartProvider: React.FC<{ children: React.ReactNode; isAuthe
             });
 
             if (!response.ok) {
+                // Revert functionality could be added here if needed, but for now we just throw
                 throw new Error('Error al eliminar el producto del carrito');
             }
 
             const data = await response.json();
             if (data.items) {
+                // Resync with server source of truth
                 setCartItems(mapItems(data.items));
             }
         } catch (error) {
             console.error('Error removing from cart:', error);
+            // Optionally fetch cart here to restore state in case of error
+            fetchCart(true);
         }
     };
 

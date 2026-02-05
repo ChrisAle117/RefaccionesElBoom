@@ -436,6 +436,10 @@ export function DetailsPurchase({ product }: DetailsPurchaseProps) {
                     state: a.estado,
                 }));
                 setAddresses(mapped);
+                // Si no hay direcciones, abrir el formulario automáticamente para agilizar
+                if (mapped.length === 0) {
+                    setShowAddressForm(true);
+                }
             } catch {
                 /* silent fail */
             }
