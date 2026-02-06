@@ -39,6 +39,13 @@ class ProductListingController extends Controller
 
         $recentCondition = "COALESCE( NULLIF(created_at, '0000-00-00 00:00:00'), NULLIF(updated_at, '0000-00-00 00:00:00') ) >= '2023-01-01'";
         $query = Product::query()
+            ->select([
+                'id_product', 'name', 'code', 'price', 'description', 
+                'disponibility', 'image', 'audio_path', 'active', 'type',
+                'variant_group', 'variant_group_opt_out', 
+                'variant_color_hex', 'variant_color_label',
+                'created_at', 'updated_at'
+            ])
             ->where('active', true)
             ->where('disponibility', '>', 0)
             ->where('name', '!=', 'name')
@@ -97,7 +104,7 @@ class ProductListingController extends Controller
         }
 
         
-        $products = $query->get(['*']); 
+        $products = $query->get(); 
 
 
         Product::primePrices($products);

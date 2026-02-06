@@ -21,6 +21,18 @@ class OpenpayWebhookController extends Controller
 
         if ($request->isMethod('post')) {
             $payload = $request->all();
+            
+            // Validate webhook signature if configured
+            if ($this->shouldValidateSignature()) {
+                if (!$this->validateSignature($request)) {
+                    Log::warning('Openpay webhook signature validation failed', [
+                        'ip' => $request->ip(),
+                        'user_agent' => $request->userAgent(),
+                    ]);
+                    return response('Unauthorized', 401);
+                }
+            }
+            
             Log::info('Openpay webhook payload received:', $payload);
 
             try {
@@ -36,5 +48,31 @@ class OpenpayWebhookController extends Controller
         }
 
         return response('Method Not Allowed', 405);
+    }
+
+    /**
+     * Determine if webhook signature validation should be performed
+     */
+    private function shouldValidateSignature(): bool
+    {
+        return (bool) env('OPENPAY_WEBHOOK_VALIDATE_SIGNATURE', false);
+    }
+
+    /**
+     * Validate the Openpay webhook signature
+     */
+    private function validateSignature(Request $request): bool
+    {
+        $signature = $request->header('X-Openpay-Signature');
+        $secret = env('OPENPAY_WEBHOOK_SECRET');
+        
+        if (!$signature || !$secret) {
+            return false;
+        }
+
+        $payload = $request->getContent();
+        $expectedSignature = hash_hmac('sha256', $payload, $secret);
+        
+        return hash_equals($expectedSignature, $signature);
     }
 }

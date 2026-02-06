@@ -9,6 +9,8 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use App\Models\Product;
+use App\Http\Requests\Admin\StoreProductRequest;
+use App\Http\Requests\Admin\UpdateProductRequest;
 use Inertia\Inertia;
 use PDF;
 
@@ -164,22 +166,9 @@ class ProductController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function store(StoreProductRequest $request)
     {
-        $validated = $request->validate([
-            'name'           => 'required|string|max:255',
-            'code'           => 'required|string|max:100|unique:products',
-            'description'    => 'required|string',
-            'price'          => 'required|numeric|min:0',
-            'disponibility'  => 'required|integer|min:0',
-            'reserved_stock' => 'required|integer|min:0',
-            'type'           => 'required|string|max:100',
-            'image'          => 'nullable|url|max:255',
-            'weight'         => 'nullable|numeric|min:0',
-            'length'         => 'nullable|numeric|min:0',
-            'width'          => 'nullable|numeric|min:0',
-            'height'         => 'nullable|numeric|min:0',
-        ]);
+        $validated = $request->validated();
 
         $product = new Product();
         $product->fill($validated);
@@ -216,24 +205,11 @@ class ProductController extends Controller
         ]);
     }
 
-    public function update(Request $request, $id)
+    public function update(UpdateProductRequest $request, $id)
     {
         $product = Product::findOrFail($id);
 
-        $validated = $request->validate([
-            'name'           => 'required|string|max:255',
-            'code'           => 'required|string|max:100|unique:products,code,' . $id . ',id_product',
-            'description'    => 'required|string',
-            'price'          => 'required|numeric|min:0',
-            'disponibility'  => 'required|integer|min:0',
-            'reserved_stock' => 'required|integer|min:0',
-            'type'           => 'required|string|max:100',
-            'image'          => 'nullable|url|max:255',
-            'weight'         => 'nullable|numeric|min:0',
-            'length'         => 'nullable|numeric|min:0',
-            'width'          => 'nullable|numeric|min:0',
-            'height'         => 'nullable|numeric|min:0',
-        ]);
+        $validated = $request->validated();
 
         $originalType = $product->type;
         $product->fill($validated);
@@ -256,9 +232,6 @@ class ProductController extends Controller
 
         // Optional inline audio upload on update
         if ($request->hasFile('audio') && strtolower((string) $product->type) === 'bocina') {
-            $request->validate([
-                'audio' => 'file|mimes:mp3,ogg,wav|max:10240',
-            ]);
             if ($product->audio_path) {
                 try { Storage::disk('public')->delete($product->audio_path); } catch (\Throwable $e) {}
             }

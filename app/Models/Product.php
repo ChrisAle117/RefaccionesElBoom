@@ -250,4 +250,45 @@ class Product extends Model
     {
         return $this->hasMany(OrderItem::class, 'product_id', 'id_product');
     }
+
+    /**
+     * Sync local stock from warehouse for given product IDs
+     * 
+     * @param array $ids Array of product IDs to sync
+     * @return int Number of products updated
+     */
+    public static function syncLocalStock(array $ids): int
+    {
+        if (empty($ids)) {
+            return 0;
+        }
+
+        $ids = array_values(array_unique(array_filter($ids)));
+        $updated = 0;
+
+        try {
+            $stockMap = static::fetchStockMap($ids);
+            
+            foreach ($stockMap as $productId => $stock) {
+                if ($stock !== null && $stock !== self::MISS) {
+                    DB::table('products')
+                        ->where('id_product', $productId)
+                        ->update(['disponibility' => (int) $stock]);
+                    $updated++;
+                }
+            }
+
+            Log::info('Stock sync completed', [
+                'products_synced' => $updated,
+                'total_requested' => count($ids),
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Stock sync failed', [
+                'error' => $e->getMessage(),
+                'products_count' => count($ids),
+            ]);
+        }
+
+        return $updated;
+    }
 }

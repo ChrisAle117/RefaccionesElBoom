@@ -24,9 +24,9 @@ use Illuminate\Support\Facades\DB;
 |
 */
 
-Route::match(['get','post'], '/openpay/webhook', [OpenpayWebhookController::class, 'handle']);
+Route::match(['get','post'], '/openpay/webhook', [OpenpayWebhookController::class, 'handle'])->middleware('throttle:100,1');
 
-Route::get('/products/{id}/reconcile-stock', function ($id) {
+Route::middleware(['auth:sanctum', 'admin'])->get('/products/{id}/reconcile-stock', function ($id) {
 	$product = Product::query()->select('id_product','disponibility','active')->where('id_product', $id)->first();
 	if (!$product) {
 		return response()->json(['success' => false, 'message' => 'Producto no encontrado'], 404);
@@ -41,7 +41,7 @@ Route::get('/products/{id}/reconcile-stock', function ($id) {
 			$remote = $map[$product->id_product] ?? null;
 		}
 	} catch (\Throwable $e) {
-
+		\Log::error('Stock reconciliation failed', ['product_id' => $id, 'error' => $e->getMessage()]);
     }
 	$adjusted = false;
 	if ($remote !== null && $product->disponibility > $remote) {
