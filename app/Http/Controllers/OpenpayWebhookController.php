@@ -70,8 +70,11 @@ class OpenpayWebhookController extends Controller
             return false;
         }
 
+        // Normalize signature (remove whitespace, convert to lowercase)
+        $signature = strtolower(trim($signature));
+
         $payload = $request->getContent();
-        $expectedSignature = hash_hmac('sha256', $payload, $secret);
+        $expectedSignature = strtolower(hash_hmac('sha256', $payload, $secret));
         
         return hash_equals($expectedSignature, $signature);
     }

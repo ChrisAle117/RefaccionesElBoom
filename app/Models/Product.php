@@ -269,17 +269,20 @@ class Product extends Model
         try {
             $stockMap = static::fetchStockMap($ids);
             
-            foreach ($stockMap as $productId => $stock) {
-                if ($stock !== null && $stock !== self::MISS) {
-                    DB::table('products')
-                        ->where('id_product', $productId)
-                        ->update(['disponibility' => (int) $stock]);
-                    $updated++;
+            // Use transaction to ensure atomicity of updates and cache clearing
+            DB::transaction(function () use ($stockMap, &$updated, $ids) {
+                foreach ($stockMap as $productId => $stock) {
+                    if ($stock !== null && $stock !== self::MISS) {
+                        DB::table('products')
+                            ->where('id_product', $productId)
+                            ->update(['disponibility' => (int) $stock]);
+                        $updated++;
+                    }
                 }
-            }
 
-            // Clear caches after bulk update since we're using DB::table()
-            static::clearProductCaches($ids);
+                // Clear caches after bulk update since we're using DB::table()
+                static::clearProductCaches($ids);
+            });
 
             Log::info('Stock sync completed', [
                 'products_synced' => $updated,
@@ -309,13 +312,23 @@ class Product extends Model
         
         // Clear specific product caches if IDs provided
         if (!empty($productIds)) {
-            $grupo = config('warehouse.group_clave');
-            $almacenId = (int) config('warehouse.stock_almacen_id', 1);
-            
             foreach ($productIds as $productId) {
-                Cache::forget('wh:price:' . ($grupo ?: 'ALL') . ':' . $productId);
-                Cache::forget('wh:stock:almacen:' . $almacenId . ':' . $productId);
+                static::clearProductSpecificCache($productId);
             }
         }
+    }
+
+    /**
+     * Clear cache for a specific product
+     * 
+     * @param int $productId Product ID to clear cache for
+     */
+    public static function clearProductSpecificCache(int $productId): void
+    {
+        $grupo = config('warehouse.group_clave');
+        $almacenId = (int) config('warehouse.stock_almacen_id', 1);
+        
+        Cache::forget('wh:price:' . ($grupo ?: 'ALL') . ':' . $productId);
+        Cache::forget('wh:stock:almacen:' . $almacenId . ':' . $productId);
     }
 }
