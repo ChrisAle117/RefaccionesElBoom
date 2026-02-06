@@ -264,38 +264,41 @@ class Product extends Model
         }
 
         $ids = array_values(array_unique(array_filter($ids)));
-        $updated = 0;
 
         try {
             $stockMap = static::fetchStockMap($ids);
             
             // Use transaction to ensure atomicity of updates and cache clearing
-            DB::transaction(function () use ($stockMap, &$updated, $ids) {
+            $updated = DB::transaction(function () use ($stockMap, $ids) {
+                $count = 0;
                 foreach ($stockMap as $productId => $stock) {
                     if ($stock !== null && $stock !== self::MISS) {
                         DB::table('products')
                             ->where('id_product', $productId)
                             ->update(['disponibility' => (int) $stock]);
-                        $updated++;
+                        $count++;
                     }
                 }
 
                 // Clear caches after bulk update since we're using DB::table()
                 static::clearProductCaches($ids);
+                
+                return $count;
             });
 
             Log::info('Stock sync completed', [
                 'products_synced' => $updated,
                 'total_requested' => count($ids),
             ]);
+            
+            return $updated;
         } catch (\Throwable $e) {
             Log::error('Stock sync failed', [
                 'error' => $e->getMessage(),
                 'products_count' => count($ids),
             ]);
+            return 0;
         }
-
-        return $updated;
     }
 
     /**
