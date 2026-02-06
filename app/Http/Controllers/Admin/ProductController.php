@@ -349,7 +349,7 @@ class ProductController extends Controller
 
     public function incidences(Request $request)
     {
-        $ttl = (int) env('INCIDENCES_CACHE_TTL', 60); 
+        $ttl = (int) config('cache.ttl.incidences', 60); 
         $keyFull = 'products.oversell.incidences.full';
 
         if ($request->boolean('fresh')) {
@@ -396,7 +396,7 @@ class ProductController extends Controller
 
     public function incidencesCount()
     {
-        $ttl = (int) env('INCIDENCES_CACHE_TTL', 60);
+        $ttl = (int) config('cache.ttl.incidences', 60);
         $keyFull = 'products.oversell.incidences.full';
         $keyCount = 'products.oversell.incidences.count';
 

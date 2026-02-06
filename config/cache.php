@@ -105,4 +105,17 @@ return [
 
     'prefix' => env('CACHE_PREFIX', Str::slug(env('APP_NAME', 'laravel'), '_').'_cache_'),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Custom Cache TTLs
+    |--------------------------------------------------------------------------
+    |
+    | Custom TTL values for specific cache use cases
+    |
+    */
+
+    'ttl' => [
+        'incidences' => (int) env('INCIDENCES_CACHE_TTL', 60),
+    ],
+
 ];

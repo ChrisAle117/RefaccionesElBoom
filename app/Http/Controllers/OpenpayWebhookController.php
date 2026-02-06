@@ -55,7 +55,7 @@ class OpenpayWebhookController extends Controller
      */
     private function shouldValidateSignature(): bool
     {
-        return (bool) env('OPENPAY_WEBHOOK_VALIDATE_SIGNATURE', false);
+        return (bool) config('openpay.webhook.validate_signature', false);
     }
 
     /**
@@ -64,7 +64,7 @@ class OpenpayWebhookController extends Controller
     private function validateSignature(Request $request): bool
     {
         $signature = $request->header('X-Openpay-Signature');
-        $secret = env('OPENPAY_WEBHOOK_SECRET');
+        $secret = config('openpay.webhook.secret');
         
         if (!$signature || !$secret) {
             return false;
