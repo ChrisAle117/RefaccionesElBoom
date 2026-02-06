@@ -160,6 +160,8 @@ class ProductController extends Controller
 
     public function create()
     {
+        $this->authorize('create', Product::class);
+        
         $types = Product::query()->select('type')->distinct()->pluck('type')->filter()->values()->toArray();
         return Inertia::render('Admin/ProductForm', [
             'types' => $types
@@ -180,6 +182,7 @@ class ProductController extends Controller
     public function edit($id)
     {
         $product = Product::findOrFail($id);
+        $this->authorize('update', $product);
 
         $types = Product::query()->select('type')->distinct()->pluck('type')->filter()->values()->toArray();
 
@@ -290,6 +293,7 @@ class ProductController extends Controller
     {
         try {
             $product = Product::where('id_product', $id)->firstOrFail();
+            $this->authorize('delete', $product);
 
             $hasOrders = $product->orderItems()->exists();
             if ($hasOrders) {
@@ -317,6 +321,8 @@ class ProductController extends Controller
     {
         try {
             $product = Product::where('id_product', $id)->firstOrFail();
+            $this->authorize('update', $product);
+            
             $product->active = !$product->active;
             $product->save();
 
@@ -421,6 +427,8 @@ class ProductController extends Controller
 
     public function syncStock(Request $request)
     {
+        $this->authorize('syncStock', Product::class);
+        
         $request->validate([
             'password' => 'required|string'
         ]);
@@ -452,6 +460,8 @@ class ProductController extends Controller
 
     public function syncStockIncidences(Request $request)
     {
+        $this->authorize('syncStock', Product::class);
+        
         $request->validate(['password' => 'required|string']);
         $user = $request->user();
         if (!$user || !\Hash::check($request->password, $user->password)) {
