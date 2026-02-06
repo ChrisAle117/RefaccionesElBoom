@@ -71,8 +71,8 @@ class ProductObserver
      */
     private function clearProductSpecificCache(int $productId): void
     {
-        $grupo = env('WAREHOUSE_GROUP_CLAVE');
-        $almacenId = (int) env('WAREHOUSE_STOCK_ALMACEN_ID', 1);
+        $grupo = config('warehouse.group_clave');
+        $almacenId = (int) config('warehouse.stock_almacen_id', 1);
         
         // Clear warehouse cache for this specific product
         Cache::forget('wh:price:' . ($grupo ?: 'ALL') . ':' . $productId);

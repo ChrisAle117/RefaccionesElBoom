@@ -61,7 +61,7 @@ class Product extends Model
 
     public function getDisponibilityAttribute($localValue)
     {
-        if (!env('WAREHOUSE_STOCK_USE_REMOTE', false)) {
+        if (!config('warehouse.stock_use_remote', false)) {
             return (int) $localValue;
         }
 
@@ -82,12 +82,12 @@ class Product extends Model
 
     protected function fallbackPrice($localValue)
     {
-        return env('WAREHOUSE_FALLBACK_LOCAL', true) ? $localValue : null;
+        return config('warehouse.fallback_local', true) ? $localValue : null;
     }
 
     protected function fallbackStock($localValue)
     {
-        return env('WAREHOUSE_STOCK_FALLBACK_LOCAL', true) ? (int)$localValue : 0;
+        return config('warehouse.stock_fallback_local', true) ? (int)$localValue : 0;
     }
 
     // --- FETCH LOGIC ---
@@ -98,8 +98,8 @@ class Product extends Model
         $ids = array_values(array_unique(array_filter($ids, fn ($v) => $v !== null)));
         if (empty($ids)) return [];
 
-        $ttl   = (int) env('WAREHOUSE_PRICE_TTL', 1800);
-        $grupo = env('WAREHOUSE_GROUP_CLAVE');
+        $ttl   = (int) config('warehouse.price_ttl', 1800);
+        $grupo = config('warehouse.group_clave');
         $result = [];
         $pending = [];
 
@@ -158,8 +158,8 @@ class Product extends Model
         $ids = array_values(array_unique(array_filter($ids, fn ($v) => $v !== null)));
         if (empty($ids)) return [];
 
-        $ttl = (int) env('WAREHOUSE_STOCK_TTL', 300);
-        $almacenId = (int) env('WAREHOUSE_STOCK_ALMACEN_ID', 1);
+        $ttl = (int) config('warehouse.stock_ttl', 300);
+        $almacenId = (int) config('warehouse.stock_almacen_id', 1);
         $result = [];
         $pending = [];
 
@@ -200,7 +200,7 @@ class Product extends Model
                         $result[$pid] = $val;
                         Cache::put($key, $val, $ttl);
 
-                        if (env('WAREHOUSE_STOCK_AUTO_SYNC_LOCAL', false)) {
+                        if (config('warehouse.stock_auto_sync_local', false)) {
                             DB::table('products')->where('id_product', $pid)->update(['disponibility' => $val]);
                         }
                     } else {
@@ -278,6 +278,9 @@ class Product extends Model
                 }
             }
 
+            // Clear caches after bulk update since we're using DB::table()
+            static::clearProductCaches($ids);
+
             Log::info('Stock sync completed', [
                 'products_synced' => $updated,
                 'total_requested' => count($ids),
@@ -290,5 +293,29 @@ class Product extends Model
         }
 
         return $updated;
+    }
+
+    /**
+     * Clear product-related caches
+     * 
+     * @param array $productIds Optional specific product IDs to clear
+     */
+    private static function clearProductCaches(array $productIds = []): void
+    {
+        // Clear general product caches
+        Cache::forget('products.oversell.incidences.full');
+        Cache::forget('products.oversell.incidences.count');
+        Cache::forget('product_types.sort_order');
+        
+        // Clear specific product caches if IDs provided
+        if (!empty($productIds)) {
+            $grupo = config('warehouse.group_clave');
+            $almacenId = (int) config('warehouse.stock_almacen_id', 1);
+            
+            foreach ($productIds as $productId) {
+                Cache::forget('wh:price:' . ($grupo ?: 'ALL') . ':' . $productId);
+                Cache::forget('wh:stock:almacen:' . $almacenId . ':' . $productId);
+            }
+        }
     }
 }
