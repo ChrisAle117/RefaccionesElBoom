@@ -194,7 +194,7 @@ class Product extends Model
                 foreach ($chunkCodes as $pid => $code) {
                     $key = 'wh:stock:almacen:' . $almacenId . ':' . $pid;
                     
-                    // CAMBIO CLAVE: Solo si el código existe en el almacén actualizamos
+            
                     if (array_key_exists($code, $stockByCode)) {
                         $val = (int) $stockByCode[$code];
                         $result[$pid] = $val;
@@ -204,7 +204,7 @@ class Product extends Model
                             DB::table('products')->where('id_product', $pid)->update(['disponibility' => $val]);
                         }
                     } else {
-                        // Si no existe en el almacén, no sobreescribimos con 0 la DB local
+                       
                         $result[$pid] = self::MISS;
                         Cache::put($key, self::MISS, $ttl);
                     }
@@ -216,7 +216,7 @@ class Product extends Model
         return $result;
     }
 
-    // --- HELPER METHODS ---
+
 
     public static function primePrices($products): void
     {
@@ -238,6 +238,41 @@ class Product extends Model
 
         $map = static::fetchStockMap($ids);
         static::$liveStockBuffer = static::$liveStockBuffer + $map;
+    }
+
+    /**
+     * Sincroniza la existencia desde el almacén hacia la base de datos local (columna disponibility).
+     * Solo actualiza si el almacén devuelve un valor válido (no __MISS__).
+     */
+    public static function syncLocalStock(array $ids): void
+    {
+        $ids = array_values(array_unique(array_filter($ids)));
+        if (empty($ids)) return;
+
+        $map = static::fetchStockMap($ids);
+        $updatedCount = 0;
+        $skippedCount = 0;
+
+        foreach ($map as $id => $stock) {
+            if ($stock !== self::MISS && $stock !== null) {
+                DB::table('products')->where('id_product', $id)->update([
+                    'disponibility' => (int) $stock,
+                    'updated_at'    => now(),
+                ]);
+                $updatedCount++;
+            } else {
+                $skippedCount++;
+            }
+        }
+
+        Log::info("Manual stock sync completed", [
+            'ids_provided' => count($ids),
+            'updated'      => $updatedCount,
+            'skipped'      => $skippedCount
+        ]);
+
+        Cache::forget('products.oversell.incidences.full');
+        Cache::forget('products.oversell.incidences.count');
     }
 
     public function getAudioUrlAttribute(): ?string
