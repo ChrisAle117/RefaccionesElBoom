@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { usePage } from '@inertiajs/react';
 import { motion, AnimatePresence, useMotionTemplate, useMotionValue } from 'framer-motion';
-import { ChevronDown, Zap, Settings, ArrowRight, AlertCircle, Download } from 'lucide-react';
+import { ChevronDown, Zap, Settings, ArrowRight, AlertCircle } from 'lucide-react';
 
 const mexicanStates = [
     "Aguascalientes", "Baja California", "Baja California Sur", "Campeche", "Coahuila",

@@ -61,4 +61,14 @@ class User extends Authenticatable
     {
         return $this->hasOne(Address::class, 'user_id');
     }
+
+    public function notes()
+    {
+        return $this->hasMany(UserNote::class, 'user_id')->latest();
+    }
+
+    public function orders()
+    {
+        return $this->hasMany(Order::class, 'user_id')->latest();
+    }
 }

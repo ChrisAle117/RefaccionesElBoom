@@ -153,6 +153,24 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/product-families/delete', [\App\Http\Controllers\Admin\ProductFamilyController::class, 'deleteFamily'])->name('product-families.delete');
         Route::get('/product-families/create', [\App\Http\Controllers\Admin\ProductFamilyController::class, 'create'])->name('product-families.create');
         Route::get('/product-families/view', [\App\Http\Controllers\Admin\ProductFamilyController::class, 'show'])->name('product-families.view');
+
+        // GESTIÓN DE USUARIOS (CRM)
+        Route::get('/users', [\App\Http\Controllers\Admin\AdminUserController::class, 'index'])->name('users.index');
+        Route::get('/users/{id}', [\App\Http\Controllers\Admin\AdminUserController::class, 'show'])->name('users.show');
+        Route::post('/users/{id}/notes', [\App\Http\Controllers\Admin\AdminUserController::class, 'storeNote'])->name('users.notes.store');
+
+        // REPORTES ESTRATÉGICOS
+        Route::get('/reporting', [\App\Http\Controllers\Admin\AdminReportingController::class, 'index'])->name('reporting.index');
+
+        // RUTAS DE DEPURACIÓN (Borrar después)
+        Route::get('/debug-500', function() {
+            try {
+                $reporting = new \App\Http\Controllers\Admin\AdminReportingController();
+                return $reporting->index();
+            } catch (\Exception $e) {
+                return response()->json(['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()], 500);
+            }
+        });
     }); //CIERRE DEL GRUPO MIDDLEWARE DE ADMINISTRADORES
 
     // Rutas para órdenes de pago manual

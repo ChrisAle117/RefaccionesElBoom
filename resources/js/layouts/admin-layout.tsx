@@ -21,7 +21,8 @@ type AdminPageProps = {
 };
 
 const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title = 'Admin', fullWidth = false }) => {
-    const { auth } = usePage<AdminPageProps>().props;
+    const { url, props } = usePage<AdminPageProps>();
+    const { auth } = props;
     const [incidenceCount, setIncidenceCount] = useState<number | null>(null);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -50,6 +51,8 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title = 'Admin', fu
         { name: 'Catálogos', href: route('admin.catalogs.index'), icon: BookOpen },
         { name: 'Recolecciones DHL', href: route('admin.dhl-pickups.index'), icon: Truck },
         { name: 'Incidencias', href: route('admin.products.incidences'), icon: AlertTriangle, badge: incidenceCount },
+        { name: 'Clientes', href: route('admin.users.index'), icon: Users },
+        { name: 'Reportes', href: route('admin.reporting.index'), icon: ReceiptText },
     ];
 
     return (
@@ -87,34 +90,33 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title = 'Admin', fu
 
                             <div className="flex-shrink-0 flex items-center ml-2 sm:ml-0">
                                 <Link href={route('admin.dashboard')} className="flex items-center gap-2 group">
-                                    <div className="w-8 h-8 bg-slate-900 rounded-lg flex items-center justify-center text-white scale-90 group-hover:scale-100 transition-transform">
+                                    <div className="w-8 h-8 bg-slate-900 rounded-lg flex items-center justify-center text-white scale-90 group-hover:scale-100 transition-transform shadow-sm">
                                         <LayoutDashboard className="w-4 h-4" />
                                     </div>
-                                    <h1 className="text-sm font-black uppercase tracking-tighter text-slate-900">Admin</h1>
                                 </Link>
-                                {title && title !== 'Admin' && (
-                                    <div className="flex items-center">
-                                        <ChevronRight className="w-4 h-4 mx-1 text-slate-300" />
-                                        <h2 className="text-sm font-bold text-slate-500 truncate max-w-[120px] sm:max-w-none">{title}</h2>
-                                    </div>
-                                )}
                             </div>
 
-                            <div className="hidden sm:ml-6 lg:flex sm:space-x-4 xl:space-x-8">
-                                {navLinks.map((link) => (
-                                    <Link
-                                        key={link.href}
-                                        href={link.href}
-                                        className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-xs xl:text-sm font-medium relative"
-                                    >
-                                        {link.name}
-                                        {typeof link.badge === 'number' && link.badge > 0 && (
-                                            <span className="ml-1 inline-flex items-center justify-center px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-red-600 text-white">
-                                                {link.badge}
-                                            </span>
-                                        )}
-                                    </Link>
-                                ))}
+                            <div className="hidden sm:ml-6 lg:flex sm:space-x-1 xl:space-x-4">
+                                {navLinks.map((link) => {
+                                    const isActive = url.startsWith(new URL(link.href).pathname);
+                                    return (
+                                        <Link
+                                            key={link.href}
+                                            href={link.href}
+                                            className={`inline-flex items-center px-3 pt-1 border-b-2 text-xs xl:text-sm font-black uppercase tracking-tight transition-all relative h-16 ${isActive
+                                                ? 'border-slate-900 text-slate-900 bg-slate-50/50'
+                                                : 'border-transparent text-gray-400 hover:text-gray-700 hover:border-gray-200'
+                                                }`}
+                                        >
+                                            {link.name}
+                                            {typeof link.badge === 'number' && link.badge > 0 && (
+                                                <span className="ml-1 inline-flex items-center justify-center px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-red-600 text-white">
+                                                    {link.badge}
+                                                </span>
+                                            )}
+                                        </Link>
+                                    );
+                                })}
                             </div>
                         </div>
 
@@ -123,14 +125,6 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title = 'Admin', fu
                                 <span className="block text-xs font-semibold text-gray-900">{auth.user.name}</span>
                                 <span className="block text-[10px] text-gray-500 capitalize">{auth.user.role}</span>
                             </div>
-
-                            <Link
-                                href={route('admin.dashboard')}
-                                className="p-2 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-                                title="Panel Principal"
-                            >
-                                <LayoutDashboard className="w-5 h-5" />
-                            </Link>
 
                             <Link
                                 href={route('home')}
