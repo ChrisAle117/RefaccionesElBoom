@@ -21,6 +21,16 @@ class OrderController extends Controller
     {
         try {
             $user = Auth::user();
+            $sessionId = \Illuminate\Support\Facades\Session::getId();
+            
+            // Si es usuario invitado, validamos datos de contacto
+            if (!$user) {
+                $request->validate([
+                    'guest_name' => 'required|string|max:255',
+                    'guest_email' => 'required|email|max:255',
+                ]);
+            }
+
             $addressId = $request->input('address_id');
             $pickupInStore = (bool) $request->input('pickup_in_store', false);
 
@@ -63,15 +73,27 @@ class OrderController extends Controller
 
                 $branchData = $branches[$branchId] ?? $branches['alpuyeca'];
                 
-                $existing = Address::where('user_id', $user->id)
-                    ->where('calle', $branchData['calle'])
+                // Para guests, buscamos por session_id o creamos nueva sin user_id
+                $query = Address::query();
+                if ($user) {
+                    $query->where('user_id', $user->id);
+                } else {
+                    $query->where('session_id', $sessionId);
+                }
+                
+                $existing = $query->where('calle', $branchData['calle'])
                     ->where('referencia', 'Recoger en sucursal')
                     ->first();
+
                 if ($existing) {
                     $addressId = $existing->id_direccion;
                 } else {
                     $addr = new Address();
-                    $addr->user_id         = $user->id;
+                    if ($user) {
+                        $addr->user_id = $user->id;
+                    } else {
+                        $addr->session_id = $sessionId;
+                    }
                     $addr->calle           = $branchData['calle'];
                     $addr->colonia         = $branchData['colonia'];
                     $addr->numero_exterior = 'SN';
@@ -79,7 +101,7 @@ class OrderController extends Controller
                     $addr->codigo_postal   = $branchData['cp'];
                     $addr->estado          = $branchData['estado'];
                     $addr->ciudad          = $branchData['ciudad'];
-                    $addr->telefono        = $user->phone ?? '7771807312';
+                    $addr->telefono        = ($user->phone ?? $request->input('phone')) ?? '7771807312';
                     $addr->referencia      = 'Recoger en sucursal';
                     $addr->save();
                     $addressId = $addr->id_direccion;
@@ -121,13 +143,22 @@ class OrderController extends Controller
                 // Calcular total
                 $totalAmount = $quantity * $product->price;
                 
-                $order = new Order([
-                    'user_id' => $user->id,
+                $orderData = [
                     'address_id' => $addressId,
                     'total_amount' => $totalAmount,
                     'status' => 'pending_payment',
                     'expires_at' => Carbon::now()->addHours(24)
-                ]);
+                ];
+
+                if ($user) {
+                    $orderData['user_id'] = $user->id;
+                } else {
+                    $orderData['session_id'] = $sessionId;
+                    $orderData['guest_name'] = $request->input('guest_name');
+                    $orderData['guest_email'] = $request->input('guest_email');
+                }
+
+                $order = new Order($orderData);
                 
                 $order->save();
                 
@@ -157,7 +188,11 @@ class OrderController extends Controller
                     'order_id' => $order->id_order
                 ]);
             } else {
-                $cart = ShoppingCart::where('user_id', $user->id)->first();
+                if ($user) {
+                    $cart = ShoppingCart::where('user_id', $user->id)->first();
+                } else {
+                    $cart = ShoppingCart::where('session_id', $sessionId)->first();
+                }
                 
                 if (!$cart || $cart->items->isEmpty()) {
                     return response()->json([
@@ -193,13 +228,22 @@ class OrderController extends Controller
                     }
                 }
                 
-                $order = new Order([
-                    'user_id' => $user->id,
+                $orderData = [
                     'address_id' => $addressId,
                     'total_amount' => $totalAmount,
                     'status' => 'pending_payment',
                     'expires_at' => Carbon::now()->addHours(24)
-                ]);
+                ];
+
+                if ($user) {
+                    $orderData['user_id'] = $user->id;
+                } else {
+                    $orderData['session_id'] = $sessionId;
+                    $orderData['guest_name'] = $request->input('guest_name');
+                    $orderData['guest_email'] = $request->input('guest_email');
+                }
+
+                $order = new Order($orderData);
                 
                 $order->save();
                 
@@ -352,14 +396,26 @@ class OrderController extends Controller
             $bestPhone = $order->address->telefono ?? 'No disponible';
         }
 
+        // Handle Guest vs Registered User
+        $userData = [];
+        if ($order->user) {
+            $userData = [
+                'name'     => $order->user->name,
+                'email'    => $order->user->email,
+                'telefono' => $bestPhone,
+            ];
+        } else {
+             $userData = [
+                'name'     => $order->guest_name ?? 'Invitado',
+                'email'    => $order->guest_email ?? 'Sin email',
+                'telefono' => $bestPhone,
+            ];
+        }
+
         return Inertia::render('Admin/OrderDetails', [
             'order' => [
                 'id'        => $order->id_order,
-                'user'      => [
-                    'name'     => $order->user->name,
-                    'email'    => $order->user->email,
-                    'telefono' => $bestPhone,
-                ],
+                'user'      => $userData,
                 'status'     => $order->status,
                 'created_at' => $order->created_at->format('d/m/Y H:i'),
                 'total'      => $order->total_amount,
@@ -489,10 +545,13 @@ class OrderController extends Controller
                         ($order->address->calle && str_starts_with($order->address->calle, 'REFACCIONES EL BOOM'))
                     );
                 }
+                $customerName = $order->user ? $order->user->name : ($order->guest_name ?? 'Invitado');
+                $customerEmail = $order->user ? $order->user->email : ($order->guest_email ?? 'Sin email');
+
                 return [
                     'id_order'       => $order->id_order,
-                    'customer_name'  => $order->user->name,
-                    'customer_email' => $order->user->email,
+                    'customer_name'  => $customerName,
+                    'customer_email' => $customerEmail,
                     'total_amount'   => $order->total_amount,
                     'status'         => $order->status,
                     // Mostrar hora local de CDMX; evita el desfase que veías por UTC

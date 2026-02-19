@@ -10,16 +10,17 @@ type Brand = {
 };
 
 const BRANDS: Brand[] = [
+
+
     {
-        id: "ACP",
-        name: "ACP",
+        id: "GABRIEL",
+        name: "GABRIEL",
         logo: "https://www.wixfilters.com/adobe/dynamicmedia/deliver/dm-aid--a34dee6b-8561-4841-91f1-7f7bb84a253b/wix-oil-overviewhero-800x537.jpg?preferwebp=true&quality=82",
-        nameImage: "https://refaccioneselboom.com/images/logos/ACP.webp",
-        description: `
-            En el mundo del transporte pesado, donde cada kilómetro cuenta y la durabilidad es esencial, ACP se ha consolidado como una de las marcas más confiables en refacciones para frenos y suspensión. Sus productos son reconocidos por combinar tecnología de precisión, materiales de alta resistencia y un estricto control de calidad, factores que garantizan un rendimiento superior en cualquier tipo de terreno.
-            En El Boom Tractopartes, confiamos en ACP porque ofrece una gama completa de componentes diseñados para camiones, tractocamiones, remolques y autobuses de carga pesada. Desde zapatas y balatas hasta bujes y resortes, cada pieza ACP está fabricada para soportar las condiciones más exigentes del trabajo diario. Su ingeniería asegura una excelente disipación del calor y una fricción constante, lo que se traduce en frenadas más seguras y una mayor estabilidad del vehículo.
-            Además, ACP es una marca que entiende la importancia del mantenimiento preventivo. Su enfoque está orientado a brindar refacciones que prolonguen la vida útil del sistema de frenos y suspensión, evitando fallas inesperadas y costos innecesarios. Gracias a su experiencia en el sector automotriz, ACP ha ganado la confianza de miles de transportistas y talleres especializados en México y Latinoamérica.
-            En El Boom Tractopartes respaldamos esa confianza ofreciendo productos ACP originales, garantizados y con disponibilidad inmediata. Porque sabemos que en el camino, la seguridad no se negocia. Con ACP, tu camión frena con precisión, soporta con fuerza y trabaja con la resistencia que el transporte pesado exige.`,
+        nameImage: "https://refaccioneselboom.com/images/logos/GABRIEL.webp",
+        description: `Cuando se trata de amortiguadores y sistemas de suspensión, Gabriel es sinónimo de tradición, innovación y confianza. Desde hace más de un siglo, la marca ha desarrollado tecnología especializada para ofrecer mayor estabilidad, control y confort en todo tipo de vehículo, desde autos ligeros hasta tractocamiones de carga pesada.
+            En El Boom Tractopartes, trabajamos con la línea original de amortiguadores Gabriel, porque sabemos que cada componente cumple con los más altos estándares de desempeño. Estos amortiguadores están diseñados para mantener un contacto constante entre las llantas y el suelo, ofreciendo una conducción más segura y reduciendo el desgaste prematuro de los neumáticos. Su estructura robusta, combinada con materiales de larga duración, garantiza un funcionamiento confiable incluso en caminos irregulares o bajo condiciones extremas de carga.
+            Gabriel utiliza tecnología de gas presurizado y válvulas de control preciso, lo que permite una respuesta más rápida ante impactos y una absorción de vibraciones superior. Esto no solo mejora la comodidad del conductor, sino que también protege la integridad del camión, reduciendo el esfuerzo sobre la suspensión y el chasis.
+            La marca ha ganado la confianza de transportistas, talleres y fabricantes en todo el mundo por su compromiso con la calidad. En El Boom Tractopartes, recomendamos Gabriel a quienes buscan amortiguadores resistentes, duraderos y con desempeño probado. Con Gabriel, cada viaje se siente más firme, más controlado y, sobre todo, más seguro.`
     },
     {
         id: "DONALDSON",
@@ -31,16 +32,7 @@ const BRANDS: Brand[] = [
             Donaldson se ha convertido en una marca de confianza global gracias a su compromiso con la innovación. Sus filtros están presentes en flotas de transporte, maquinaria agrícola, equipos mineros y vehículos de construcción en todo el mundo. Cada filtro Donaldson es el resultado de años de investigación y pruebas de resistencia, garantizando una protección real para motores diésel modernos.
             En El Boom Tractopartes, sabemos que un motor limpio es sinónimo de productividad. Por eso recomendamos Donaldson a todos nuestros clientes que buscan confiabilidad y durabilidad. Ya sea que necesites un filtro de aire, combustible o aceite, Donaldson ofrece el equilibrio perfecto entre eficiencia, rendimiento y protección. Con Donaldson, cada kilómetro recorrido se convierte en una inversión segura para tu motor.`
     },
-    {
-        id: "GABRIEL",
-        name: "GABRIEL",
-        logo: "https://www.wixfilters.com/adobe/dynamicmedia/deliver/dm-aid--a34dee6b-8561-4841-91f1-7f7bb84a253b/wix-oil-overviewhero-800x537.jpg?preferwebp=true&quality=82",
-        nameImage: "https://refaccioneselboom.com/images/logos/GABRIEL.webp",
-        description: `Cuando se trata de amortiguadores y sistemas de suspensión, Gabriel es sinónimo de tradición, innovación y confianza. Desde hace más de un siglo, la marca ha desarrollado tecnología especializada para ofrecer mayor estabilidad, control y confort en todo tipo de vehículo, desde autos ligeros hasta tractocamiones de carga pesada.
-            En El Boom Tractopartes, trabajamos con la línea original de amortiguadores Gabriel, porque sabemos que cada componente cumple con los más altos estándares de desempeño. Estos amortiguadores están diseñados para mantener un contacto constante entre las llantas y el suelo, ofreciendo una conducción más segura y reduciendo el desgaste prematuro de los neumáticos. Su estructura robusta, combinada con materiales de larga duración, garantiza un funcionamiento confiable incluso en caminos irregulares o bajo condiciones extremas de carga.
-            Gabriel utiliza tecnología de gas presurizado y válvulas de control preciso, lo que permite una respuesta más rápida ante impactos y una absorción de vibraciones superior. Esto no solo mejora la comodidad del conductor, sino que también protege la integridad del camión, reduciendo el esfuerzo sobre la suspensión y el chasis.
-            La marca ha ganado la confianza de transportistas, talleres y fabricantes en todo el mundo por su compromiso con la calidad. En El Boom Tractopartes, recomendamos Gabriel a quienes buscan amortiguadores resistentes, duraderos y con desempeño probado. Con Gabriel, cada viaje se siente más firme, más controlado y, sobre todo, más seguro.`
-    },
+
     {
         id: "GONHER",
         name: "GONHER",

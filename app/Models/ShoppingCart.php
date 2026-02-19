@@ -12,7 +12,7 @@ class ShoppingCart extends Model
 
     protected $primaryKey = 'id_shopping_cart'; 
 
-    protected $fillable = ['user_id']; 
+    protected $fillable = ['user_id', 'session_id']; 
 
    
     public function items(): HasMany

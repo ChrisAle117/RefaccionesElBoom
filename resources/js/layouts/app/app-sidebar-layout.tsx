@@ -94,11 +94,9 @@ export default function AppSidebarLayout({
                         </div>
                     )}
                     {/* Carrito */}
-                    {auth?.user && (
-                        <div className="cursor-pointer">
-                            <Cart onClick={toggleCart} />
-                        </div>
-                    )}
+                    <div className="cursor-pointer">
+                        <Cart onClick={toggleCart} />
+                    </div>
                     {/* Usuario */}
                     <div className="flex items-center cursor-pointer">
                         {auth?.user ? (
@@ -114,11 +112,9 @@ export default function AppSidebarLayout({
                 {/* Iconos y links para pantallas pequeñas */}
                 <div className={`flex items-center space-x-1 flex-1 justify-end sm:hidden ${showMobileSearch ? 'max-sm:hidden' : ''}`}>
                     {/* Carrito */}
-                    {auth?.user && (
-                        <div className="cursor-pointer">
-                            <Cart onClick={toggleCart} />
-                        </div>
-                    )}
+                    <div className="cursor-pointer">
+                        <Cart onClick={toggleCart} />
+                    </div>
                     {/* Lupa */}
                     <button
                         className="flex items-center justify-center ml-2 p-2 rounded-full hover:bg-[#0055b3] transition-colors"

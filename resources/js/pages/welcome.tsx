@@ -1,4 +1,5 @@
 import Carousel from '@/components/carousel';
+import ValuePropositionBar from '@/components/ValuePropositionBar';
 import { TabNavigation } from '@/components/TabNavigation';
 import AppLayout from '@/layouts/app-layout';
 import { type SharedData } from '@/types';
@@ -91,6 +92,9 @@ export default function Welcome() {
                         className="mb-8"
                     />
                 </div>
+
+                {/* Value Proposition Bar */}
+                <ValuePropositionBar />
 
                 {/* Main Content Area */}
                 <main className="container mx-auto">

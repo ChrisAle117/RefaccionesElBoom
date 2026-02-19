@@ -315,7 +315,8 @@ export function ProductDetails({
 
     const handleAddToCart = async (e: React.MouseEvent<HTMLButtonElement>) => {
         e.stopPropagation();
-        if (!auth?.user) { router.visit('/login'); return; }
+        // Auth check removed for Guest Checkout
+        /* if (!auth?.user) { router.visit('/login'); return; } */
         if (isAddingToCart || remainingStock <= 0) return;
         try {
             setIsAddingToCart(true);
@@ -345,7 +346,8 @@ export function ProductDetails({
 
     const handleBuyNow = async (e: React.MouseEvent<HTMLButtonElement>) => {
         e.stopPropagation();
-        if (!auth?.user) { router.visit('/login'); return; }
+        // Auth check removed for Guest Checkout
+        /* if (!auth?.user) { router.visit('/login'); return; } */
         // Reconciliar stock justo antes de continuar
         let finalStock = currentDisponibility;
         try {

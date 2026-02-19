@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Address;
 
+use Illuminate\Support\Facades\Session;
+
 class AddressController extends Controller
 {
     public function store(Request $request)
@@ -22,8 +24,12 @@ class AddressController extends Controller
             'referencia'     => 'nullable|string|max:255',
         ]);
 
-        // Asigna el id del usuario autenticado al campo user_id.
-        $data['user_id'] = auth()->id();
+        // Asigna el id del usuario autenticado al campo user_id o la session para invitados.
+        if (auth()->check()) {
+            $data['user_id'] = auth()->id();
+        } else {
+            $data['session_id'] = Session::getId();
+        }
 
         // Guarda la dirección en la base de datos.
         Address::create($data);
@@ -34,10 +40,18 @@ class AddressController extends Controller
 
     public function index()
     {
-        // Obtiene las direcciones del usuario autenticado
+        // Obtiene las direcciones del usuario autenticado o de la sesión
         // Oculta la dirección técnica usada para "Recoger en sucursal"
-        $addresses = Address::where('user_id', auth()->id())
-            ->where(function ($q) {
+        
+        $query = Address::query();
+
+        if (auth()->check()) {
+            $query->where('user_id', auth()->id());
+        } else {
+            $query->where('session_id', Session::getId());
+        }
+
+        $addresses = $query->where(function ($q) {
                 $q->whereNull('referencia')
                   ->orWhere('referencia', '!=', 'Recoger en sucursal');
             })

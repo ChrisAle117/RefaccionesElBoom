@@ -25,6 +25,27 @@ use Inertia\Inertia;
 //APERTURA DE RUTAS PÚBLICAS
 Route::get('/', [ProductListingController::class, 'welcome'])->name('home');
 
+//CARRITO rutas para el carrito de compras (Públicas para Guest Checkout)
+Route::post('/cart/add', [ShoppingCartController::class, 'addItem'])->name('cart.add');
+Route::delete('/cart/remove/{id}', [ShoppingCartController::class, 'removeItem'])->name('cart.remove');
+Route::get('/cart', [ShoppingCartController::class, 'viewCart'])->name('cart.view');
+Route::put('/cart/update', [ShoppingCartController::class, 'updateItem'])->name('cart.update');
+
+// Rutas públicas de Checkout y Upload
+Route::get('confirmation', function () {
+    return Inertia::render('confirmation', [
+        'status' => session('status'),
+    ]);
+})->name('confirmation');
+
+Route::get('upload', function () {
+    return Inertia::render('upload');
+})->name('upload');
+
+// Rutas para manejo de direcciones (Públicas para Soporte a Invitados)
+Route::post('/addresses', [AddressController::class, 'store'])->name('addresses.store');
+Route::get('/addresses', [AddressController::class, 'index'])->name('addresses.index');
+
 // Rutas segmentadas de productos (SEO friendly)
 Route::get('/productos/{type}/{slug?}', [ProductListingController::class, 'welcome'])
     ->name('home.products.segmented');
@@ -35,6 +56,10 @@ Route::get('/{tab}', [ProductListingController::class, 'welcome'])
     ->name('home.tab');
 
 Route::post('/fabrication-quotes', [FabricationQuoteController::class, 'store'])->name('fabrication-quotes.store');
+
+// Rutas de Ordenes (Publicas para Guest)
+Route::post('/orders', [OrderController::class, 'createOrder'])->name('orders.create');
+Route::post('/api/create-openpay-checkout', [OpenpayCheckoutController::class, 'createCheckout'])->name('api.openpay.checkout');
 
 // RUTAS API para vacantes y catálogos públicos
 Route::prefix('api')->group(function () {
@@ -57,29 +82,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->where('tab', 'productos|nosotros|sucursales|vacantes|catalogos|deshuesadero|datos|terminos|soporte')
         ->name('dashboard.tab');
 
-    // Ruta de confirmación
-    Route::get('confirmation', function () {
-        return Inertia::render('confirmation', [
-            'status' => session('status'),
-        ]);
-    })->name('confirmation');
 
-    Route::get('upload', function () {
-        return Inertia::render('upload');
-    })->name('upload');
 
-    // Ruta para guardar la dirección del usuario
-    Route::post('/addresses', [AddressController::class, 'store'])
-        ->name('addresses.store');
-
-    // Ruta para obtener las direcciones del usuario autenticado
-    Route::get('/addresses', [AddressController::class, 'index'])
-        ->name('addresses.index');
-    //CARRITO rutas para el carrito de compras
-    Route::post('/cart/add', [ShoppingCartController::class, 'addItem'])->name('cart.add');
-    Route::delete('/cart/remove/{id}', [ShoppingCartController::class, 'removeItem'])->name('cart.remove');
-    Route::get('/cart', [ShoppingCartController::class, 'viewCart'])->name('cart.view');
-    Route::put('/cart/update', [ShoppingCartController::class, 'updateItem'])->name('cart.update');
     //Ruta para cancelar compra
     Route::post('/orders/{id}/cancel', [OrderController::class, 'cancelOrder'])->name('orders.cancel');
     
@@ -174,7 +178,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     }); //CIERRE DEL GRUPO MIDDLEWARE DE ADMINISTRADORES
 
     // Rutas para órdenes de pago manual
-    Route::post('/orders', [OrderController::class, 'createOrder'])->name('orders.create');
+
     Route::get('/orders', [OrderController::class, 'getUserOrders'])->name('orders.list');
     Route::get('/orders/{id}', [OrderController::class, 'show'])->name('orders.show');
     
@@ -182,8 +186,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/orders/{orderId}/payment-proof', [PaymentProofController::class, 'uploadProof'])->name('payment-proof.upload');
     
     //OPENPAY para Openpay (redirecciones de vuelta)
-    Route::post('/api/create-openpay-checkout', [OpenpayCheckoutController::class, 'createCheckout'])
-        ->name('api.openpay.checkout');
+
 
     //RUTAS para páginas de respuesta de Openpay
     Route::get('/payment-success', [OpenpayCheckoutController::class, 'showSuccessPage'])
@@ -208,8 +211,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     
 }); //CIERRE DEL GRUPO DE RUTAS PROTEGIDAS POR AUNTENTICACIÓN Y VERIFICACIÓN USUARIO
 
-Route::middleware(['web', 'auth:web', 'verified'])  
-    ->post('/invoices/upload-constancia', [InvoiceController::class, 'uploadConstancia'])
+Route::post('/invoices/upload-constancia', [InvoiceController::class, 'uploadConstancia'])
     ->name('invoices.upload-constancia');
 
 Route::get('/postal-info/{cp}', [PostalCodeController::class, 'show']);

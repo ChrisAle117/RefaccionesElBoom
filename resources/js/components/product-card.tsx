@@ -386,21 +386,10 @@ export function ProductCard({
 
         if (isAddingToCart || isInCart) return;
 
-        if (!auth?.user) {
-            const alertDiv = document.createElement('div');
-            alertDiv.textContent = 'Para poder agregar un producto al carrito, debe de iniciar sesión o registrarse.';
-            alertDiv.className = 'fixed top-[-100px] left-1/2 transform -translate-x-1/2 bg-[#] text-white px-6 py-3 rounded-lg shadow-lg z-50 text-center transition-transform duration-5000 ease-in-out';
-            document.body.appendChild(alertDiv);
-            setTimeout(() => {
-                alertDiv.style.top = '25px';
-            }, 10);
-            setTimeout(() => {
-                alertDiv.style.top = '-100px';
-                setTimeout(() => document.body.removeChild(alertDiv), 500);
-            }, 4000);
-            router.visit('/login');
-            return;
-        }
+        if (isAddingToCart || isInCart) return;
+
+        // Auth check removed for Guest Checkout
+        /* if (!auth?.user) { ... } */
 
         try {
             setIsAddingToCart(true);
@@ -453,21 +442,8 @@ export function ProductCard({
 
     const handleBuyNow = async (e: React.MouseEvent<HTMLButtonElement>) => {
         e.stopPropagation();
-        if (!auth?.user) {
-            const alertDiv = document.createElement('div');
-            alertDiv.textContent = 'Para poder comprar, debe de iniciar sesión o registrarse.';
-            alertDiv.className = 'fixed top-[-100px] left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 text-center transition-transform duration-500 ease-in-out';
-            document.body.appendChild(alertDiv);
-            setTimeout(() => {
-                alertDiv.style.top = '25px';
-            }, 10);
-            setTimeout(() => {
-                alertDiv.style.top = '-100px';
-                setTimeout(() => document.body.removeChild(alertDiv), 500);
-            }, 4000);
-            router.visit('/login');
-            return;
-        }
+        // Auth check removed for Guest Checkout
+        /* if (!auth?.user) { ... } */
         try {
             // Reconciliar stock antes de continuar con la compra
             let finalStock = liveDisponibility;
