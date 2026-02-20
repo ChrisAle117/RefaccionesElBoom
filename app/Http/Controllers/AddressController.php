@@ -32,10 +32,16 @@ class AddressController extends Controller
         }
 
         // Guarda la dirección en la base de datos.
-        Address::create($data);
+        try {
+            Address::create($data);
+            \Log::info('Address Store OK - Session ID: ' . Session::getId() . ' User ID: ' . (auth()->id() ?? 'GUEST'));
+        } catch (\Exception $e) {
+            \Log::error('Address Store ERROR: ' . $e->getMessage() . ' | data: ' . json_encode($data));
+            return response()->json(['success' => false, 'message' => 'Error al guardar: ' . $e->getMessage()], 500);
+        }
 
-        // Retorna una respuesta
-        return redirect()->back()->with('success', 'Dirección guardada correctamente.');
+        // Retorna una respuesta JSON (evita redirect de Inertia que regenera sesión de invitado)
+        return response()->json(['success' => true, 'message' => 'Direccion guardada correctamente.']);
     }
 
     public function index()
@@ -45,11 +51,15 @@ class AddressController extends Controller
         
         $query = Address::query();
 
+        \Log::info('Address Index CALLED - Session ID: ' . Session::getId() . ' User ID: ' . (auth()->id() ?? 'GUEST'));
+
         if (auth()->check()) {
             $query->where('user_id', auth()->id());
         } else {
             $query->where('session_id', Session::getId());
         }
+
+        \Log::info('Address Index - Session ID: ' . Session::getId() . ' User ID: ' . (auth()->id() ?? 'GUEST'));
 
         $addresses = $query->where(function ($q) {
                 $q->whereNull('referencia')
@@ -57,6 +67,8 @@ class AddressController extends Controller
             })
             ->where('calle', 'not like', 'Sucursal El Boom%')
             ->get();
+
+        \Log::info('Address Index - Session ID: ' . Session::getId() . ' FOUND: ' . $addresses->count());
 
         // Devuelve las direcciones en formato JSON
         return response()->json($addresses);

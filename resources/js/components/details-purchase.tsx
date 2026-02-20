@@ -470,58 +470,48 @@ export function DetailsPurchase({ product }: DetailsPurchaseProps) {
         }
     };
 
-    // Fetch direcciones
-    useEffect(() => {
-        const fetchAddresses = async () => {
-            try {
-                const response = await fetch("/addresses", {
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-Requested-With": "XMLHttpRequest",
-                        "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]')?.getAttribute("content") || "",
-                    },
-                });
-                if (!response.ok) {
-                    throw new Error("Error al obtener las direcciones");
-                }
-                const data = await response.json();
-                const mapped: AddressData[] = data.map((a: {
-                    id_direccion: number;
-                    calle: string;
-                    colonia: string;
-                    numero_exterior: string;
-                    numero_interior: string | null;
-                    codigo_postal: string;
-                    telefono: string;
-                    referencia: string;
-                    ciudad: string;
-                    estado: string;
-                }) => ({
-                    id: a.id_direccion,
-                    street: a.calle,
-                    colony: a.colonia,
-                    exteriorNumber: a.numero_exterior,
-                    interiorNumber: a.numero_interior,
-                    postalCode: a.codigo_postal,
-                    phone: a.telefono,
-                    reference: a.referencia,
-                    city: a.ciudad,
-                    state: a.estado,
-                }));
-                // Ordenar por ID descendente
-                const sorted = mapped.sort((a, b) => b.id - a.id);
-                setAddresses(sorted);
-                if (sorted.length > 0) {
-                    setSelectedAddress(sorted[0].id.toString());
-                }
-            } catch (error) {
-                console.error("Error fetching addresses:", error);
-            }
-        };
+    const fetchAddresses = async () => {
+        try {
+            console.log("DetailsPurchase - Attempting to fetch addresses...");
+            const response = await fetch("/addresses", {
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-Requested-With": "XMLHttpRequest",
+                    "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]')?.getAttribute("content") || "",
+                },
+                credentials: 'include',
+            });
+            if (!response.ok) throw new Error("Error al obtener las direcciones");
 
-        if (user) {
-            fetchAddresses();
+            const data = await response.json();
+            console.log("DetailsPurchase - Data received:", data);
+
+            const mapped: AddressData[] = data.map((a: any) => ({
+                id: a.id_direccion,
+                street: a.calle,
+                colony: a.colonia,
+                exteriorNumber: a.numero_exterior,
+                interiorNumber: a.numero_interior,
+                postalCode: a.codigo_postal,
+                phone: a.telefono,
+                reference: a.referencia,
+                city: a.ciudad,
+                state: a.estado,
+            }));
+
+            const sorted = mapped.sort((a, b) => b.id - a.id);
+            setAddresses(sorted);
+            if (sorted.length > 0 && !selectedAddress) {
+                setSelectedAddress(sorted[0].id.toString());
+            }
+        } catch (error) {
+            console.error("Error fetching addresses:", error);
         }
+    };
+
+    // Fetch direcciones on mount or user change
+    useEffect(() => {
+        fetchAddresses();
     }, [user]);
 
     // Recalcular shipping cuando cambia la dirección seleccionada, el carrito, o la recolección
@@ -547,6 +537,7 @@ export function DetailsPurchase({ product }: DetailsPurchaseProps) {
                         "X-Requested-With": "XMLHttpRequest",
                         "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]')?.getAttribute("content") || "",
                     },
+                    credentials: 'include',
                     body: JSON.stringify({
                         address_id: parseInt(selectedAddress, 10),
                         items: displayItems.map((item: CartItem) => ({
@@ -580,50 +571,10 @@ export function DetailsPurchase({ product }: DetailsPurchaseProps) {
 
     const handleAddressRegistered = () => {
         setShowAddressForm(false);
-        // Refetch addresses
-        const fetchAddresses = async () => {
-            try {
-                const response = await fetch("/addresses", {
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-Requested-With": "XMLHttpRequest",
-                        "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]')?.getAttribute("content") || "",
-                    },
-                });
-                if (response.ok) {
-                    const data = await response.json();
-                    const mapped: AddressData[] = data.map((a: {
-                        id_direccion: number;
-                        calle: string;
-                        colonia: string;
-                        numero_exterior: string;
-                        numero_interior: string | null;
-                        codigo_postal: string;
-                        telefono: string;
-                        referencia: string;
-                        ciudad: string;
-                        estado: string;
-                    }) => ({
-                        id: a.id_direccion,
-                        street: a.calle,
-                        colony: a.colonia,
-                        exteriorNumber: a.numero_exterior,
-                        interiorNumber: a.numero_interior,
-                        postalCode: a.codigo_postal,
-                        phone: a.telefono,
-                        reference: a.referencia,
-                        city: a.ciudad,
-                        state: a.estado,
-                    }));
-                    const sorted = mapped.sort((a, b) => b.id - a.id);
-                    setAddresses(sorted);
-                    if (sorted.length > 0) {
-                        setSelectedAddress(sorted[0].id.toString());
-                    }
-                }
-            } catch { /* ignore */ }
-        };
-        fetchAddresses();
+        // Pequeño retraso para asegurar que la sesión se persista en BD antes de re-consultar
+        setTimeout(() => {
+            fetchAddresses();
+        }, 500);
     };
 
     const handleAddressChange = (e: React.ChangeEvent<HTMLSelectElement>) => {

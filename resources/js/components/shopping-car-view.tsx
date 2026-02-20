@@ -218,12 +218,8 @@ export function ShoppingCarView() {
             .finally(() => setLoadingShipping(false));
     }, [cartItems]);
 
-    // Cargar direcciones
+    // Cargar direcciones (funciona para usuarios autenticados Y para invitados via session_id)
     const fetchAddresses = useCallback(() => {
-        if (!user) {
-            setLoadingAddresses(false);
-            return;
-        }
         setLoadingAddresses(true);
         fetch('/addresses', {
             headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '' },
@@ -253,7 +249,7 @@ export function ShoppingCarView() {
             })
             .catch(console.error)
             .finally(() => setLoadingAddresses(false));
-    }, [user, calculateShipping, selectedAddress]);
+    }, [calculateShipping, selectedAddress]);
 
     useEffect(() => { fetchAddresses(); }, [fetchAddresses]);
 

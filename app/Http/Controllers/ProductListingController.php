@@ -110,7 +110,7 @@ class ProductListingController extends Controller
 
         
     $stripColorSuffix = function (string $s): string {
-            $up = strtoupper(trim($s));
+            $up = mb_strtoupper(trim($s));
             if ($up === '') return $up;
             
             if (!preg_match('/\d/', $up)) return $up;
@@ -123,15 +123,15 @@ class ProductListingController extends Controller
             while ($changed) {
                 $changed = false;
                 foreach ($tokens3 as $t) {
-                    if (str_ends_with($up, $t)) { $up = substr($up, 0, -strlen($t)); $changed = true; break; }
+                    if (str_ends_with($up, $t)) { $up = mb_substr($up, 0, -mb_strlen($t)); $changed = true; break; }
                 }
                 if ($changed) continue;
                 foreach ($tokens2 as $t) {
-                    if (str_ends_with($up, $t)) { $up = substr($up, 0, -strlen($t)); $changed = true; break; }
+                    if (str_ends_with($up, $t)) { $up = mb_substr($up, 0, -mb_strlen($t)); $changed = true; break; }
                 }
                 if ($changed) continue;
                 foreach ($tokens1 as $t) {
-                    if (str_ends_with($up, $t)) { $up = substr($up, 0, -strlen($t)); $changed = true; break; }
+                    if (str_ends_with($up, $t)) { $up = mb_substr($up, 0, -mb_strlen($t)); $changed = true; break; }
                 }
             }
 
@@ -158,7 +158,7 @@ class ProductListingController extends Controller
             $base = $stripColorSuffix($prefix);
             
             if ($base === $prefix) {
-                if (preg_match('/^[A-Z]+\d+/', strtoupper($prefix), $m)) {
+                if (preg_match('/^[A-Z]+\d+/', mb_strtoupper($prefix), $m)) {
                     $base = $m[0];
                 }
             }
@@ -193,7 +193,7 @@ class ProductListingController extends Controller
                             $pos = strrpos($code, $d);
                             if ($pos !== false && $pos > $lastPos) $lastPos = $pos;
                         }
-                        $last = $lastPos !== false && $lastPos >= 0 ? substr($code, $lastPos + 1) : $code;
+                        $last = $lastPos !== false && $lastPos >= 0 ? mb_substr($code, $lastPos + 1) : $code;
                     }
                     $colorLbl = $last ?: 'Variante';
                 }
