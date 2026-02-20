@@ -152,16 +152,20 @@ const Carousel: React.FC<CarouselProps> = React.memo(({
                 </svg>
             </button>
 
-            {/* Indicadores */}
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-30">
+            {/* Indicadores modernos */}
+            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-wrap justify-center gap-3 z-30 w-full max-w-[90vw] px-4">
                 {source.map((_, i) => (
                     <button
                         key={i}
                         onClick={() => setCurrentIndex(i)}
                         aria-label={`Ir a la imagen ${i + 1}`}
-                        className={`w-6 h-6 flex items-center justify-center cursor-pointer`}
+                        className={`group relative h-1.5 flex items-center justify-center cursor-pointer transition-all duration-300 ${i === currentIndex ? 'w-8' : 'w-4 hover:w-6'
+                            }`}
                     >
-                        <div className={`w-3 h-3 rounded-full ${i === currentIndex ? 'bg-white' : 'bg-gray-400/70'} transition-colors`} />
+                        <div className={`w-full h-full rounded-full ${i === currentIndex
+                            ? 'bg-white shadow-[0_0_10px_rgba(255,255,255,0.8)]'
+                            : 'bg-white/40 group-hover:bg-white/60'
+                            } transition-all duration-300`} />
                     </button>
                 ))}
             </div>

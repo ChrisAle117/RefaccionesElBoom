@@ -486,7 +486,18 @@ export function DetailsPurchase({ product }: DetailsPurchaseProps) {
             const data = await response.json();
             console.log("DetailsPurchase - Data received:", data);
 
-            const mapped: AddressData[] = data.map((a: any) => ({
+            const mapped: AddressData[] = data.map((a: {
+                id_direccion: number;
+                calle: string;
+                colonia: string;
+                numero_exterior: string;
+                numero_interior?: string;
+                codigo_postal: string;
+                telefono?: string;
+                referencia?: string;
+                ciudad: string;
+                estado: string;
+            }) => ({
                 id: a.id_direccion,
                 street: a.calle,
                 colony: a.colonia,
@@ -512,7 +523,9 @@ export function DetailsPurchase({ product }: DetailsPurchaseProps) {
     // Fetch direcciones on mount or user change
     useEffect(() => {
         fetchAddresses();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [user]);
+
 
     // Recalcular shipping cuando cambia la dirección seleccionada, el carrito, o la recolección
     useEffect(() => {

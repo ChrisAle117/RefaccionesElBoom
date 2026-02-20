@@ -30,15 +30,25 @@ class RegisteredUserController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
+        // Sanitizar número de teléfono: solo dígitos
+        $cleanPhone = preg_replace('/\D/', '', $request->input('phone', ''));
+        $request->merge(['phone' => $cleanPhone]);
+
         $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
+            'name'     => ['required', 'string', 'max:255', 'regex:/^[\pL\pM\s\-]+$/u'],
+            'email'    => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:' . User::class],
+            'phone'    => ['required', 'digits_between:10,15'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
+        ], [
+            'name.regex'             => 'El nombre solo puede contener letras y espacios.',
+            'phone.required'         => 'El número de teléfono es obligatorio.',
+            'phone.digits_between'   => 'El teléfono debe tener entre 10 y 15 dígitos.',
         ]);
 
         $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
+            'name'     => strip_tags($request->name),
+            'email'    => $request->email,
+            'phone'    => $request->phone,
             'password' => Hash::make($request->password),
         ]);
 
