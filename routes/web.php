@@ -57,14 +57,18 @@ Route::get('/productos/{type}/{slug?}', [ProductListingController::class, 'welco
     ->name('home.products.segmented');
 
 // Rutas públicas amigables para tabs del home (SPA): /productos, /nosotros, etc.
+// Rutas de Ordenes (Publicas para Guest)
+Route::get('/rastrear-pedido', [OrderController::class, 'guestLookupForm'])->name('orders.guest.lookup');
+Route::post('/rastrear-pedido', [OrderController::class, 'guestLookup'])->name('orders.guest.process');
+
 Route::get('/{tab}', [ProductListingController::class, 'welcome'])
     ->where('tab', 'productos|nosotros|sucursales|vacantes|catalogos|deshuesadero|datos|terminos|soporte|fabrica')
     ->name('home.tab');
 
 Route::post('/fabrication-quotes', [FabricationQuoteController::class, 'store'])->name('fabrication-quotes.store');
 
-// Rutas de Ordenes (Publicas para Guest)
 Route::post('/orders', [OrderController::class, 'createOrder'])->name('orders.create');
+Route::get('/orders/{id}', [OrderController::class, 'show'])->name('orders.show');
 Route::post('/api/create-openpay-checkout', [OpenpayCheckoutController::class, 'createCheckout'])->name('api.openpay.checkout');
 
 // RUTAS API para vacantes y catálogos públicos
@@ -186,34 +190,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Rutas para órdenes de pago manual
 
     Route::get('/orders', [OrderController::class, 'getUserOrders'])->name('orders.list');
-    Route::get('/orders/{id}', [OrderController::class, 'show'])->name('orders.show');
     
     // Rutas para comprobantes de pago
     Route::post('/orders/{orderId}/payment-proof', [PaymentProofController::class, 'uploadProof'])->name('payment-proof.upload');
-    
-    //OPENPAY para Openpay (redirecciones de vuelta)
-
-
-    //RUTAS para páginas de respuesta de Openpay
-    Route::get('/payment-success', [OpenpayCheckoutController::class, 'showSuccessPage'])
-        ->name('payment.success.page')
-        ->withoutMiddleware([HandleInertiaRequests::class]);
-
-    Route::get('/payment-cancelled', [OpenpayCheckoutController::class, 'showCancelledPage'])
-        ->name('payment.cancelled.page')
-        ->withoutMiddleware([HandleInertiaRequests::class]);
-
-    Route::get('/payment-error-page', [OpenpayCheckoutController::class, 'showErrorPage'])
-        ->name('payment.error.page')
-        ->withoutMiddleware([HandleInertiaRequests::class]);
-
-    // Página intermedia para capturar el botón "Atrás" del navegador desde Openpay
-    Route::get('/payment-back-handler', function () {
-        return view('payment.back-handler');
-    })
-        ->name('payment.back.handler')
-        ->withoutMiddleware([\App\Http\Middleware\HandleInertiaRequests::class]);
-        //CIERRE RUTAS
     
 }); //CIERRE DEL GRUPO DE RUTAS PROTEGIDAS POR AUNTENTICACIÓN Y VERIFICACIÓN USUARIO
 
@@ -225,6 +204,26 @@ Route::get('/catalogs', [CatalogController::class, 'showPublic'])->name('catalog
 
 Route::get('/dhl/rate', [ShippingRateController::class, 'rate']);
 Route::post('/api/dhl/rate-cart', [ShippingRateController::class, 'rateCart'])->name('dhl.rateCart');
+
+// RUTAS PÚBLICAS para páginas de respuesta de Openpay (accesibles por invitados y usuarios autenticados)
+Route::get('/payment-success', [OpenpayCheckoutController::class, 'showSuccessPage'])
+    ->name('payment.success.page')
+    ->withoutMiddleware([\App\Http\Middleware\HandleInertiaRequests::class]);
+
+Route::get('/payment-cancelled', [OpenpayCheckoutController::class, 'showCancelledPage'])
+    ->name('payment.cancelled.page')
+    ->withoutMiddleware([\App\Http\Middleware\HandleInertiaRequests::class]);
+
+Route::get('/payment-error-page', [OpenpayCheckoutController::class, 'showErrorPage'])
+    ->name('payment.error.page')
+    ->withoutMiddleware([\App\Http\Middleware\HandleInertiaRequests::class]);
+
+// Página intermedia para capturar el botón "Atrás" del navegador desde Openpay
+Route::get('/payment-back-handler', function () {
+    return view('payment.back-handler');
+})
+    ->name('payment.back.handler')
+    ->withoutMiddleware([\App\Http\Middleware\HandleInertiaRequests::class]);
 
 Route::get('/user/addresses', [UserAddressController::class, 'getAllAddresses']);
 

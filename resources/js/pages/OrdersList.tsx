@@ -15,6 +15,7 @@ interface OrderItem {
 
 interface OrdersListProps {
     orders: OrderItem[];
+    isGuest?: boolean;
 }
 
 
@@ -68,21 +69,29 @@ const formatPrice = (price: number) => {
     return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(price);
 };
 
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Dashboard',
-        href: '/dashboard',
-    },
-    {
-        title: 'Mis Pedidos',
-        href: '/orders',
-    },
-];
+const getBreadcrumbs = (isGuest: boolean): BreadcrumbItem[] => {
+    const base = isGuest ? [] : [
+        {
+            title: 'Dashboard',
+            href: '/dashboard',
+        }
+    ];
 
-const OrdersList: React.FC<OrdersListProps> = ({ orders }) => {
+    return [
+        ...base,
+        {
+            title: 'Mis Pedidos',
+            href: isGuest ? '/rastrear-pedido' : '/orders',
+        },
+    ];
+};
+
+const OrdersList: React.FC<OrdersListProps> = ({ orders, isGuest = false }) => {
     React.useEffect(() => {
         window.scrollTo(0, 0);
     }, []);
+
+    const breadcrumbs = getBreadcrumbs(isGuest);
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -93,11 +102,11 @@ const OrdersList: React.FC<OrdersListProps> = ({ orders }) => {
                 <div className="flex items-center mb-4">
                     <button
                         className="w-full sm:w-auto bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 p-2 sm:px-6 rounded-xl shadow-md border-2 border-gray-300 dark:border-gray-500 transition-all duration-300 hover:scale-[1.02] flex items-center justify-center gap-3 cursor-pointer group"
-                        onClick={() => window.location.href = '/dashboard'}
+                        onClick={() => window.location.href = isGuest ? '/rastrear-pedido' : '/dashboard'}
                         type="button"
                     >
                         <ArrowLeft className="w-5 h-5 sm:w-6 sm:h-6 text-red-600 dark:text-red-500 group-hover:-translate-x-1 transition-transform" />
-                        <span className="font-black text-base sm:text-lg text-gray-800 dark:text-white uppercase">Regresar al catálogo</span>
+                        <span className="font-black text-base sm:text-lg text-gray-800 dark:text-white uppercase">Regresar</span>
                     </button>
                 </div>
 
@@ -109,7 +118,7 @@ const OrdersList: React.FC<OrdersListProps> = ({ orders }) => {
                     <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md text-center">
                         <p className="text-lg text-gray-600 dark:text-gray-300">No tienes pedidos realizados.</p>
                         <Link
-                            href="/dashboard"
+                            href={isGuest ? "/" : "/dashboard"}
                             className="mt-4 inline-block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 transition-colors"
                         >
                             Ir a comprar
@@ -196,7 +205,7 @@ const OrdersList: React.FC<OrdersListProps> = ({ orders }) => {
                                 >
                                     <div className="flex justify-between items-center mb-2">
                                         <span className="font-bold text-gray-900 dark:text-gray-100">
-                                            Folio de orden No. {order.id_order}
+                                            Número de orden No. {order.id_order}
                                         </span>
                                         <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-md border ${getStatusColor(order.status)}`}>
                                             {translateStatus(order.status)}

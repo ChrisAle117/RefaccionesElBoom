@@ -87,9 +87,12 @@ class ShippingRateController extends Controller
                 ],
             ], 200);
         } catch (\Exception $e) {
+            $parsed = $this->parseDhlError($e->getMessage());
             return response()->json([
-                'success' => false,
-                'message' => 'Error al cotizar envío: ' . $e->getMessage(),
+                'success'      => false,
+                'error_type'   => $parsed['type'],
+                'user_message' => $parsed['message'],
+                'message'      => $e->getMessage(),
             ], 500);
         }
     }
@@ -179,10 +182,109 @@ class ShippingRateController extends Controller
             ], 200);
 
         } catch (\Exception $e) {
+            \Log::error('Error al cotizar carrito: ' . $e->getMessage());
+            $parsed = $this->parseDhlError($e->getMessage());
+
+            $status = (str_contains($e->getMessage(), '[400]')) ? 400 : 500;
+
             return response()->json([
-                'success' => false,
-                'message' => 'Error al cotizar carrito: ' . $e->getMessage(),
-            ], 500);
+                'success'      => false,
+                'error_type'   => $parsed['type'],
+                'user_message' => $parsed['message'],
+                'message'      => $e->getMessage(),
+            ], $status);
         }
+    }
+
+    /**
+     * Interpreta el mensaje de error de DHL y devuelve un tipo semántico
+     * y un mensaje amigable en español para el usuario final.
+     */
+    private function parseDhlError(string $rawMessage): array
+    {
+        $msg = strtolower($rawMessage);
+
+        // Fines de semana / días festivos
+        if (
+            str_contains($msg, 'weekend') ||
+            str_contains($msg, 'holiday') ||
+            str_contains($msg, 'not a business day') ||
+            str_contains($msg, 'no es día hábil') ||
+            str_contains($msg, 'pickup not available') ||
+            preg_match('/plannedshipping.*saturday|plannedshipping.*sunday/i', $rawMessage)
+        ) {
+            return [
+                'type'    => 'weekend_holiday',
+                'message' => 'DHL no realiza recolecciones en fines de semana ni días festivos. Tu pedido será programado para el siguiente día hábil.',
+            ];
+        }
+
+        // Código postal no cubierto / zona sin servicio
+        if (
+            str_contains($msg, 'postal') ||
+            str_contains($msg, 'zip') ||
+            str_contains($msg, 'no service') ||
+            str_contains($msg, 'not serviceable') ||
+            str_contains($msg, 'serviceability') ||
+            str_contains($msg, 'cannot be delivered') ||
+            str_contains($msg, 'invalid destination')
+        ) {
+            return [
+                'type'    => 'unserviceable_area',
+                'message' => 'Lo sentimos, DHL no tiene cobertura en el código postal de tu dirección. Puedes recoger tu pedido en nuestra sucursal.',
+            ];
+        }
+
+        // Credenciales / autenticación
+        if (
+            str_contains($msg, '401') ||
+            str_contains($msg, 'unauthorized') ||
+            str_contains($msg, 'authentication') ||
+            str_contains($msg, 'credentials')
+        ) {
+            return [
+                'type'    => 'auth_error',
+                'message' => 'Error de configuración con DHL. Por favor contacta a soporte.',
+            ];
+        }
+
+        // Dimensiones / peso fuera de rango
+        if (
+            str_contains($msg, 'weight') ||
+            str_contains($msg, 'dimension') ||
+            str_contains($msg, 'exceeds') ||
+            str_contains($msg, 'maximum')
+        ) {
+            return [
+                'type'    => 'dimensions_error',
+                'message' => 'Uno o más productos del pedido exceden los límites de peso o dimensiones de DHL. Contacta a soporte.',
+            ];
+        }
+
+        // Tiempo de espera / timeout
+        if (
+            str_contains($msg, 'timeout') ||
+            str_contains($msg, 'timed out') ||
+            str_contains($msg, 'connection')
+        ) {
+            return [
+                'type'    => 'timeout',
+                'message' => 'El servicio de DHL tardó demasiado en responder. Intenta de nuevo en unos momentos.',
+            ];
+        }
+
+        // Error genérico de DHL (400 Bad Request)
+        if (str_contains($msg, '[400]')) {
+            return [
+                'type'    => 'bad_request',
+                'message' => 'DHL no pudo procesar la solicitud. Verifica que tu dirección esté completa y correcta.',
+            ];
+        }
+
+        // Genérico
+        return [
+            'type'    => 'unavailable',
+            'message' => 'El servicio de envío no está disponible en este momento. Intenta en unos minutos o contáctanos por WhatsApp.',
+        ];
     }
 }

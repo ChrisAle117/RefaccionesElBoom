@@ -8,6 +8,7 @@ import { Button } from './ui/button';
 import { Stepper } from './ui/stepper';
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
+import { useToast } from './ui/toast';
 
 type AddressDto = {
     id_direccion: number;
@@ -97,6 +98,7 @@ const BRANCHES = [
 export function ShoppingCarView() {
     const authProps = usePage().props as unknown as { auth: { user: { id: number; name: string; email: string; } | null } };
     const user = authProps.auth?.user;
+    const toast = useToast();
     const { cartItems, totalPrice, removeFromCart, updateItem } = useShoppingCart();
     const [currentStep, setCurrentStep] = useState(1);
 
@@ -150,8 +152,8 @@ export function ShoppingCarView() {
     const steps = [
         { id: 1, title: 'Carrito' },
         { id: 2, title: 'Datos y Envío' },
-        { id: 3, title: 'Pago' },
-        { id: 4, title: 'Confirmar' }
+        { id: 3, title: 'Confirmar' },
+        { id: 4, title: 'Resumen' }
     ];
 
     const MIN_PURCHASE_FOR_FREE_SHIPPING = 1000;
@@ -207,13 +209,20 @@ export function ShoppingCarView() {
                 if (body.success) {
                     setShipping({ price: body.data.shipping_cost, eta: body.data.eta, free_shipping: body.data.free_shipping, original_price: body.data.original_price });
                 } else {
-                    setShippingError('No fue posible cotizar el envío para esta dirección.');
-                    setShipping({ price: 250, eta: 'Por definir (Estándar)', free_shipping: false }); // Fallback visual
+                    // Usar el mensaje estructurado del backend cuando DHL da un error específico
+                    const userMsg = body.user_message
+                        || 'El servicio de envío no está disponible en este momento.';
+                    setShippingError(userMsg);
+                    // Para zona sin cobertura, agregar sugerencia de pickup
+                    if (body.error_type === 'unserviceable_area') {
+                        setShippingError(userMsg + ' Selecciona \'Recoger en sucursal\'.');
+                    }
+                    setShipping(null);
                 }
             })
             .catch(() => {
-                setShippingError('Error de conexión. Se usará tarifa estándar.');
-                setShipping({ price: 250, eta: 'Por definir (Estándar)', free_shipping: false });
+                setShippingError('Sin conexión con el servicio de envío. Intenta de nuevo en unos momentos.');
+                setShipping(null);
             })
             .finally(() => setLoadingShipping(false));
     }, [cartItems]);
@@ -268,7 +277,7 @@ export function ShoppingCarView() {
             // Validar paso 2
             if (!user) {
                 if (!guestName.trim() || !guestEmail.trim()) {
-                    alert("Por favor completa tu nombre y correo para continuar.");
+                    toast.warning("Por favor completa tu nombre y correo para continuar.");
                     return;
                 }
             }
@@ -276,13 +285,13 @@ export function ShoppingCarView() {
                 // Validar teléfono para pickup
                 const hasValidPhone = user && addresses.some(a => isValidPhone10(a.phone)) ? true : isValidPhone10(pickupPhone);
                 if (!hasValidPhone) {
-                    alert("Se requiere un número de teléfono válido de 10 dígitos para recolección en tienda.");
-                    setShowMaxAlert(true); // Re-use alert or create new one
+                    toast.warning("Se requiere un número de teléfono válido de 10 dígitos para recolección en tienda.");
+                    setShowMaxAlert(true);
                     return;
                 }
             } else {
                 if (!selectedAddress) {
-                    alert("Por favor selecciona una dirección de envío o elige recoger en sucursal.");
+                    toast.warning("Por favor selecciona una dirección de envío o elige recoger en sucursal.");
                     return;
                 }
             }
@@ -814,7 +823,7 @@ export function ShoppingCarView() {
                                 <><Loader2 className="animate-spin mr-2" /> Procesando...</>
                             ) : (
                                 currentStep === 4 ? (
-                                    <span className="flex items-center gap-2"><CreditCard className="w-5 h-5" /> Pagar Ahora</span>
+                                    <span className="flex items-center gap-2"><CreditCard className="w-5 h-5" /> Proceder al pago</span>
                                 ) : 'Siguiente'
                             )}
                         </Button>

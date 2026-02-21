@@ -252,10 +252,10 @@
                 @endif
                 
                 <div class="text-center mt-4">
-                    <a href="/dashboard" class="btn btn-primary me-2">
+                    <a href="{{ route('home') }}" class="btn btn-primary me-2">
                         <i class="fas fa-shopping-cart me-1"></i> Seguir comprando
                     </a>
-                    <a href="/orders" class="btn btn-outline-secondary">
+                    <a href="{{ route('orders.list') }}" class="btn btn-outline-secondary">
                         <i class="fas fa-box me-1"></i> Ver mis pedidos
                     </a>
                 </div>

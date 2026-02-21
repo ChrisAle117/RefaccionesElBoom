@@ -141,11 +141,22 @@ class DhlRateService
             }
 
             $errorBody = $response->body();
-            \Log::error("DHL API Error Response:", ['status' => $response->status(), 'body' => $errorBody, 'payload' => $payload]);
+            $decodedError = $response->json();
+            \Log::error("DHL API Error Response:", [
+                'status' => $response->status(), 
+                'body' => $errorBody, 
+                'decoded' => $decodedError,
+                'payload' => $payload,
+                'url' => $url
+            ]);
             
-            throw new Exception("DHL API Error [{$response->status()}]: " . ($response->json()['detail'] ?? $errorBody));
+            $errMsg = $decodedError['detail'] ?? $decodedError['title'] ?? $errorBody;
+            throw new Exception("DHL API Error [{$response->status()}]: " . $errMsg);
         } catch (\Exception $e) {
-            \Log::error("DHL Service Exception: " . $e->getMessage());
+            \Log::error("DHL Service Exception: " . $e->getMessage(), [
+                'exception' => get_class($e),
+                'trace' => substr($e->getTraceAsString(), 0, 500)
+            ]);
             throw $e;
         }
     }
@@ -277,11 +288,22 @@ class DhlRateService
             }
 
             $errorBody = $response->body();
-            \Log::error("DHL API Cart Error Response:", ['status' => $response->status(), 'body' => $errorBody, 'payload' => $payload]);
+            $decodedError = $response->json();
+            \Log::error("DHL API Cart Error Response:", [
+                'status' => $response->status(), 
+                'body' => $errorBody, 
+                'decoded' => $decodedError,
+                'payload' => $payload,
+                'url' => $url
+            ]);
             
-            throw new Exception("DHL API Error [{$response->status()}]: " . ($response->json()['detail'] ?? $errorBody));
+            $errMsg = $decodedError['detail'] ?? $decodedError['title'] ?? $errorBody;
+            throw new Exception("DHL API Error [{$response->status()}]: " . $errMsg);
         } catch (\Exception $e) {
-            \Log::error("DHL Cart Service Exception: " . $e->getMessage());
+            \Log::error("DHL Cart Service Exception: " . $e->getMessage(), [
+                'exception' => get_class($e),
+                'trace' => substr($e->getTraceAsString(), 0, 500)
+            ]);
             throw $e;
         }
     }

@@ -5,6 +5,7 @@ import { usePage } from '@inertiajs/react';
 import { router } from '@inertiajs/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { SharedProps } from './product-card';
+import { useToast } from './ui/toast';
 
 interface Variant {
     id_product: number;
@@ -71,6 +72,7 @@ export function ProductDetails({
     const { cartItems, addToCart, isProductInCart } = useShoppingCart();
     const { props } = usePage<SharedProps>();
     const { auth } = props;
+    const toast = useToast();
 
     // Variant selection
     const [selectedVariantId, setSelectedVariantId] = useState<number | null>(() => {
@@ -339,7 +341,7 @@ export function ProductDetails({
 
             }, 2000);
         } catch {
-            alert('Error al agregar al carrito');
+            toast.error('Error al agregar al carrito. Intenta de nuevo.');
             setIsAddingToCart(false);
         }
     };

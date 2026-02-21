@@ -207,8 +207,8 @@ export const ShoppingCartProvider: React.FC<{ children: React.ReactNode; isAuthe
             }
         } catch (error) {
             console.error('Error updating cart item:', error);
-            setCartItems(previousItems);
-            alert('No se pudo actualizar la cantidad del producto. Inténtalo de nuevo.');
+            setCartItems(previousItems); // revert visualmente
+            // El carrito se restaura automáticamente — sin alert() nativo
         } finally {
             setIsUpdating(false);
         }

@@ -12,17 +12,25 @@ class AddressController extends Controller
     public function store(Request $request)
     {
         // Valida los datos recibidos
-        $data = $request->validate([
-            'calle'          => 'required|string|max:255',
-            'colonia'        => 'required|string|max:255',
-            'numero_exterior' => 'nullable|string|max:50',
-            'numero_interior' => 'nullable|string|max:50',
-            'codigo_postal'  => 'required|string|max:20',
-            'estado'         => 'required|string|max:255',
-            'ciudad'         => 'required|string|max:255',
-            'telefono'       => 'required|string|max:20',
-            'referencia'     => 'nullable|string|max:255',
-        ]);
+        try {
+            $data = $request->validate([
+                'calle'          => 'required|string|max:255',
+                'colonia'        => 'required|string|max:255',
+                'numero_exterior' => 'nullable|string|max:50',
+                'numero_interior' => 'nullable|string|max:50',
+                'codigo_postal'  => 'required|string|max:20',
+                'estado'         => 'required|string|max:255',
+                'ciudad'         => 'required|string|max:255',
+                'telefono'       => 'required|string|max:20',
+                'referencia'     => 'nullable|string|max:255',
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            \Log::error('Address Validation Failed:', [
+                'errors' => $e->errors(),
+                'input' => $request->all()
+            ]);
+            throw $e;
+        }
 
         // Asigna el id del usuario autenticado al campo user_id o la session para invitados.
         if (auth()->check()) {

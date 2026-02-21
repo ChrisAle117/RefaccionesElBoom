@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Head, router, useForm, usePage } from '@inertiajs/react';
+import { type SharedData } from '@/types';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCountdown } from '@/hooks/use-countdown';
@@ -56,9 +57,10 @@ interface OrderProps {
 }
 
 const OrderSummary: React.FC<OrderProps> = ({ order }) => {
-    const { auth } = usePage<{ auth: { user: { role: string } } }>().props;
+    const { auth } = usePage<SharedData>().props;
     const isAdmin = auth.user?.role === 'admin';
-    const backRoute = isAdmin ? '/admin/orders' : '/dashboard';
+    const isGuest = !auth.user;
+    const backRoute = isAdmin ? '/admin/orders' : (isGuest ? '/rastrear-pedido' : '/dashboard');
 
     const { hours, minutes, seconds } = useCountdown(order.time_left);
 
@@ -259,7 +261,7 @@ const OrderSummary: React.FC<OrderProps> = ({ order }) => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div className="border p-4 rounded shadow">
                     <h2 className="text-xl font-bold mb-2">Detalles del pedido</h2>
-                    <p><span className="font-bold">Fecha de creación:</span> {new Date(order.created_at).toLocaleString()}</p>
+                    <p><span className="font-bold">Fecha de creación:</span> {order.created_at ? new Date(order.created_at).toLocaleString() : 'N/A'}</p>
                     <p><span className="font-bold">Subtotal productos:</span> {formatPrice(subtotalProductos)}</p>
                     <p><span className="font-bold">Envío:</span> {formatPrice(costoEnvio)}</p>
                     <p><span className="font-bold">Total pagado (con envío):</span> {formatPrice(totalPagado)}</p>

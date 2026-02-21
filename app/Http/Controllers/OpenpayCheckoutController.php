@@ -84,14 +84,17 @@ class OpenpayCheckoutController extends Controller
             'payment_method'  => 'sometimes|string|in:openpay_card,openpay_store,openpay_spei',
             'requires_invoice'       => 'sometimes|boolean',
             'rfc'                    => ['sometimes','required_if:requires_invoice,1','string','regex:/^[A-ZÑ&]{3,4}\d{6}[A-Z0-9]{3}$/i','max:13'],
-            'tax_situation_document' => 'sometimes','required_if:requires_invoice,1','string','max:255', // ruta relativa en storage/app/public
+            'tax_situation_document' => ['sometimes','required_if:requires_invoice,1','string','max:255'],
             // Si es pickup en sucursal, permitimos/solicitamos un teléfono directamente
-            'phone'                  => ['sometimes','required_if:pickup_in_store,1','string','min:10','max:20'],
+            'phone'                  => ['sometimes','nullable','string','min:10','max:20'],
             'branch_id'              => 'sometimes|string|in:alpuyeca,acapulco,chilpancingo,tizoc',
         ]);
 
         if ($validator->fails()) {
-            // Log::error('Validación fallida createCheckout', $validator->errors()->toArray());
+            Log::error('Validación fallida createCheckout', [
+                'errors' => $validator->errors()->toArray(),
+                'request' => $request->all()
+            ]);
             return response()->json([
                 'success' => false,
                 'error'   => 'Datos inválidos',
@@ -395,7 +398,7 @@ class OpenpayCheckoutController extends Controller
 
             $checkoutData = [
                 'amount'       => $amountForGateway,
-                'description'  => $validated['description'],
+                'description'  => $this->sanitizeForOpenpay($validated['description']),
                 'order_id'     => (string) $order->id_order . '-' . time(),
                 'currency'     => 'MXN',
                 'redirect_url' => $validated['return_url'] . '?order_id=' . $order->id_order,
@@ -485,12 +488,13 @@ class OpenpayCheckoutController extends Controller
             ]);
         } catch (Exception $e) {
             DB::rollBack();
-            // Log::error('Error creando checkout', [
-            //     'message' => $e->getMessage(),
-            //     'file'    => $e->getFile(),
-            //     'line'    => $e->getLine(),
-            //     'trace'   => $e->getTraceAsString(),
-            // ]);
+            Log::error('Error creando checkout', [
+                'message' => $e->getMessage(),
+                'file'    => $e->getFile(),
+                'line'    => $e->getLine(),
+                'request' => $request->all(),
+                'trace'   => substr($e->getTraceAsString(), 0, 1000),
+            ]);
 
             return response()->json([
                 'success' => false,
@@ -779,5 +783,35 @@ class OpenpayCheckoutController extends Controller
         } else {
             return back()->with('info', "No se encontraron pagos que necesiten sincronización.");
         }
+    }
+
+    /**
+     * Sanitiza una cadena para cumplir con los requisitos de descripción de Openpay.
+     * Openpay solo acepta caracteres ASCII básicos en el campo description.
+     * Convierte: á→a, é→e, í→i, ó→o, ú→u, ñ→n, ü→u, Á→A, etc.
+     */
+    private function sanitizeForOpenpay(string $text): string
+    {
+        // Convertir caracteres acentuados a equivalentes ASCII
+        $translitMap = [
+            'á' => 'a', 'à' => 'a', 'ä' => 'a', 'â' => 'a', 'Á' => 'A', 'À' => 'A', 'Ä' => 'A', 'Â' => 'A',
+            'é' => 'e', 'è' => 'e', 'ë' => 'e', 'ê' => 'e', 'É' => 'E', 'È' => 'E', 'Ë' => 'E', 'Ê' => 'E',
+            'í' => 'i', 'ì' => 'i', 'ï' => 'i', 'î' => 'i', 'Í' => 'I', 'Ì' => 'I', 'Ï' => 'I', 'Î' => 'I',
+            'ó' => 'o', 'ò' => 'o', 'ö' => 'o', 'ô' => 'o', 'Ó' => 'O', 'Ò' => 'O', 'Ö' => 'O', 'Ô' => 'O',
+            'ú' => 'u', 'ù' => 'u', 'ü' => 'u', 'û' => 'u', 'Ú' => 'U', 'Ù' => 'U', 'Ü' => 'U', 'Û' => 'U',
+            'ñ' => 'n', 'Ñ' => 'N',
+            '/' => '-', '|' => '-', '\\' => '-', '"' => '',  "'" => '',
+        ];
+
+        $sanitized = strtr($text, $translitMap);
+
+        // Eliminar cualquier carácter no ASCII restante
+        $sanitized = preg_replace('/[^\x20-\x7E]/', '', $sanitized);
+
+        // Eliminar espacios dobles y recortar
+        $sanitized = trim(preg_replace('/\s+/', ' ', $sanitized));
+
+        // Openpay tiene un límite de 250 caracteres en description
+        return mb_substr($sanitized, 0, 250);
     }
 }

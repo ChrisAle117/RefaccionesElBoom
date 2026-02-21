@@ -287,22 +287,35 @@ class OrderController extends Controller
     }
     
     
-        public function show($id)
+    public function show($id)
     {
-        // Cargar de forma estricta por id y usuario para evitar desajustes en algunos entornos
+        $user = Auth::user();
+        $sessionId = \Illuminate\Support\Facades\Session::getId();
+
+        // Cargar de forma estricta por id
         $query = Order::with(['items.product', 'address', 'payment_proofs', 'user'])
             ->where('id_order', $id);
 
-        // Si no es admin, filtrar por su propio user_id
-        if (Auth::user()->role !== 'admin') {
-            $query->where('user_id', Auth::id());
+        // Si no es admin, filtramos por pertenencia
+        if (!$user || $user->role !== 'admin') {
+            if ($user) {
+                $query->where('user_id', $user->id);
+            } else {
+                // Para invitados, verificamos session_id o si viene de un track validado
+                // Si la orden tiene guest_email, permitimos si el session_id coincide 
+                // o si hay una marca en sesion de que esta orden fue "desbloqueada" via track
+                $allowedInSession = session("unlocked_order_{$id}");
+                
+                if (!$allowedInSession) {
+                    $query->where('session_id', $sessionId);
+                }
+            }
         }
 
         $order = $query->first();
 
         if (!$order) {
-            // Redirigir a la lista de pedidos en lugar del dashboard para una UX más clara
-            return redirect()->route('orders.list')->with('error', 'Orden no encontrada o no tienes permiso para verla');
+            return redirect()->route('home')->with('error', 'Orden no encontrada o no tienes permiso para verla');
         }
 
         $timeLeft = 0;
@@ -318,8 +331,9 @@ class OrderController extends Controller
             'id' => $order->id_order,
             'status' => $order->status,
             'total' => $order->total_amount,
-            'created_at' => $order->created_at->copy()->setTimezone('America/Mexico_City')->format('d/m/Y H:i:s'),
-            'expires_at' => $order->expires_at ? Carbon::parse($order->expires_at)->copy()->setTimezone('America/Mexico_City')->format('d/m/Y H:i:s') : null,
+            // Usar formato ISO para que JavaScript lo maneje correctamente (evitar "Invalid Date")
+            'created_at' => $order->created_at ? $order->created_at->toIso8601String() : null,
+            'expires_at' => $order->expires_at ? \Carbon\Carbon::parse($order->expires_at)->toIso8601String() : null,
             'time_left' => $timeLeft,
             'address' => $order->address ? [
                 'street' => $order->address->calle,
@@ -496,8 +510,9 @@ class OrderController extends Controller
                     'id_order'     => $order->id_order,
                     'status'       => $order->status,
                     'total_amount' => $order->total_amount,
-                    'created_at'   => $order->created_at ? $order->created_at->copy()->setTimezone('America/Mexico_City')->format('d/m/Y H:i:s') : null,
-                    'expires_at'   => $order->expires_at ? \Carbon\Carbon::parse($order->expires_at)->copy()->setTimezone('America/Mexico_City')->format('d/m/Y H:i:s') : null,
+                    // Usar formato ISO para que JavaScript lo maneje correctamente (evitar "Invalid Date")
+                    'created_at'   => $order->created_at ? $order->created_at->toIso8601String() : null,
+                    'expires_at'   => $order->expires_at ? \Carbon\Carbon::parse($order->expires_at)->toIso8601String() : null,
                 ];
             });
 
@@ -778,6 +793,56 @@ public function cancelOrder($id)
         // Mostrar en el navegador en lugar de forzar descarga
         return response()->file($filePath, [
             'Content-Type' => 'application/pdf',
+        ]);
+    }
+    /**
+     * Muestra el formulario de rastreo para invitados
+     */
+    public function guestLookupForm()
+    {
+        return Inertia::render('GuestOrderLookup');
+    }
+
+    /**
+     * Procesa la búsqueda de pedido para invitados
+     */
+    public function guestLookup(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+            'order_id' => 'required|integer',
+        ]);
+
+        $order = Order::where('id_order', $request->order_id)
+            ->where('guest_email', $request->email)
+            ->first();
+
+        if (!$order) {
+            return back()->with('error', 'No se encontró ningún pedido con esos datos. Verifica el correo y el número de orden.');
+        }
+
+        // Si se encuentra la orden, buscamos todas las órdenes asociadas a ese correo
+        // para mostrarlas en la lista, similar a un usuario logeado.
+        $orders = Order::where('guest_email', $request->email)
+            ->select('id_order', 'status', 'total_amount', 'created_at', 'expires_at')
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function ($o) use ($order) {
+                // "Desbloquear" cada orden encontrada en la sesión para que puedan ver detalles
+                session(["unlocked_order_{$o->id_order}" => true]);
+                
+                return [
+                    'id_order'     => $o->id_order,
+                    'status'       => $o->status,
+                    'total_amount' => $o->total_amount,
+                    'created_at'   => $o->created_at ? $o->created_at->toIso8601String() : null,
+                    'expires_at'   => $o->expires_at ? \Carbon\Carbon::parse($o->expires_at)->toIso8601String() : null,
+                ];
+            });
+
+        return Inertia::render('OrdersList', [
+            'orders' => $orders,
+            'isGuest' => true,
         ]);
     }
 }
