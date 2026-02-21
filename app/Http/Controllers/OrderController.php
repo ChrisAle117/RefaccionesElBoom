@@ -552,7 +552,7 @@ class OrderController extends Controller
         $orders = $query->paginate(10);
 
         return Inertia::render('Admin/OrdersAdmin', [
-            'orders' => $orders->map(function ($order) {
+           'orders' => $orders->getCollection()->map(function ($order) {
                 $isPickup = false;
                 if ($order->address) {
                     $isPickup = (
