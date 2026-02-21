@@ -8,7 +8,7 @@ export default function Ubication() {
             id: 1,
             name: "Sucursal Matriz Alpuyeca",
             address: "REFACCIONES EL BOOM, Carr. Federal Mexico-Acapulco Km. 29, 62660 Puente de Ixtla, MORELOS",
-            phones: ["777-181-0370", "734-344-5155"],
+            phones: ["777-181-0370"],
             whatsapp: "527771810370",
             mapUrl: "https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d968614.9847190331!2d-100.136292!3d18.499403!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x85cddf88156feb99%3A0x52215aad906626e5!2sRefaccionaria%20EL%20BOOM%20Tractopartes%20Alpuyeca!5e0!3m2!1ses-419!2smx!4v1743438339844!5m2!1ses-419!2smx",
         },
@@ -16,8 +16,8 @@ export default function Ubication() {
             id: 2,
             name: "Sucursal Acapulco",
             address: "Refaccionaria EL BOOM, Avenida Lázaro Cárdenas, No. 2, Manzana 18. Colonia La Popular, Acapulco, Guerrero",
-            phones: ["744-383-5814", "777-274-0249"],
-            whatsapp: "527443835814",
+            phones: ["777-274-0249", "744-383-5814"],
+            whatsapp: "527771810370",
             mapUrl: "https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d15271.232386979467!2d-99.832457!3d16.885385000000003!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x85ca574050c25b93%3A0x3faf11878a9b5e6!2sRefaccionaria%20EL%20BOOM%20Tractopartes%20Acapulco!5e0!3m2!1ses-419!2smx!4v1743438369847!5m2!1ses-419!2smx",
         },
         {
@@ -25,15 +25,15 @@ export default function Ubication() {
             name: "Sucursal Chilpancingo",
             address: "Refaccionaria EL BOOM, Boulevard Vicente Guerrero, Km 269, Chilpancingo, Guerrero",
             phones: ["755-130-8536", "777-327-1852"],
-            whatsapp: "527551308536",
+            whatsapp: "527771810370",
             mapUrl: "https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d3803.4320282240833!2d-99.514731!3d17.582208!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x85cbedffee6368f3%3A0xda0f508041fb8cf3!2sRefaccionaria%20EL%20BOOM%20Tractopartes%20Chilpancingo!5e0!3m2!1ses-419!2smx!4v1743438397054!5m2!1ses-419!2smx",
         },
         {
             id: 4,
             name: "Sucursal Tizoc",
             address: "Refaccionaria EL BOOM, Boulevard Cuauhnáhuac Km 3.5, No. 25. Colonia Buganbilias, Jiutepec, Morelos",
-            phones: ["777-288-2005", "777-321-1950"],
-            whatsapp: "527772882005",
+            phones: ["777-288-2005"],
+            whatsapp: "527771810370",
             mapUrl: "https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d15097.35773851505!2d-99.185934!3d18.916364!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x85ce757ee8ff1be1%3A0x62d09f4369d36965!2sRefaccionaria%20EL%20BOOM%20Tractopartes%20Tizoc%2C%20Jiutepec!5e0!3m2!1ses-419!2smx!4v1743438424259!5m2!1ses-419!2smx",
         }
     ];
@@ -54,14 +54,14 @@ export default function Ubication() {
     };
 
     return (
-        <div className="py-12 px-4 sm:px-6 lg:px-8 bg-white dark:bg-gray-950 min-h-screen">
-            {/* Premium Header */}
-            <div className="text-center mb-16">
+        <div className="py-6 sm:py-12 px-0 sm:px-6 lg:px-8 bg-white dark:bg-gray-950 min-h-screen">
+
+            <div className="text-center mb-16 px-4">
 
                 <motion.h2
                     initial={{ opacity: 0, y: -20 }}
                     whileInView={{ opacity: 1, y: 0 }}
-                    className="text-4xl md:text-5xl lg:text-6xl font-black text-gray-900 dark:text-white tracking-tighter"
+                    className="text-3xl md:text-5xl lg:text-6xl font-black text-gray-900 dark:text-white tracking-tighter"
                 >
                     NUESTRAS <span
                         className="text-yellow-500"
@@ -72,14 +72,14 @@ export default function Ubication() {
                     initial={{ opacity: 0 }}
                     whileInView={{ opacity: 1 }}
                     transition={{ delay: 0.2 }}
-                    className="text-gray-500 dark:text-gray-400 mt-6 text-lg max-w-2xl mx-auto leading-relaxed"
+                    className="text-gray-500 dark:text-gray-400 mt-6 text-base sm:text-lg max-w-2xl mx-auto leading-relaxed"
                 >
                     Encuentra la refacción que necesitas en cualquiera de nuestros puntos de venta estratégicos. <span className="text-black dark:text-white font-bold">Cobertura total</span> para tu tractocamión.
                 </motion.p>
             </div>
 
             <motion.div
-                className="grid grid-cols-1 xl:grid-cols-2 gap-10 max-w-7xl mx-auto"
+                className="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-10 max-w-7xl mx-auto px-2 sm:px-0"
                 variants={containerVariants}
                 initial="hidden"
                 whileInView="visible"
@@ -89,11 +89,11 @@ export default function Ubication() {
                     <motion.div
                         key={branch.id}
                         variants={itemVariants}
-                        className="group relative bg-white dark:bg-gray-900 rounded-3xl overflow-hidden shadow-2xl border border-gray-100 dark:border-gray-800 transition-all duration-500 hover:shadow-yellow-500/10 hover:border-yellow-500/30"
+                        className="group relative bg-white dark:bg-gray-900 rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl border border-gray-100 dark:border-gray-800 transition-all duration-500 hover:shadow-yellow-500/10 hover:border-yellow-500/30"
                     >
                         <div className="grid grid-cols-1 md:grid-cols-2">
                             {/* Map Container */}
-                            <div className="relative h-64 md:h-full min-h-[300px] overflow-hidden">
+                            <div className="relative h-40 md:h-full min-h-[160px] md:min-h-[300px] overflow-hidden">
                                 <iframe
                                     className="absolute inset-0 w-full h-full grayscale transition-all duration-700 group-hover:grayscale-0 group-hover:scale-110"
                                     src={branch.mapUrl}
@@ -104,44 +104,44 @@ export default function Ubication() {
                             </div>
 
                             {/* Content Container */}
-                            <div className="p-8 flex flex-col justify-between bg-white dark:bg-gray-900">
+                            <div className="p-4 sm:p-8 flex flex-col justify-between bg-white dark:bg-gray-900">
                                 <div>
-                                    <div className="flex items-center gap-2 mb-4">
-                                        <div className="p-2 bg-yellow-500/10 rounded-lg">
-                                            <MapPin className="w-5 h-5 text-yellow-500" />
+                                    <div className="flex items-center gap-2 mb-3">
+                                        <div className="p-1.5 sm:p-2 bg-yellow-500/10 rounded-lg">
+                                            <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-500" />
                                         </div>
-                                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white group-hover:text-yellow-500 transition-colors">
+                                        <h2 className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white group-hover:text-yellow-500 transition-colors">
                                             {branch.name}
                                         </h2>
                                     </div>
 
-                                    <p className="text-gray-600 dark:text-gray-400 mb-6 text-sm leading-relaxed">
+                                    <p className="text-gray-600 dark:text-gray-400 mb-4 sm:mb-6 text-xs sm:text-sm leading-relaxed">
                                         {branch.address}
                                     </p>
 
-                                    <div className="space-y-4 mb-8">
-                                        <div className="flex items-start gap-3">
+                                    <div className="space-y-2 sm:space-y-4 mb-4 sm:mb-8">
+                                        <div className="flex items-start gap-2 sm:gap-3">
                                             <div className="mt-1">
-                                                <Phone className="w-4 h-4 text-gray-400" />
+                                                <Phone className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
                                             </div>
                                             <div>
-                                                <p className="text-xs text-gray-500 uppercase font-bold tracking-wider mb-1">Teléfonos</p>
+                                                <p className="text-[10px] sm:text-xs text-gray-500 uppercase font-bold tracking-wider mb-0.5 sm:mb-1">Teléfonos</p>
                                                 {branch.phones.map((phone, i) => (
-                                                    <a key={i} href={`tel:${phone}`} className="block text-sm font-semibold text-gray-900 dark:text-white hover:text-yellow-500 transition-colors">
+                                                    <a key={i} href={`tel:${phone}`} className="block text-xs sm:text-sm font-semibold text-gray-900 dark:text-white hover:text-yellow-500 transition-colors">
                                                         {phone}
                                                     </a>
                                                 ))}
                                             </div>
                                         </div>
 
-                                        <div className="flex items-start gap-3">
+                                        <div className="flex items-start gap-2 sm:gap-3">
                                             <div className="mt-1">
-                                                <Clock className="w-4 h-4 text-gray-400" />
+                                                <Clock className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
                                             </div>
                                             <div>
-                                                <p className="text-xs text-gray-500 uppercase font-bold tracking-wider mb-1">Horario</p>
-                                                <p className="text-sm font-semibold text-gray-900 dark:text-white">
-                                                    Lun - Vie: 9:00 - 18:30 <br />
+                                                <p className="text-[10px] sm:text-xs text-gray-500 uppercase font-bold tracking-wider mb-0.5 sm:mb-1">Horario</p>
+                                                <p className="text-xs sm:text-sm font-semibold text-gray-900 dark:text-white leading-tight">
+                                                    Lun - Vie: 9:00 - 18:00 <br />
                                                     Sáb: 9:00 - 14:00
                                                 </p>
                                             </div>
@@ -154,9 +154,9 @@ export default function Ubication() {
                                         href={`https://wa.me/${branch.whatsapp}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-green-500 hover:bg-green-600 text-white rounded-xl font-bold transition-all duration-300 shadow-lg shadow-green-500/20 active:scale-95 w-full"
+                                        className="inline-flex items-center justify-center gap-2 px-4 py-2.5 sm:px-6 sm:py-3 bg-green-500 hover:bg-green-600 text-white rounded-xl font-bold transition-all duration-300 shadow-lg shadow-green-500/20 active:scale-95 w-full text-xs sm:text-base"
                                     >
-                                        <MessageCircle className="w-5 h-5" />
+                                        <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5" />
                                         WhatsApp
                                     </a>
                                 </div>

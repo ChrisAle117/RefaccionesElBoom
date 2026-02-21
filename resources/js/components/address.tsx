@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { Label } from "./ui/label";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
-import { useForm } from '@inertiajs/react';
 import axios from "axios";
 
 interface AddressProps {
@@ -10,7 +9,7 @@ interface AddressProps {
 }
 
 export function Address({ onRegisterSuccess }: AddressProps) {
-    const { data, setData, post, processing, errors } = useForm({
+    const [data, setDataState] = useState({
         calle: '',
         colonia: '',
         numero_exterior: '',
@@ -21,16 +20,49 @@ export function Address({ onRegisterSuccess }: AddressProps) {
         telefono: '',
         referencia: '',
     });
+    const [processing, setProcessing] = useState(false);
+    const [errors, setErrors] = useState<Record<string, string>>({});
+    const [serverError, setServerError] = useState<string>('');
+
+    const setData = (key: string, value: string) => {
+        setDataState(prev => ({ ...prev, [key]: value }));
+    };
 
     const [colonias, setColonias] = useState<string[]>([]);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        post(route('addresses.store'), {
-            onSuccess: () => {
+        setProcessing(true);
+        setErrors({});
+        setServerError('');
+        try {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+            const response = await axios.post('/addresses', data, {
+                headers: {
+                    'X-CSRF-TOKEN': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json',
+                },
+                withCredentials: true,
+            });
+            if (response.data?.success) {
                 if (onRegisterSuccess) onRegisterSuccess();
-            },
-        });
+            } else {
+                setServerError(response.data?.message || 'Error desconocido al guardar.');
+            }
+        } catch (err: unknown) {
+            if (axios.isAxiosError(err)) {
+                if (err.response?.status === 422) {
+                    setErrors(err.response.data.errors ?? {});
+                } else {
+                    const msg = err.response?.data?.message || err.message || 'Error del servidor al guardar la dirección.';
+                    setServerError(msg);
+                    console.error('Address save error:', err.response?.data);
+                }
+            }
+        } finally {
+            setProcessing(false);
+        }
     };
 
     const handleCpChange = async (cp: string) => {
@@ -56,6 +88,11 @@ export function Address({ onRegisterSuccess }: AddressProps) {
         <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-6">
                 <h3 className="font-bold">Agregar una dirección</h3>
+                {serverError && (
+                    <div className="text-red-600 bg-red-50 border border-red-200 rounded p-3 text-sm">
+                        ⚠️ {serverError}
+                    </div>
+                )}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <Label htmlFor="calle">Calle*</Label>

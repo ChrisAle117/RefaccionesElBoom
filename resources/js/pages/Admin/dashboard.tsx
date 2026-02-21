@@ -96,6 +96,24 @@ const Dashboard: React.FC = () => {
             color: 'text-indigo-600',
             bgColor: 'bg-indigo-50',
             borderColor: 'hover:border-indigo-200'
+        },
+        {
+            title: 'Clientes',
+            description: 'Base central de clientes, historial de compras y notas internas.',
+            href: route('admin.users.index'),
+            icon: Users,
+            color: 'text-emerald-600',
+            bgColor: 'bg-emerald-50',
+            borderColor: 'hover:border-emerald-200'
+        },
+        {
+            title: 'Reportes',
+            description: 'Análisis estratégico de ventas, clientes Top y rendimiento por estado.',
+            href: route('admin.reporting.index'),
+            icon: ReceiptText,
+            color: 'text-rose-600',
+            bgColor: 'bg-rose-50',
+            borderColor: 'hover:border-rose-200'
         }
     ];
 

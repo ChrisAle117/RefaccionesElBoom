@@ -16,25 +16,60 @@ use App\Http\Controllers\AddressController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\FabricationQuoteController;
+use App\Http\Controllers\Auth\GoogleController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\DB;
 use App\Models\Product;
 use Openpay\Openpay;
 use Inertia\Inertia; 
 
+// Google OAuth Routes
+Route::get('/auth/google', [GoogleController::class, 'redirectToGoogle'])->name('auth.google');
+Route::get('/auth/google/callback', [GoogleController::class, 'handleGoogleCallback'])->name('auth.google.callback');
+
+
 //APERTURA DE RUTAS PÚBLICAS
 Route::get('/', [ProductListingController::class, 'welcome'])->name('home');
+
+//CARRITO rutas para el carrito de compras (Públicas para Guest Checkout)
+Route::post('/cart/add', [ShoppingCartController::class, 'addItem'])->name('cart.add');
+Route::delete('/cart/remove/{id}', [ShoppingCartController::class, 'removeItem'])->name('cart.remove');
+Route::get('/cart', [ShoppingCartController::class, 'viewCart'])->name('cart.view');
+Route::put('/cart/update', [ShoppingCartController::class, 'updateItem'])->name('cart.update');
+
+// Rutas públicas de Checkout y Upload
+Route::get('confirmation', function () {
+    return Inertia::render('confirmation', [
+        'status' => session('status'),
+    ]);
+})->name('confirmation');
+
+Route::get('upload', function () {
+    return Inertia::render('upload');
+})->name('upload');
+
+// Rutas para manejo de direcciones (Públicas para Soporte a Invitados)
+Route::post('/addresses', [AddressController::class, 'store'])->name('addresses.store');
+Route::get('/addresses', [AddressController::class, 'index'])->name('addresses.index');
 
 // Rutas segmentadas de productos (SEO friendly)
 Route::get('/productos/{type}/{slug?}', [ProductListingController::class, 'welcome'])
     ->name('home.products.segmented');
 
 // Rutas públicas amigables para tabs del home (SPA): /productos, /nosotros, etc.
+// Rutas de Ordenes (Publicas para Guest)
+Route::get('/rastrear-pedido', [OrderController::class, 'guestLookupForm'])->name('orders.guest.lookup');
+Route::post('/rastrear-pedido', [OrderController::class, 'guestLookup'])->name('orders.guest.process');
+
 Route::get('/{tab}', [ProductListingController::class, 'welcome'])
     ->where('tab', 'productos|nosotros|sucursales|vacantes|catalogos|deshuesadero|datos|terminos|soporte|fabrica')
     ->name('home.tab');
 
 Route::post('/fabrication-quotes', [FabricationQuoteController::class, 'store'])->name('fabrication-quotes.store');
+
+Route::post('/orders', [OrderController::class, 'createOrder'])->name('orders.create');
+Route::get('/orders/{id}', [OrderController::class, 'show'])->name('orders.show');
+Route::post('/api/create-openpay-checkout', [OpenpayCheckoutController::class, 'createCheckout'])->name('api.openpay.checkout');
 
 // RUTAS API para vacantes y catálogos públicos
 Route::prefix('api')->group(function () {
@@ -57,29 +92,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->where('tab', 'productos|nosotros|sucursales|vacantes|catalogos|deshuesadero|datos|terminos|soporte')
         ->name('dashboard.tab');
 
-    // Ruta de confirmación
-    Route::get('confirmation', function () {
-        return Inertia::render('confirmation', [
-            'status' => session('status'),
-        ]);
-    })->name('confirmation');
 
-    Route::get('upload', function () {
-        return Inertia::render('upload');
-    })->name('upload');
 
-    // Ruta para guardar la dirección del usuario
-    Route::post('/addresses', [AddressController::class, 'store'])
-        ->name('addresses.store');
-
-    // Ruta para obtener las direcciones del usuario autenticado
-    Route::get('/addresses', [AddressController::class, 'index'])
-        ->name('addresses.index');
-    //CARRITO rutas para el carrito de compras
-    Route::post('/cart/add', [ShoppingCartController::class, 'addItem'])->name('cart.add');
-    Route::delete('/cart/remove/{id}', [ShoppingCartController::class, 'removeItem'])->name('cart.remove');
-    Route::get('/cart', [ShoppingCartController::class, 'viewCart'])->name('cart.view');
-    Route::put('/cart/update', [ShoppingCartController::class, 'updateItem'])->name('cart.update');
     //Ruta para cancelar compra
     Route::post('/orders/{id}/cancel', [OrderController::class, 'cancelOrder'])->name('orders.cancel');
     
@@ -153,45 +167,36 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/product-families/delete', [\App\Http\Controllers\Admin\ProductFamilyController::class, 'deleteFamily'])->name('product-families.delete');
         Route::get('/product-families/create', [\App\Http\Controllers\Admin\ProductFamilyController::class, 'create'])->name('product-families.create');
         Route::get('/product-families/view', [\App\Http\Controllers\Admin\ProductFamilyController::class, 'show'])->name('product-families.view');
+
+        // GESTIÓN DE USUARIOS (CRM)
+        Route::get('/users', [\App\Http\Controllers\Admin\AdminUserController::class, 'index'])->name('users.index');
+        Route::get('/users/{id}', [\App\Http\Controllers\Admin\AdminUserController::class, 'show'])->name('users.show');
+        Route::post('/users/{id}/notes', [\App\Http\Controllers\Admin\AdminUserController::class, 'storeNote'])->name('users.notes.store');
+
+        // REPORTES ESTRATÉGICOS
+        Route::get('/reporting', [\App\Http\Controllers\Admin\AdminReportingController::class, 'index'])->name('reporting.index');
+
+        // RUTAS DE DEPURACIÓN (Borrar después)
+        Route::get('/debug-500', function() {
+            try {
+                $reporting = new \App\Http\Controllers\Admin\AdminReportingController();
+                return $reporting->index();
+            } catch (\Exception $e) {
+                return response()->json(['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()], 500);
+            }
+        });
     }); //CIERRE DEL GRUPO MIDDLEWARE DE ADMINISTRADORES
 
     // Rutas para órdenes de pago manual
-    Route::post('/orders', [OrderController::class, 'createOrder'])->name('orders.create');
+
     Route::get('/orders', [OrderController::class, 'getUserOrders'])->name('orders.list');
-    Route::get('/orders/{id}', [OrderController::class, 'show'])->name('orders.show');
     
     // Rutas para comprobantes de pago
     Route::post('/orders/{orderId}/payment-proof', [PaymentProofController::class, 'uploadProof'])->name('payment-proof.upload');
     
-    //OPENPAY para Openpay (redirecciones de vuelta)
-    Route::post('/api/create-openpay-checkout', [OpenpayCheckoutController::class, 'createCheckout'])
-        ->name('api.openpay.checkout');
-
-    //RUTAS para páginas de respuesta de Openpay
-    Route::get('/payment-success', [OpenpayCheckoutController::class, 'showSuccessPage'])
-        ->name('payment.success.page')
-        ->withoutMiddleware([HandleInertiaRequests::class]);
-
-    Route::get('/payment-cancelled', [OpenpayCheckoutController::class, 'showCancelledPage'])
-        ->name('payment.cancelled.page')
-        ->withoutMiddleware([HandleInertiaRequests::class]);
-
-    Route::get('/payment-error-page', [OpenpayCheckoutController::class, 'showErrorPage'])
-        ->name('payment.error.page')
-        ->withoutMiddleware([HandleInertiaRequests::class]);
-
-    // Página intermedia para capturar el botón "Atrás" del navegador desde Openpay
-    Route::get('/payment-back-handler', function () {
-        return view('payment.back-handler');
-    })
-        ->name('payment.back.handler')
-        ->withoutMiddleware([\App\Http\Middleware\HandleInertiaRequests::class]);
-        //CIERRE RUTAS
-    
 }); //CIERRE DEL GRUPO DE RUTAS PROTEGIDAS POR AUNTENTICACIÓN Y VERIFICACIÓN USUARIO
 
-Route::middleware(['web', 'auth:web', 'verified'])  
-    ->post('/invoices/upload-constancia', [InvoiceController::class, 'uploadConstancia'])
+Route::post('/invoices/upload-constancia', [InvoiceController::class, 'uploadConstancia'])
     ->name('invoices.upload-constancia');
 
 Route::get('/postal-info/{cp}', [PostalCodeController::class, 'show']);
@@ -199,6 +204,26 @@ Route::get('/catalogs', [CatalogController::class, 'showPublic'])->name('catalog
 
 Route::get('/dhl/rate', [ShippingRateController::class, 'rate']);
 Route::post('/api/dhl/rate-cart', [ShippingRateController::class, 'rateCart'])->name('dhl.rateCart');
+
+// RUTAS PÚBLICAS para páginas de respuesta de Openpay (accesibles por invitados y usuarios autenticados)
+Route::get('/payment-success', [OpenpayCheckoutController::class, 'showSuccessPage'])
+    ->name('payment.success.page')
+    ->withoutMiddleware([\App\Http\Middleware\HandleInertiaRequests::class]);
+
+Route::get('/payment-cancelled', [OpenpayCheckoutController::class, 'showCancelledPage'])
+    ->name('payment.cancelled.page')
+    ->withoutMiddleware([\App\Http\Middleware\HandleInertiaRequests::class]);
+
+Route::get('/payment-error-page', [OpenpayCheckoutController::class, 'showErrorPage'])
+    ->name('payment.error.page')
+    ->withoutMiddleware([\App\Http\Middleware\HandleInertiaRequests::class]);
+
+// Página intermedia para capturar el botón "Atrás" del navegador desde Openpay
+Route::get('/payment-back-handler', function () {
+    return view('payment.back-handler');
+})
+    ->name('payment.back.handler')
+    ->withoutMiddleware([\App\Http\Middleware\HandleInertiaRequests::class]);
 
 Route::get('/user/addresses', [UserAddressController::class, 'getAllAddresses']);
 

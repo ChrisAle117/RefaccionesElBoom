@@ -84,14 +84,17 @@ class OpenpayCheckoutController extends Controller
             'payment_method'  => 'sometimes|string|in:openpay_card,openpay_store,openpay_spei',
             'requires_invoice'       => 'sometimes|boolean',
             'rfc'                    => ['sometimes','required_if:requires_invoice,1','string','regex:/^[A-ZÑ&]{3,4}\d{6}[A-Z0-9]{3}$/i','max:13'],
-            'tax_situation_document' => 'sometimes','required_if:requires_invoice,1','string','max:255', // ruta relativa en storage/app/public
+            'tax_situation_document' => ['sometimes','required_if:requires_invoice,1','string','max:255'],
             // Si es pickup en sucursal, permitimos/solicitamos un teléfono directamente
-            'phone'                  => ['sometimes','required_if:pickup_in_store,1','string','min:10','max:20'],
+            'phone'                  => ['sometimes','nullable','string','min:10','max:20'],
             'branch_id'              => 'sometimes|string|in:alpuyeca,acapulco,chilpancingo,tizoc',
         ]);
 
         if ($validator->fails()) {
-            // Log::error('Validación fallida createCheckout', $validator->errors()->toArray());
+            Log::error('Validación fallida createCheckout', [
+                'errors' => $validator->errors()->toArray(),
+                'request' => $request->all()
+            ]);
             return response()->json([
                 'success' => false,
                 'error'   => 'Datos inválidos',
@@ -109,13 +112,20 @@ class OpenpayCheckoutController extends Controller
         DB::beginTransaction();
 
         try {
-            // Usuario
+            // Usuario o Sesión
             $user = auth()->user();
+            $sessionId = \Illuminate\Support\Facades\Session::getId();
+            
+            // Validación adicional para guest
             if (!$user) {
-                throw new Exception('Usuario no autenticado');
+                $guestValidator = Validator::make($request->all(), [
+                    'guest_name' => 'required|string|max:255',
+                    'guest_email' => 'required|email|max:255',
+                ]);
+                if ($guestValidator->fails()) {
+                    throw new Exception('Faltan datos del invitado: ' . $guestValidator->errors()->first());
+                }
             }
-
-            // Log::info('Creando orden Openpay para usuario', ['user_id' => $user->id]);
 
             // Método de pago 
             $paymentMethod = $request->input('payment_method', 'openpay_card');
@@ -123,7 +133,7 @@ class OpenpayCheckoutController extends Controller
                 $paymentMethod = 'openpay_card';
             }
 
-            // Si es pickup y no viene address_id, crear/usar la dirección "Sucursal" para el usuario
+            // Si es pickup y no viene address_id, crear/usar la dirección "Sucursal" para el usuario/sesion
             if ($pickupInStore && empty($validated['address_id'])) {
                 $branchId = $request->input('branch_id', 'alpuyeca');
                 
@@ -164,10 +174,18 @@ class OpenpayCheckoutController extends Controller
 
                 $branchData = $branches[$branchId] ?? $branches['alpuyeca'];
 
-                // Intentar obtener un teléfono real del usuario o de alguna otra dirección del usuario
+                // Intentar obtener un teléfono real del usuario/sesion
                 $incomingPhone = $this->extractPhone10($request->input('phone'));
                 $userPhonePrimary = $incomingPhone ?: $this->extractPhone10($user->phone ?? null);
-                $userRealPhone = Address::where('user_id', $user->id)
+                
+                $addressQuery = Address::query();
+                if ($user) {
+                    $addressQuery->where('user_id', $user->id);
+                } else {
+                    $addressQuery->where('session_id', $sessionId);
+                }
+
+                $userRealPhone = (clone $addressQuery)
                     ->where(function($q){
                         $q->whereNull('referencia')
                         ->orWhere('referencia','!=','Recoger en sucursal');
@@ -175,16 +193,17 @@ class OpenpayCheckoutController extends Controller
                     ->where('calle','not like','Sucursal El Boom%')
                     ->orderByDesc('id_direccion')
                     ->value('telefono');
+                    
                 $userPhoneFromAddress = $this->extractPhone10($userRealPhone ?: null);
                 $phoneForPickup = $userPhonePrimary ?: $userPhoneFromAddress;
 
                 if (!$phoneForPickup) {
-                    throw new Exception('Para recoger en sucursal debes registrar un número de teléfono en tu perfil o en alguna dirección.');
+                    throw new Exception('Para recoger en sucursal debes registrar un número de teléfono en tu perfil o en alguna dirección (o ingresarlo ahora).');
                 }
 
                 // Reutiliza una dirección técnica existente para la sucursal seleccionada
-                $existing = Address::where('user_id', $user->id)
-                    ->where('calle', $branchData['calle'])
+                $existingQuery = clone $addressQuery;
+                $existing = $existingQuery->where('calle', $branchData['calle'])
                     ->where('referencia', 'Recoger en sucursal')
                     ->first();
 
@@ -197,7 +216,11 @@ class OpenpayCheckoutController extends Controller
                     $validated['address_id'] = $existing->id_direccion;
                 } else {
                     $addr = new Address();
-                    $addr->user_id         = $user->id;
+                    if ($user) {
+                        $addr->user_id = $user->id;
+                    } else {
+                        $addr->session_id = $sessionId;
+                    }
                     $addr->calle           = $branchData['calle'];
                     $addr->colonia         = $branchData['colonia'];
                     $addr->numero_exterior = 'SN';
@@ -214,7 +237,13 @@ class OpenpayCheckoutController extends Controller
 
             // Crear orden
             $order                   = new Order();
-            $order->user_id          = $user->id;
+            if ($user) {
+                $order->user_id = $user->id;
+            } else {
+                $order->session_id = $sessionId;
+                $order->guest_name = $request->input('guest_name');
+                $order->guest_email = $request->input('guest_email');
+            }
             $order->status           = 'pending_payment';
             $order->total_amount     = $normalizedAmount; // "xx.yy"
             // address_id puede venir nulo cuando es recoger en sucursal
@@ -279,7 +308,12 @@ class OpenpayCheckoutController extends Controller
             } else {
                 // Carrito
                 try {
-                    $cart = $user->cart()->with('products')->first();
+                    if ($user) {
+                         $cart = \App\Models\ShoppingCart::where('user_id', $user->id)->with('products')->first();
+                    } else {
+                         $cart = \App\Models\ShoppingCart::where('session_id', $sessionId)->with('products')->first();
+                    }
+                   
                     if (!$cart || !$cart->products || $cart->products->isEmpty()) {
                         throw new Exception('Carrito vacío o no disponible');
                     }
@@ -364,14 +398,14 @@ class OpenpayCheckoutController extends Controller
 
             $checkoutData = [
                 'amount'       => $amountForGateway,
-                'description'  => $validated['description'],
+                'description'  => $this->sanitizeForOpenpay($validated['description']),
                 'order_id'     => (string) $order->id_order . '-' . time(),
                 'currency'     => 'MXN',
                 'redirect_url' => $validated['return_url'] . '?order_id=' . $order->id_order,
                 'cancel_url'   => $validated['cancel_url'] . '?order_id=' . $order->id_order,
                 'customer'     => [
-                    'name'         => $user->name ?? 'Cliente',
-                    'email'        => $user->email ?? 'cliente@example.com',
+                    'name'         => $user ? $user->name : $request->input('guest_name'),
+                    'email'        => $user ? $user->email : $request->input('guest_email'),
                     'phone_number' => $phoneForPayload,
                 ],
                 'send_email'   => false,
@@ -438,7 +472,11 @@ class OpenpayCheckoutController extends Controller
 
             if ($user && $user->cart) {
                 $user->cart->products()->detach();
-                // Log::info("Carrito limpiado tras crear orden", ['user_id' => $user->id, 'order_id' => $order->id_order]);
+            } elseif (!$user) {
+                 $cart = \App\Models\ShoppingCart::where('session_id', $sessionId)->first();
+                 if ($cart) {
+                     $cart->products()->detach();
+                 }
             }
 
             DB::commit();
@@ -450,12 +488,13 @@ class OpenpayCheckoutController extends Controller
             ]);
         } catch (Exception $e) {
             DB::rollBack();
-            // Log::error('Error creando checkout', [
-            //     'message' => $e->getMessage(),
-            //     'file'    => $e->getFile(),
-            //     'line'    => $e->getLine(),
-            //     'trace'   => $e->getTraceAsString(),
-            // ]);
+            Log::error('Error creando checkout', [
+                'message' => $e->getMessage(),
+                'file'    => $e->getFile(),
+                'line'    => $e->getLine(),
+                'request' => $request->all(),
+                'trace'   => substr($e->getTraceAsString(), 0, 1000),
+            ]);
 
             return response()->json([
                 'success' => false,
@@ -744,5 +783,35 @@ class OpenpayCheckoutController extends Controller
         } else {
             return back()->with('info', "No se encontraron pagos que necesiten sincronización.");
         }
+    }
+
+    /**
+     * Sanitiza una cadena para cumplir con los requisitos de descripción de Openpay.
+     * Openpay solo acepta caracteres ASCII básicos en el campo description.
+     * Convierte: á→a, é→e, í→i, ó→o, ú→u, ñ→n, ü→u, Á→A, etc.
+     */
+    private function sanitizeForOpenpay(string $text): string
+    {
+        // Convertir caracteres acentuados a equivalentes ASCII
+        $translitMap = [
+            'á' => 'a', 'à' => 'a', 'ä' => 'a', 'â' => 'a', 'Á' => 'A', 'À' => 'A', 'Ä' => 'A', 'Â' => 'A',
+            'é' => 'e', 'è' => 'e', 'ë' => 'e', 'ê' => 'e', 'É' => 'E', 'È' => 'E', 'Ë' => 'E', 'Ê' => 'E',
+            'í' => 'i', 'ì' => 'i', 'ï' => 'i', 'î' => 'i', 'Í' => 'I', 'Ì' => 'I', 'Ï' => 'I', 'Î' => 'I',
+            'ó' => 'o', 'ò' => 'o', 'ö' => 'o', 'ô' => 'o', 'Ó' => 'O', 'Ò' => 'O', 'Ö' => 'O', 'Ô' => 'O',
+            'ú' => 'u', 'ù' => 'u', 'ü' => 'u', 'û' => 'u', 'Ú' => 'U', 'Ù' => 'U', 'Ü' => 'U', 'Û' => 'U',
+            'ñ' => 'n', 'Ñ' => 'N',
+            '/' => '-', '|' => '-', '\\' => '-', '"' => '',  "'" => '',
+        ];
+
+        $sanitized = strtr($text, $translitMap);
+
+        // Eliminar cualquier carácter no ASCII restante
+        $sanitized = preg_replace('/[^\x20-\x7E]/', '', $sanitized);
+
+        // Eliminar espacios dobles y recortar
+        $sanitized = trim(preg_replace('/\s+/', ' ', $sanitized));
+
+        // Openpay tiene un límite de 250 caracteres en description
+        return mb_substr($sanitized, 0, 250);
     }
 }

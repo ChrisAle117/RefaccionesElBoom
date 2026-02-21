@@ -279,7 +279,7 @@
         <footer class="footer">
             <div class="container">
                 <p>© {{ date('Y') }} {{ config('app.name') }}. Todos los derechos reservados.</p>
-                <p>¿Necesitas ayuda? <a href="#" class="text-decoration-none">Contacta a soporte</a></p>
+                <p>¿Necesitas ayuda? <a href="https://wa.me/527771810370?text=Hola%2C%20necesito%20ayuda%20con%20mi%20pedido%20" class="text-decoration-none">Contacta a soporte</a></p>
             </div>
         </footer>
     </div>

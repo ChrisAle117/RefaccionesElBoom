@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { usePage } from '@inertiajs/react';
 import { motion, AnimatePresence, useMotionTemplate, useMotionValue } from 'framer-motion';
-import { ChevronDown, Zap, Settings, ArrowRight, AlertCircle, Download } from 'lucide-react';
+import { ChevronDown, Zap, Settings, ArrowRight, AlertCircle } from 'lucide-react';
 
 const mexicanStates = [
     "Aguascalientes", "Baja California", "Baja California Sur", "Campeche", "Coahuila",
@@ -214,12 +214,21 @@ function QuoteSection() {
             const file = fileInput.files?.[0];
 
             if (file) {
-                // Validate Extension (SolidWorks: .sldprt, .sldasm, .slddrw)
-                const validExtensions = ['.sldprt', '.sldasm', '.slddrw'];
+                // Validate Extension (SolidWorks: .sldprt, .sldasm, .slddrw, .dxf, .jpg, .png, .pdf)
+                const validExtensions = ['.sldprt', '.sldasm', '.slddrw', '.dxf', '.jpg', '.jpeg', '.png', '.pdf'];
                 const fileExtension = file.name.slice(file.name.lastIndexOf('.')).toLowerCase();
 
+                // Validate Size (Max 10MB)
+                const maxSize = 10 * 1024 * 1024;
+                if (file.size > maxSize) {
+                    setErrors(prev => ({ ...prev, [name]: "El archivo excede el límite de 10MB." }));
+                    fileInput.value = "";
+                    setFormData(prev => ({ ...prev, [name]: "" }));
+                    return;
+                }
+
                 if (!validExtensions.includes(fileExtension)) {
-                    setErrors(prev => ({ ...prev, [name]: "Solo formatos SolidWorks (.sldprt, .sldasm, .slddrw)" }));
+                    setErrors(prev => ({ ...prev, [name]: "Formatos aceptados: SolidWorks, DXF, PDF, Imagen" }));
                     // Clear the input
                     fileInput.value = "";
                     setFormData(prev => ({ ...prev, [name]: "" }));
@@ -498,7 +507,7 @@ function QuoteSection() {
                                                     />
                                                     <div className="md:col-span-2">
                                                         <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 ml-1 mb-2">
-                                                            Adjuntar Plano (SolidWorks .sldprt/.sldasm/.slddrw) <span className="text-gray-400 font-normal">(Opcional)</span>
+                                                            Adjuntar Plano/Imagen (SolidWorks, DXF, PDF, Imagen) <span className="text-gray-400 font-normal">(Opcional)</span>
                                                         </label>
                                                         <div className="flex items-center gap-3">
                                                             <div className="relative flex-1">
@@ -507,7 +516,7 @@ function QuoteSection() {
                                                                     type="file"
                                                                     name="archivo"
                                                                     onChange={handleChange}
-                                                                    accept=".sldprt,.sldasm,.slddrw"
+                                                                    accept=".sldprt,.sldasm,.slddrw,.dxf,.jpg,.jpeg,.png,.pdf"
                                                                     className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[#FFD700] file:text-slate-900 hover:file:bg-yellow-400 transition-all cursor-pointer"
                                                                 />
                                                             </div>
@@ -707,11 +716,11 @@ function CapabilitiesSection() {
                                 <div className="w-20 h-1 bg-[#FFD700] transform origin-left transition-all duration-300 group-hover:w-full" />
                             </div>
 
-                            <p className="text-gray-300 text-lg mb-6 opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500 delay-100">
+                            <p className="text-gray-300 text-lg mb-6 opacity-100 translate-y-0 md:opacity-0 md:translate-y-4 md:group-hover:opacity-100 md:group-hover:translate-y-0 transition-all duration-500 delay-100">
                                 {proc.description}
                             </p>
 
-                            <div className="flex flex-wrap gap-2 opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500 delay-200 mb-6">
+                            <div className="flex flex-wrap gap-2 opacity-100 translate-y-0 md:opacity-0 md:translate-y-4 md:group-hover:opacity-100 md:group-hover:translate-y-0 transition-all duration-500 delay-200 mb-6">
                                 {proc.specs.map((spec, i) => (
                                     <span key={i} className="border border-white/30 text-white px-3 py-1 rounded-full text-sm font-medium backdrop-blur-sm">
                                         {spec}
@@ -719,7 +728,7 @@ function CapabilitiesSection() {
                                 ))}
                             </div>
 
-                            <motion.button
+                            {/* <motion.button
                                 whileHover={{ scale: 1.02 }}
                                 whileTap={{ scale: 0.95 }}
                                 animate={{
@@ -732,7 +741,7 @@ function CapabilitiesSection() {
                             >
                                 <Download className="w-6 h-6" />
                                 <span className="tracking-widest">Descargar Ficha Técnica</span>
-                            </motion.button>
+                            </motion.button> */}
                         </div>
                         <Settings className="absolute top-6 right-6 w-24 h-24 text-white/5 group-hover:rotate-180 transition-transform duration-1000" />
                     </motion.div>

@@ -21,6 +21,16 @@ class OrderController extends Controller
     {
         try {
             $user = Auth::user();
+            $sessionId = \Illuminate\Support\Facades\Session::getId();
+            
+            // Si es usuario invitado, validamos datos de contacto
+            if (!$user) {
+                $request->validate([
+                    'guest_name' => 'required|string|max:255',
+                    'guest_email' => 'required|email|max:255',
+                ]);
+            }
+
             $addressId = $request->input('address_id');
             $pickupInStore = (bool) $request->input('pickup_in_store', false);
 
@@ -63,15 +73,27 @@ class OrderController extends Controller
 
                 $branchData = $branches[$branchId] ?? $branches['alpuyeca'];
                 
-                $existing = Address::where('user_id', $user->id)
-                    ->where('calle', $branchData['calle'])
+                // Para guests, buscamos por session_id o creamos nueva sin user_id
+                $query = Address::query();
+                if ($user) {
+                    $query->where('user_id', $user->id);
+                } else {
+                    $query->where('session_id', $sessionId);
+                }
+                
+                $existing = $query->where('calle', $branchData['calle'])
                     ->where('referencia', 'Recoger en sucursal')
                     ->first();
+
                 if ($existing) {
                     $addressId = $existing->id_direccion;
                 } else {
                     $addr = new Address();
-                    $addr->user_id         = $user->id;
+                    if ($user) {
+                        $addr->user_id = $user->id;
+                    } else {
+                        $addr->session_id = $sessionId;
+                    }
                     $addr->calle           = $branchData['calle'];
                     $addr->colonia         = $branchData['colonia'];
                     $addr->numero_exterior = 'SN';
@@ -79,7 +101,7 @@ class OrderController extends Controller
                     $addr->codigo_postal   = $branchData['cp'];
                     $addr->estado          = $branchData['estado'];
                     $addr->ciudad          = $branchData['ciudad'];
-                    $addr->telefono        = $user->phone ?? '7771807312';
+                    $addr->telefono        = ($user->phone ?? $request->input('phone')) ?? '7771807312';
                     $addr->referencia      = 'Recoger en sucursal';
                     $addr->save();
                     $addressId = $addr->id_direccion;
@@ -121,13 +143,22 @@ class OrderController extends Controller
                 // Calcular total
                 $totalAmount = $quantity * $product->price;
                 
-                $order = new Order([
-                    'user_id' => $user->id,
+                $orderData = [
                     'address_id' => $addressId,
                     'total_amount' => $totalAmount,
                     'status' => 'pending_payment',
                     'expires_at' => Carbon::now()->addHours(24)
-                ]);
+                ];
+
+                if ($user) {
+                    $orderData['user_id'] = $user->id;
+                } else {
+                    $orderData['session_id'] = $sessionId;
+                    $orderData['guest_name'] = $request->input('guest_name');
+                    $orderData['guest_email'] = $request->input('guest_email');
+                }
+
+                $order = new Order($orderData);
                 
                 $order->save();
                 
@@ -157,7 +188,11 @@ class OrderController extends Controller
                     'order_id' => $order->id_order
                 ]);
             } else {
-                $cart = ShoppingCart::where('user_id', $user->id)->first();
+                if ($user) {
+                    $cart = ShoppingCart::where('user_id', $user->id)->first();
+                } else {
+                    $cart = ShoppingCart::where('session_id', $sessionId)->first();
+                }
                 
                 if (!$cart || $cart->items->isEmpty()) {
                     return response()->json([
@@ -193,13 +228,22 @@ class OrderController extends Controller
                     }
                 }
                 
-                $order = new Order([
-                    'user_id' => $user->id,
+                $orderData = [
                     'address_id' => $addressId,
                     'total_amount' => $totalAmount,
                     'status' => 'pending_payment',
                     'expires_at' => Carbon::now()->addHours(24)
-                ]);
+                ];
+
+                if ($user) {
+                    $orderData['user_id'] = $user->id;
+                } else {
+                    $orderData['session_id'] = $sessionId;
+                    $orderData['guest_name'] = $request->input('guest_name');
+                    $orderData['guest_email'] = $request->input('guest_email');
+                }
+
+                $order = new Order($orderData);
                 
                 $order->save();
                 
@@ -243,22 +287,35 @@ class OrderController extends Controller
     }
     
     
-        public function show($id)
+    public function show($id)
     {
-        // Cargar de forma estricta por id y usuario para evitar desajustes en algunos entornos
+        $user = Auth::user();
+        $sessionId = \Illuminate\Support\Facades\Session::getId();
+
+        // Cargar de forma estricta por id
         $query = Order::with(['items.product', 'address', 'payment_proofs', 'user'])
             ->where('id_order', $id);
 
-        // Si no es admin, filtrar por su propio user_id
-        if (Auth::user()->role !== 'admin') {
-            $query->where('user_id', Auth::id());
+        // Si no es admin, filtramos por pertenencia
+        if (!$user || $user->role !== 'admin') {
+            if ($user) {
+                $query->where('user_id', $user->id);
+            } else {
+                // Para invitados, verificamos session_id o si viene de un track validado
+                // Si la orden tiene guest_email, permitimos si el session_id coincide 
+                // o si hay una marca en sesion de que esta orden fue "desbloqueada" via track
+                $allowedInSession = session("unlocked_order_{$id}");
+                
+                if (!$allowedInSession) {
+                    $query->where('session_id', $sessionId);
+                }
+            }
         }
 
         $order = $query->first();
 
         if (!$order) {
-            // Redirigir a la lista de pedidos en lugar del dashboard para una UX más clara
-            return redirect()->route('orders.list')->with('error', 'Orden no encontrada o no tienes permiso para verla');
+            return redirect()->route('home')->with('error', 'Orden no encontrada o no tienes permiso para verla');
         }
 
         $timeLeft = 0;
@@ -274,8 +331,9 @@ class OrderController extends Controller
             'id' => $order->id_order,
             'status' => $order->status,
             'total' => $order->total_amount,
-            'created_at' => $order->created_at->copy()->setTimezone('America/Mexico_City')->format('d/m/Y H:i:s'),
-            'expires_at' => $order->expires_at ? Carbon::parse($order->expires_at)->copy()->setTimezone('America/Mexico_City')->format('d/m/Y H:i:s') : null,
+            // Usar formato ISO para que JavaScript lo maneje correctamente (evitar "Invalid Date")
+            'created_at' => $order->created_at ? $order->created_at->toIso8601String() : null,
+            'expires_at' => $order->expires_at ? \Carbon\Carbon::parse($order->expires_at)->toIso8601String() : null,
             'time_left' => $timeLeft,
             'address' => $order->address ? [
                 'street' => $order->address->calle,
@@ -352,14 +410,26 @@ class OrderController extends Controller
             $bestPhone = $order->address->telefono ?? 'No disponible';
         }
 
+        // Handle Guest vs Registered User
+        $userData = [];
+        if ($order->user) {
+            $userData = [
+                'name'     => $order->user->name,
+                'email'    => $order->user->email,
+                'telefono' => $bestPhone,
+            ];
+        } else {
+             $userData = [
+                'name'     => $order->guest_name ?? 'Invitado',
+                'email'    => $order->guest_email ?? 'Sin email',
+                'telefono' => $bestPhone,
+            ];
+        }
+
         return Inertia::render('Admin/OrderDetails', [
             'order' => [
                 'id'        => $order->id_order,
-                'user'      => [
-                    'name'     => $order->user->name,
-                    'email'    => $order->user->email,
-                    'telefono' => $bestPhone,
-                ],
+                'user'      => $userData,
                 'status'     => $order->status,
                 'created_at' => $order->created_at->format('d/m/Y H:i'),
                 'total'      => $order->total_amount,
@@ -440,8 +510,9 @@ class OrderController extends Controller
                     'id_order'     => $order->id_order,
                     'status'       => $order->status,
                     'total_amount' => $order->total_amount,
-                    'created_at'   => $order->created_at ? $order->created_at->copy()->setTimezone('America/Mexico_City')->format('d/m/Y H:i:s') : null,
-                    'expires_at'   => $order->expires_at ? \Carbon\Carbon::parse($order->expires_at)->copy()->setTimezone('America/Mexico_City')->format('d/m/Y H:i:s') : null,
+                    // Usar formato ISO para que JavaScript lo maneje correctamente (evitar "Invalid Date")
+                    'created_at'   => $order->created_at ? $order->created_at->toIso8601String() : null,
+                    'expires_at'   => $order->expires_at ? \Carbon\Carbon::parse($order->expires_at)->toIso8601String() : null,
                 ];
             });
 
@@ -489,10 +560,13 @@ class OrderController extends Controller
                         ($order->address->calle && str_starts_with($order->address->calle, 'REFACCIONES EL BOOM'))
                     );
                 }
+                $customerName = $order->user ? $order->user->name : ($order->guest_name ?? 'Invitado');
+                $customerEmail = $order->user ? $order->user->email : ($order->guest_email ?? 'Sin email');
+
                 return [
                     'id_order'       => $order->id_order,
-                    'customer_name'  => $order->user->name,
-                    'customer_email' => $order->user->email,
+                    'customer_name'  => $customerName,
+                    'customer_email' => $customerEmail,
                     'total_amount'   => $order->total_amount,
                     'status'         => $order->status,
                     // Mostrar hora local de CDMX; evita el desfase que veías por UTC
@@ -719,6 +793,56 @@ public function cancelOrder($id)
         // Mostrar en el navegador en lugar de forzar descarga
         return response()->file($filePath, [
             'Content-Type' => 'application/pdf',
+        ]);
+    }
+    /**
+     * Muestra el formulario de rastreo para invitados
+     */
+    public function guestLookupForm()
+    {
+        return Inertia::render('GuestOrderLookup');
+    }
+
+    /**
+     * Procesa la búsqueda de pedido para invitados
+     */
+    public function guestLookup(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+            'order_id' => 'required|integer',
+        ]);
+
+        $order = Order::where('id_order', $request->order_id)
+            ->where('guest_email', $request->email)
+            ->first();
+
+        if (!$order) {
+            return back()->with('error', 'No se encontró ningún pedido con esos datos. Verifica el correo y el número de orden.');
+        }
+
+        // Si se encuentra la orden, buscamos todas las órdenes asociadas a ese correo
+        // para mostrarlas en la lista, similar a un usuario logeado.
+        $orders = Order::where('guest_email', $request->email)
+            ->select('id_order', 'status', 'total_amount', 'created_at', 'expires_at')
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function ($o) use ($order) {
+                // "Desbloquear" cada orden encontrada en la sesión para que puedan ver detalles
+                session(["unlocked_order_{$o->id_order}" => true]);
+                
+                return [
+                    'id_order'     => $o->id_order,
+                    'status'       => $o->status,
+                    'total_amount' => $o->total_amount,
+                    'created_at'   => $o->created_at ? $o->created_at->toIso8601String() : null,
+                    'expires_at'   => $o->expires_at ? \Carbon\Carbon::parse($o->expires_at)->toIso8601String() : null,
+                ];
+            });
+
+        return Inertia::render('OrdersList', [
+            'orders' => $orders,
+            'isGuest' => true,
         ]);
     }
 }

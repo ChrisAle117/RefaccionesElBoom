@@ -8,6 +8,7 @@ import { Truck, ShoppingCart } from 'lucide-react';
 import { router } from '@inertiajs/react';
 import { usePage } from '@inertiajs/react';
 import { es } from 'date-fns/locale';
+import { useToast } from './ui/toast';
 
 export interface SharedProps {
     auth: {
@@ -66,6 +67,7 @@ export function ProductCard({
     const { addToCart, isProductInCart } = useShoppingCart();
     const { props } = usePage<SharedProps>();
     const { auth } = props;
+    const toast = useToast();
 
     const [showDetails, setShowDetails] = useState(false);
     const [showAdditionalInfo, setShowAdditionalInfo] = useState(false);
@@ -373,10 +375,11 @@ export function ProductCard({
                 if (body.success) {
                     setShipping(body.data);
                 } else {
-                    setShippingError('No fue posible cotizar el envío');
+                    const userMsg = body.user_message || 'No fue posible cotizar el envío para esta dirección.';
+                    setShippingError(userMsg);
                 }
             })
-            .catch(() => setShippingError('Error al cotizar envío'))
+            .catch(() => setShippingError('Sin conexión con el servicio de envío. Intenta en unos momentos.'))
             .finally(() => setLoadingShipping(false));
     };
 
@@ -386,21 +389,10 @@ export function ProductCard({
 
         if (isAddingToCart || isInCart) return;
 
-        if (!auth?.user) {
-            const alertDiv = document.createElement('div');
-            alertDiv.textContent = 'Para poder agregar un producto al carrito, debe de iniciar sesión o registrarse.';
-            alertDiv.className = 'fixed top-[-100px] left-1/2 transform -translate-x-1/2 bg-[#] text-white px-6 py-3 rounded-lg shadow-lg z-50 text-center transition-transform duration-5000 ease-in-out';
-            document.body.appendChild(alertDiv);
-            setTimeout(() => {
-                alertDiv.style.top = '25px';
-            }, 10);
-            setTimeout(() => {
-                alertDiv.style.top = '-100px';
-                setTimeout(() => document.body.removeChild(alertDiv), 500);
-            }, 4000);
-            router.visit('/login');
-            return;
-        }
+        if (isAddingToCart || isInCart) return;
+
+        // Auth check removed for Guest Checkout
+        /* if (!auth?.user) { ... } */
 
         try {
             setIsAddingToCart(true);
@@ -419,33 +411,13 @@ export function ProductCard({
 
             const product = { id_product: effectiveId, name: effectiveName, price: effectivePrice, quantity: 1, disponibility: finalStock, image: effectiveImage };
             await addToCart(product);
-
-            //Alerta de éxito
-            const alertDiv = document.createElement('div');
-            alertDiv.textContent = 'Producto agregado correctamente';
-            alertDiv.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded shadow-lg transition-opacity duration-300 opacity-0 flex items-center';
-
-
-            const checkIcon = document.createElement('span');
-            checkIcon.innerHTML = '✓';
-            checkIcon.className = 'mr-2 font-bold';
-            alertDiv.prepend(checkIcon);
-
-            document.body.appendChild(alertDiv);
+            toast.success('¡Producto agregado al carrito!');
             setTimeout(() => {
-                alertDiv.style.opacity = '1';
-            }, 100);
-
-            setTimeout(() => {
-                alertDiv.style.opacity = '0';
-                setTimeout(() => {
-                    document.body.removeChild(alertDiv);
-                    setIsAddingToCart(false);
-                    setIsInCart(true);
-                }, 300);
-            }, 3000);
+                setIsAddingToCart(false);
+                setIsInCart(true);
+            }, 400);
         } catch {
-            alert('Hubo un problema al agregar el producto al carrito.');
+            toast.error('Hubo un problema al agregar el producto al carrito.');
             setIsAddingToCart(false);
         }
     };
@@ -453,21 +425,8 @@ export function ProductCard({
 
     const handleBuyNow = async (e: React.MouseEvent<HTMLButtonElement>) => {
         e.stopPropagation();
-        if (!auth?.user) {
-            const alertDiv = document.createElement('div');
-            alertDiv.textContent = 'Para poder comprar, debe de iniciar sesión o registrarse.';
-            alertDiv.className = 'fixed top-[-100px] left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 text-center transition-transform duration-500 ease-in-out';
-            document.body.appendChild(alertDiv);
-            setTimeout(() => {
-                alertDiv.style.top = '25px';
-            }, 10);
-            setTimeout(() => {
-                alertDiv.style.top = '-100px';
-                setTimeout(() => document.body.removeChild(alertDiv), 500);
-            }, 4000);
-            router.visit('/login');
-            return;
-        }
+        // Auth check removed for Guest Checkout
+        /* if (!auth?.user) { ... } */
         try {
             // Reconciliar stock antes de continuar con la compra
             let finalStock = liveDisponibility;
@@ -486,7 +445,7 @@ export function ProductCard({
             const encoded = encodeURIComponent(JSON.stringify(productData));
             router.visit(`/confirmation?product=${encoded}`, { replace: true });
         } catch {
-            alert('Hubo un problema al procesar la compra.');
+            toast.error('Hubo un problema al procesar la compra.');
         }
     };
 

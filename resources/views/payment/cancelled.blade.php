@@ -145,14 +145,14 @@
                         </div>
                         <h5 class="option-title">¿Necesitas ayuda?</h5>
                         <p>Nuestro equipo está disponible para asistirte con tu compra</p>
-                        <a href="#" class="btn btn-outline-dark">
+                        <a href="https://wa.me/527771810370?text=Hola%2C%20necesito%20ayuda%20con%20mi%20pedido%20" class="btn btn-outline-dark">
                             <i class="fas fa-comments me-1"></i> Contactar soporte
                         </a>
                     </div>
                 </div>
                 
                 <div class="text-center mt-4">
-                    <a href="{{ route('dashboard') }}" class="btn btn-primary">
+                    <a href="{{ route('home') }}" class="btn btn-primary">
                         <i class="fas fa-home me-1"></i> Volver al inicio
                     </a>
                 </div>

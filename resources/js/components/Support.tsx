@@ -5,10 +5,10 @@ import { Phone, Mail, MapPin, Clock, MessageCircle, ExternalLink } from 'lucide-
 export default function Support() {
     // Información de contacto y soporte
     const supportInfo = {
-        phone: '+52 (777)-180-7312',
+        phone: '+52 (777)-367-2690',
         email: 'soporte-ecom@refaccioneselboom.com',
         hours: 'Lunes a Viernes: 9:00 AM - 6:00 PM',
-        whatsapp: '+52 (777)-180-7312',
+        whatsapp: '+52 (777)-367-2690',
     };
 
     const contactMethods = [
@@ -25,7 +25,7 @@ export default function Support() {
             value: supportInfo.whatsapp,
             icon: MessageCircle,
             color: 'bg-[#25D366]',
-            href: `https://wa.me/527771807312`,
+            href: `https://wa.me/527773672690`,
             label: 'Enviar mensaje'
         },
         {

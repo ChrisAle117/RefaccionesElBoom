@@ -191,10 +191,10 @@
                     <a href="{{ route('cart.view') }}" class="btn btn-primary">
                         <i class="fas fa-shopping-cart me-1"></i> Volver al carrito
                     </a>
-                    <a href="#" class="btn btn-outline-danger">
+                    <a href="https://wa.me/527771810370?text=Hola%2C%20necesito%20ayuda%20con%20mi%20pedido%20" class="btn btn-outline-danger">
                         <i class="fas fa-headset me-1"></i> Contactar soporte
                     </a>
-                    <a href="{{ route('dashboard') }}" class="btn btn-outline-secondary">
+                    <a href="{{ route('home') }}" class="btn btn-outline-secondary">
                         <i class="fas fa-home me-1"></i> Volver al inicio
                     </a>
                 </div>
