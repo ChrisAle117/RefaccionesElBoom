@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { Link } from '@inertiajs/react';
 
 function useMediaQuery(query: string) {
     const get = () =>
@@ -102,28 +103,20 @@ const Carousel: React.FC<CarouselProps> = React.memo(({
                                 fetchPriority={index === 0 ? 'high' : undefined}
                                 draggable={false}
                             />
-                            {/* Overlay con texto */}
-                            {index === currentIndex && data && (data.title || data.description) && (
-                                <div className="absolute inset-0 bg-black/40 flex items-center justify-center text-center p-6 z-20">
-                                    <div className="max-w-4xl px-4 flex flex-col items-center">
-                                        {data.title && (
-                                            <h2 className="text-3xl sm:text-5xl md:text-7xl font-black text-white mb-4 drop-shadow-2xl tracking-tighter uppercase">
-                                                {data.title}
-                                            </h2>
-                                        )}
-                                        {data.description && (
-                                            <p className="text-xl sm:text-2xl text-yellow-400 font-bold mb-8 drop-shadow-lg max-w-2xl">
-                                                {data.description}
-                                            </p>
-                                        )}
-                                        {data.ctaText && data.ctaHref && (
-                                            <a
-                                                href={data.ctaHref}
-                                                className="px-8 py-4 bg-yellow-500 hover:bg-yellow-600 text-black font-black text-xl rounded-full shadow-2xl transition-all transform hover:scale-110 active:scale-95"
-                                            >
-                                                {data.ctaText}
-                                            </a>
-                                        )}
+                            {/* Overlay con Botón en la esquina inferior izquierda */}
+                            {index === currentIndex && data && data.ctaText && data.ctaHref && (
+                                <div className="absolute inset-x-0 bottom-0 top-0 flex items-end justify-start p-6 sm:p-12 z-20 pointer-events-none">
+                                    <div className="flex flex-col items-start pointer-events-auto">
+                                        <Link
+                                            href={data.ctaHref}
+                                            className="group/cta px-6 py-3 sm:px-10 sm:py-5 bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-400 hover:to-yellow-500 text-black font-black text-sm sm:text-xl rounded-full shadow-[0_0_20px_rgba(251,204,19,0.3)] transition-all transform hover:scale-105 active:scale-95 flex items-center gap-2 border-2 border-black/10 relative overflow-hidden"
+                                        >
+                                            <span className="relative z-10">{data.ctaText}</span>
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 sm:w-6 sm:h-6 transition-transform group-hover/cta:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                                            </svg>
+                                            <div className="absolute inset-0 bg-white/20 translate-y-full group-hover/cta:translate-y-0 transition-transform duration-300" />
+                                        </Link>
                                     </div>
                                 </div>
                             )}
