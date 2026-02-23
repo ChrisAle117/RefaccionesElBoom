@@ -147,7 +147,10 @@ class OrderController extends Controller
                     'address_id' => $addressId,
                     'total_amount' => $totalAmount,
                     'status' => 'pending_payment',
-                    'expires_at' => Carbon::now()->addHours(24)
+                    'expires_at' => Carbon::now()->addHours(24),
+                    'requires_invoice' => (bool) $request->input('requires_invoice', false),
+                    'rfc' => $request->input('rfc'),
+                    'tax_situation_document' => $request->input('tax_situation_document'),
                 ];
 
                 if ($user) {
@@ -232,7 +235,10 @@ class OrderController extends Controller
                     'address_id' => $addressId,
                     'total_amount' => $totalAmount,
                     'status' => 'pending_payment',
-                    'expires_at' => Carbon::now()->addHours(24)
+                    'expires_at' => Carbon::now()->addHours(24),
+                    'requires_invoice' => (bool) $request->input('requires_invoice', false),
+                    'rfc' => $request->input('rfc'),
+                    'tax_situation_document' => $request->input('tax_situation_document'),
                 ];
 
                 if ($user) {
@@ -370,7 +376,14 @@ class OrderController extends Controller
                 'name' => $order->user->name,
                 'email' => $order->user->email,
                 'telefono' => $order->user->phone ?? $order->address->telefono ?? 'No disponible',
-            ] : null
+            ] : [
+                'name' => $order->guest_name ?? 'Invitado',
+                'email' => $order->guest_email ?? 'Sin email',
+                'telefono' => $order->address->telefono ?? 'No disponible',
+            ],
+            'requires_invoice' => $order->requires_invoice,
+            'rfc' => $order->rfc,
+            'tax_situation_document' => $order->tax_situation_document,
         ];
 
         foreach ($order->items as $item) {
@@ -441,7 +454,11 @@ class OrderController extends Controller
                     'postalCode'     => $order->address->codigo_postal,
                     'city'           => $order->address->ciudad,
                     'state'          => $order->address->estado,
+                    'reference'      => $order->address->referencia,
                 ],
+                'requires_invoice' => $order->requires_invoice,
+                'rfc' => $order->rfc,
+                'tax_situation_document' => $order->tax_situation_document,
                 'is_pickup'   => $isPickup,
                 'items' => $order->items->map(function($item) {
                     return [

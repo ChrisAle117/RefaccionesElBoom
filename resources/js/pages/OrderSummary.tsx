@@ -53,6 +53,9 @@ interface OrderProps {
             email: string;
             telefono: string;
         };
+        requires_invoice?: boolean;
+        rfc?: string;
+        tax_situation_document?: string;
     };
 }
 
@@ -239,7 +242,7 @@ const OrderSummary: React.FC<OrderProps> = ({ order }) => {
 
             {isAdmin && order.user && (
                 <div className="bg-blue-50 border-l-4 border-blue-500 text-blue-700 p-4 mb-6 rounded shadow-sm">
-                    <p className="font-bold uppercase text-[10px] tracking-widest mb-2">Información de Contacto (Solo Admin)</p>
+                    <p className="font-bold uppercase text-[10px] tracking-widest mb-2">Información de Contacto {isAdmin ? '(Solo Admin)' : ''}</p>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
                             <p className="text-xs font-bold text-gray-500 uppercase">Cliente</p>
@@ -253,6 +256,53 @@ const OrderSummary: React.FC<OrderProps> = ({ order }) => {
                             <p className="text-xs font-bold text-gray-500 uppercase">Teléfono</p>
                             <p className="text-sm font-black text-gray-900">{order.user.telefono}</p>
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {!isAdmin && order.user && (
+                <div className="bg-gray-50 border p-4 mb-6 rounded shadow-sm">
+                    <p className="font-bold text-sm mb-3">Información de Contacto</p>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="flex flex-col">
+                            <span className="text-xs text-gray-500">Nombre</span>
+                            <span className="font-medium">{order.user.name}</span>
+                        </div>
+                        <div className="flex flex-col">
+                            <span className="text-xs text-gray-500">Correo</span>
+                            <span className="font-medium">{order.user.email}</span>
+                        </div>
+                        <div className="flex flex-col">
+                            <span className="text-xs text-gray-500">Teléfono</span>
+                            <span className="font-medium">{order.user.telefono}</span>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {order.requires_invoice && (
+                <div className="bg-slate-50 border p-4 mb-6 rounded shadow-sm">
+                    <p className="font-bold text-sm mb-3 flex items-center gap-2">
+                        <span className="p-1 bg-slate-200 rounded">📄</span> Datos de Facturación
+                    </p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="flex flex-col">
+                            <span className="text-xs text-gray-500">RFC</span>
+                            <span className="font-mono font-bold uppercase">{order.rfc}</span>
+                        </div>
+                        {order.tax_situation_document && (
+                            <div className="flex flex-col">
+                                <span className="text-xs text-gray-500">Documento</span>
+                                <a
+                                    href={`/storage/${order.tax_situation_document}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-[#006CFA] hover:underline font-medium text-sm"
+                                >
+                                    Ver Constancia de Situación Fiscal
+                                </a>
+                            </div>
+                        )}
                     </div>
                 </div>
             )}

@@ -52,6 +52,9 @@ interface OrderDetailsProps {
         items: OrderItem[];
         payment_proofs: PaymentProof[];
         is_pickup?: boolean;
+        requires_invoice?: boolean;
+        rfc?: string;
+        tax_situation_document?: string;
     };
 }
 
@@ -142,6 +145,31 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ order }) => {
                                         <span className="text-xs font-medium">{order.user.telefono}</span>
                                     </div>
                                 </div>
+
+                                {order.requires_invoice && (
+                                    <div className="mt-6 pt-6 border-t border-gray-100">
+                                        <div className="flex items-center gap-2 mb-3">
+                                            <FileText className="w-4 h-4 text-blue-600" />
+                                            <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Información de Facturación</h4>
+                                        </div>
+                                        <div className="bg-gray-50 rounded-2xl p-4 space-y-3">
+                                            <div>
+                                                <p className="text-[9px] font-black text-gray-400 uppercase mb-1">RFC:</p>
+                                                <p className="text-xs font-mono font-black text-gray-900">{order.rfc}</p>
+                                            </div>
+                                            {order.tax_situation_document && (
+                                                <a
+                                                    href={`/storage/${order.tax_situation_document}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="flex items-center gap-2 text-[10px] font-black text-blue-600 uppercase hover:underline"
+                                                >
+                                                    <ExternalLink className="w-3 h-3" /> Ver Constancia Fiscal
+                                                </a>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                             <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-blue-50/50 rounded-full group-hover:scale-125 transition-transform" />
                         </section>
