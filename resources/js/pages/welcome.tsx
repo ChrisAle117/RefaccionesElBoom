@@ -59,9 +59,9 @@ export default function Welcome() {
     ];
 
     const carouselImagesMobile = [
-        '/images/c1-21x9.webp',
-        '/images/c2-21x9.webp',
-        '/images/c3-21x9.webp',
+        '/images/c1.webp',
+        '/images/c2.webp',
+        '/images/c3.webp',
     ];
 
     return (

@@ -68,8 +68,8 @@ const Carousel: React.FC<CarouselProps> = React.memo(({
 
     if (!count) return null;
 
-    const MAX_VH_DESKTOP = 60; // Aumentado de 42 a 60 para mostrar más imagen
-    const MAX_VH_MOBILE = 60;  // Aumentado de 50 a 60
+    const MAX_VH_DESKTOP = 42;
+    const MAX_VH_MOBILE = 60;
 
     const containerHeight = isDesktop
         ? `min(calc(100vw * 9 / 21), ${MAX_VH_DESKTOP}vh)`
