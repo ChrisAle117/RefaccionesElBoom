@@ -5,6 +5,7 @@ import { createInertiaApp, router } from '@inertiajs/react';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { createRoot } from 'react-dom/client';
 import { initializeTheme } from './hooks/use-appearance';
+import { ToastProvider } from '@/components/ui/toast';
 import { ShoppingCartProvider } from '@/components/shopping-car-context';
 
 createInertiaApp({
@@ -33,9 +34,11 @@ createInertiaApp({
         const isAuthenticated = !!(props.initialPage.props as unknown as PageProps)?.auth?.user;
 
         root.render(
-            <ShoppingCartProvider isAuthenticated={isAuthenticated}>
-                <App {...props} />
-            </ShoppingCartProvider>
+            <ToastProvider>
+                <ShoppingCartProvider isAuthenticated={isAuthenticated}>
+                    <App {...props} />
+                </ShoppingCartProvider>
+            </ToastProvider>
         );
     },
     progress: {

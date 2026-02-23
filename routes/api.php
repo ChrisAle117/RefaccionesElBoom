@@ -27,35 +27,49 @@ use Illuminate\Support\Facades\DB;
 Route::match(['get','post'], '/openpay/webhook', [OpenpayWebhookController::class, 'handle']);
 
 Route::get('/products/{id}/reconcile-stock', function ($id) {
-	$product = Product::query()->select('id_product','disponibility','active')->where('id_product', $id)->first();
-	if (!$product) {
-		return response()->json(['success' => false, 'message' => 'Producto no encontrado'], 404);
-	}
-	$remote = null;
-	try {
-		$refClass = new \ReflectionClass(Product::class);
-		if ($refClass->hasMethod('fetchStockMap')) {
-			$m = $refClass->getMethod('fetchStockMap');
-			$m->setAccessible(true);
-			$map = $m->invoke(null, [$product->id_product]);
-			$remote = $map[$product->id_product] ?? null;
-		}
-	} catch (\Throwable $e) {
+    try {
+        $product = Product::query()->select('id_product', 'disponibility', 'active')->where('id_product', $id)->first();
+        if (!$product) {
+            return response()->json(['success' => false, 'message' => 'Producto no encontrado'], 404);
+        }
 
+        $remote = null;
+        try {
+            $refClass = new \ReflectionClass(Product::class);
+            if ($refClass->hasMethod('fetchStockMap')) {
+                $m = $refClass->getMethod('fetchStockMap');
+                $m->setAccessible(true);
+                // fetchStockMap expects an array of IDs
+                $map = $m->invoke(null, [(int)$product->id_product]);
+                $remote = $map[$product->id_product] ?? null;
+            }
+        } catch (\Throwable $e) {
+            \Log::error("Error fetching remote stock for product {$id}: " . $e->getMessage());
+        }
+
+        $adjusted = false;
+        // Only adjust if we got a valid number from remote and it's different/lower
+        if ($remote !== null && $remote !== '__MISS__' && $product->disponibility > (int)$remote) {
+            DB::table('products')->where('id_product', $product->id_product)->update(['disponibility' => (int)$remote]);
+            $product->disponibility = (int)$remote;
+            $adjusted = true;
+        }
+
+        return response()->json([
+            'success' => true,
+            'id_product' => $product->id_product,
+            'local_stock' => (int) $product->disponibility,
+            'remote_stock' => ($remote === '__MISS__') ? null : $remote,
+            'adjusted' => $adjusted,
+        ]);
+    } catch (\Throwable $e) {
+        \Log::error("Fatal error in reconcile-stock for product {$id}: " . $e->getMessage());
+        return response()->json([
+            'success' => false,
+            'message' => 'Error interno al conciliar stock',
+            'error' => $e->getMessage()
+        ], 500);
     }
-	$adjusted = false;
-	if ($remote !== null && $product->disponibility > $remote) {
-		DB::table('products')->where('id_product', $product->id_product)->update(['disponibility' => (int)$remote]);
-		$product->disponibility = (int)$remote;
-		$adjusted = true;
-	}
-	return response()->json([
-		'success' => true,
-		'id_product' => $product->id_product,
-		'local_stock' => (int) $product->disponibility,
-		'remote_stock' => $remote,
-		'adjusted' => $adjusted,
-	]);
 });
 
 // Search product by exact code
