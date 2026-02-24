@@ -1,9 +1,19 @@
 import React, { ReactNode, useEffect, useState } from 'react';
 import { Head, usePage } from '@inertiajs/react';
 import { Link } from '@inertiajs/react';
-import WhatsAppWidget from '@/components/WhatsAppWidget';
-import { ChevronRight, LayoutDashboard, ReceiptText, ClipboardList, Package, Layers, Users, BookOpen, Store, Truck, AlertTriangle } from 'lucide-react';
+import { ChevronRight, LayoutDashboard, ReceiptText, ClipboardList, Package, Layers, Users, BookOpen, Store, Truck, AlertTriangle, Bell, CheckCheck, Inbox } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNotificaciones } from '@/hooks/use-notificaciones';
+import { formatDistanceToNow } from 'date-fns';
+import { es } from 'date-fns/locale';
+import {
+    Sheet,
+    SheetContent,
+    SheetHeader,
+    SheetTitle,
+    SheetTrigger,
+    SheetClose,
+} from "@/components/ui/sheet";
 
 interface AdminLayoutProps {
     children: ReactNode;
@@ -25,6 +35,9 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title = 'Admin', fu
     const { auth } = props;
     const [incidenceCount, setIncidenceCount] = useState<number | null>(null);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+    // Activar notificaciones por polling y obtener estado
+    const { notifications, unreadCount, markAsRead, fetchNotifications } = useNotificaciones();
 
     useEffect(() => {
         let aborted = false;
@@ -57,8 +70,6 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title = 'Admin', fu
 
     return (
         <div className="min-h-screen bg-gray-100 text-slate-900 relative">
-            {/* Optional: WhatsApp widget in admin area too */}
-            <WhatsAppWidget />
             <Head title={title} />
 
             {/* Header */}
@@ -121,6 +132,91 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title = 'Admin', fu
                         </div>
 
                         <div className="flex items-center gap-1 sm:gap-2">
+                            <Sheet onOpenChange={(open) => { if (open) fetchNotifications(true); }}>
+                                <SheetTrigger asChild>
+                                    <button
+                                        aria-label="Abrir notificaciones"
+                                        className="relative p-2 text-gray-500 hover:text-blue-600 transition-all duration-200 bg-white rounded-xl border border-gray-200 hover:border-blue-300 hover:shadow-md group"
+                                    >
+                                        <Bell className="w-5 h-5 group-hover:rotate-12 transition-transform" />
+                                        {unreadCount > 0 && (
+                                            <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-[10px] font-black text-white shadow-sm ring-2 ring-white animate-bounce-short">
+                                                {unreadCount > 9 ? '+9' : unreadCount}
+                                            </span>
+                                        )}
+                                    </button>
+                                </SheetTrigger>
+                                <SheetContent className="w-full sm:max-w-md p-0 overflow-hidden flex flex-col">
+                                    <SheetHeader className="p-6 border-b bg-slate-50">
+                                        <div className="flex items-center justify-between">
+                                            <SheetTitle className="text-lg font-black uppercase tracking-tight flex items-center gap-2">
+                                                <Bell className="w-5 h-5 text-blue-600" />
+                                                Notificaciones
+                                            </SheetTitle>
+                                            <div className="flex items-center gap-3">
+                                                {unreadCount > 0 && (
+                                                    <button
+                                                        onClick={() => markAsRead(notifications.filter(n => !n.leida).map(n => n.id))}
+                                                        className="text-[10px] font-bold uppercase tracking-widest text-blue-600 hover:text-blue-800 transition-colors flex items-center gap-1"
+                                                    >
+                                                        <CheckCheck className="w-3 h-3" />
+                                                        Marcar todas como leídas
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </SheetHeader>
+
+                                    <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50/30">
+                                        {notifications.filter(n => !n.leida).length === 0 ? (
+                                            <div className="h-40 flex flex-col items-center justify-center text-gray-400 gap-2">
+                                                <Inbox className="w-8 h-8 opacity-20" />
+                                                <p className="text-xs font-semibold uppercase tracking-widest text-center px-4">Todas las notificaciones han sido leídas</p>
+                                            </div>
+                                        ) : (
+                                            notifications.filter(n => !n.leida).map((n) => (
+                                                <div
+                                                    key={n.id}
+                                                    className="p-4 rounded-xl border bg-white border-blue-100 shadow-sm ring-1 ring-blue-50 transition-all duration-200 relative group overflow-hidden"
+                                                >
+                                                    <div className="absolute top-0 left-0 w-1 h-full bg-blue-600 transition-all" />
+                                                    <div className="flex justify-between items-start mb-1">
+                                                        <h4 className="text-sm font-black uppercase tracking-tight text-slate-900">
+                                                            {n.titulo}
+                                                        </h4>
+                                                        <span className="text-[10px] font-bold text-gray-400 text-right">
+                                                            {formatDistanceToNow(new Date(n.created_at), { addSuffix: true, locale: es })}
+                                                        </span>
+                                                    </div>
+                                                    <p className="text-xs text-gray-600 leading-relaxed mb-3">
+                                                        {n.mensaje}
+                                                    </p>
+                                                    <div className="flex items-center gap-2">
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                markAsRead([n.id]);
+                                                            }}
+                                                            className="flex-1 py-1.5 bg-blue-600 text-white rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-blue-700 transition-all flex items-center justify-center gap-1 shadow-sm active:scale-95"
+                                                        >
+                                                            <CheckCheck className="w-3 h-3" />
+                                                            Marcar como leída
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            ))
+                                        )}
+                                    </div>
+                                    <div className="p-4 border-t bg-white">
+                                        <SheetClose asChild>
+                                            <button className="w-full py-3 bg-gray-900 text-white rounded-xl font-black uppercase tracking-widest text-xs hover:bg-gray-800 transition-colors shadow-sm">
+                                                Cerrar Panel
+                                            </button>
+                                        </SheetClose>
+                                    </div>
+                                </SheetContent>
+                            </Sheet>
+
                             <div className="hidden md:block mr-2 text-right">
                                 <span className="block text-xs font-semibold text-gray-900">{auth.user.name}</span>
                                 <span className="block text-[10px] text-gray-500 capitalize">{auth.user.role}</span>

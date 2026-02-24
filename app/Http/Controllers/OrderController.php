@@ -164,6 +164,12 @@ class OrderController extends Controller
                 $order = new Order($orderData);
                 
                 $order->save();
+
+                // Notificar a los administradores
+                \App\Models\Notificacion::create([
+                    'titulo' => 'Nuevo Pedido (Transferencia)',
+                    'mensaje' => "Se ha creado el pedido #{$order->id_order} para " . ($user ? $user->name : $request->input('guest_name')) . ".",
+                ]);
                 
                 DB::transaction(function () use ($order, $product, $quantity) {
                     $orderItem = new OrderItem();
@@ -252,6 +258,12 @@ class OrderController extends Controller
                 $order = new Order($orderData);
                 
                 $order->save();
+
+                // Notificar a los administradores
+                \App\Models\Notificacion::create([
+                    'titulo' => 'Nuevo Pedido (Transferencia)',
+                    'mensaje' => "Se ha creado el pedido #{$order->id_order} para " . ($user ? $user->name : $request->input('guest_name')) . ".",
+                ]);
                 
                 foreach ($cart->items as $cartItem) {
                     // Verificar que el ID de producto exista y sea válido

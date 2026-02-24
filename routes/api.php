@@ -99,3 +99,4 @@ Route::get('/products/search-by-code', function (Request $request) {
         ]
     ]);
 })->middleware('throttle:30,1');
+
