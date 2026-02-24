@@ -131,7 +131,11 @@ const ReportingAdmin: React.FC<ReportingAdminProps> = ({ stats, topCustomers, sa
                                     </div>
                                     <div className="text-right">
                                         <p className="text-sm font-black text-gray-900">{formatPrice(customer.orders_sum_total_amount)}</p>
-                                        <Link href={route('admin.users.show', { id: customer.id })} className="text-[9px] font-black text-blue-500 uppercase hover:underline">Ver Perfil</Link>
+                                        {customer.id ? (
+                                            <Link href={route('admin.users.show', { id: customer.id })} className="text-[9px] font-black text-blue-500 uppercase hover:underline">Ver Perfil</Link>
+                                        ) : (
+                                            <span className="text-[9px] font-black text-gray-400 uppercase">Invitado</span>
+                                        )}
                                     </div>
                                 </div>
                             ))}

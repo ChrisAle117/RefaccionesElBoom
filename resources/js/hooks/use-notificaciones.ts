@@ -44,7 +44,7 @@ export function useNotificaciones() {
 
     const fetchNotifications = useCallback(async (all: boolean = false) => {
         try {
-            // @ts-expect-error - route() is provided by Ziggy
+
             let url = route('admin.notificaciones.index');
             if (all) {
                 url += (url.includes('?') ? '&' : '?') + 'all=1';
@@ -101,8 +101,7 @@ export function useNotificaciones() {
         } catch (error) {
             console.error('[useNotificaciones] Error fatal fetch:', error);
         }
-    }, []); // Quitamos dependencia de length para evitar recreaciones constantes
-
+    }, []);
     const markAsRead = async (ids: number[]) => {
         try {
             if (!ids || ids.length === 0) return;
@@ -112,7 +111,7 @@ export function useNotificaciones() {
                 || (window as unknown as { _token?: string })._token
                 || document.querySelector('input[name="_token"]')?.getAttribute('value');
 
-            // @ts-expect-error - route() is provided by Ziggy
+
             const res = await fetch(route('admin.notificaciones.marcar-leidas'), {
                 method: 'POST',
                 headers: {
