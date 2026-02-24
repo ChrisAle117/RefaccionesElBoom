@@ -68,12 +68,12 @@ export default function Welcome() {
     const carouselImages = [
         {
             src: '/images/c1-21x9.webp',
-            ctaText: 'Ver Productos',
+            ctaText: 'Tienda en linea',
             ctaHref: '/productos#main-content'
         },
         {
             src: '/images/c2-21x9.webp',
-            ctaText: 'Ver Productos',
+            ctaText: 'Tienda en linea',
             ctaHref: '/productos#main-content'
         },
         {
