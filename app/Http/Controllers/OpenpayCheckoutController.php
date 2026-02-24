@@ -260,6 +260,12 @@ class OpenpayCheckoutController extends Controller
 
             $order->save();
 
+            // Notificar a los administradores
+            \App\Models\Notificacion::create([
+                'titulo' => 'Nuevo Pedido (Tarjeta/Openpay)',
+                'mensaje' => "Se ha iniciado un pedido #{$order->id_order} con Openpay por " . ($user ? $user->name : $request->input('guest_name')) . ".",
+            ]);
+
             // Guardar bandera de pickup en cache temporal para procesos posteriores al pago
             if ($pickupInStore) {
                 try {

@@ -8,11 +8,24 @@ import { Facebook, Instagram, MessageCircle } from 'lucide-react';
 import React from 'react';
 
 export default function Welcome() {
-    usePage<SharedData>();
-
+    const { url } = usePage<SharedData>();
 
     const [pageTitle, setPageTitle] = React.useState('Refaccionaria El Boom | Tractopartes Nuevas y Usadas');
     const [metaDescription, setMetaDescription] = React.useState('Especialistas en tractopartes nuevas y usadas. Calidad y servicio para tu tractocamión en México.');
+
+    // Efecto para manejar el scroll automático al ancla #main-content
+    React.useEffect(() => {
+        if (window.location.hash === '#main-content') {
+            // Un pequeño delay para asegurar que TabNavigation y componentes lazy se hayan montado
+            const timer = setTimeout(() => {
+                const element = document.getElementById('main-content');
+                if (element) {
+                    element.scrollIntoView({ behavior: 'smooth' });
+                }
+            }, 300); // 300ms suele ser suficiente para transiciones de Inertia y Lazy loading
+            return () => clearTimeout(timer);
+        }
+    }, [url]);
 
     React.useEffect(() => {
         const updateSeo = () => {
@@ -53,15 +66,39 @@ export default function Welcome() {
     }, []);
 
     const carouselImages = [
-        '/images/c1-21x9.webp',
-        '/images/c2-21x9.webp',
-        '/images/c3-21x9.webp',
+        {
+            src: '/images/c1-21x9.webp',
+            ctaText: 'Ver Productos',
+            ctaHref: '/productos#main-content'
+        },
+        {
+            src: '/images/c2-21x9.webp',
+            ctaText: 'Ver Productos',
+            ctaHref: '/productos#main-content'
+        },
+        {
+            src: '/images/c3-21x9.webp',
+            ctaText: 'Ver Catálogos',
+            ctaHref: '/catalogos#main-content'
+        },
     ];
 
     const carouselImagesMobile = [
-        '/images/c1-21x9.webp',
-        '/images/c2-21x9.webp',
-        '/images/c3-21x9.webp',
+        {
+            src: '/images/c1.webp',
+            ctaText: 'Productos',
+            ctaHref: '/productos#main-content'
+        },
+        {
+            src: '/images/c2.webp',
+            ctaText: 'Productos',
+            ctaHref: '/productos#main-content'
+        },
+        {
+            src: '/images/c3.webp',
+            ctaText: 'Catálogos',
+            ctaHref: '/catalogos#main-content'
+        },
     ];
 
     return (
@@ -97,7 +134,7 @@ export default function Welcome() {
                 <ValuePropositionBar />
 
                 {/* Main Content Area */}
-                <main className="container mx-auto">
+                <main id="main-content" className="container mx-auto">
                     <TabNavigation
                         stickyOffset="top-[80px]"
                         className="dark:bg-gray-800 rounded-xl my-6"

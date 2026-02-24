@@ -185,6 +185,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 return response()->json(['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()], 500);
             }
         });
+        // NOTIFICACIONES
+        Route::get('/notificaciones', [\App\Http\Controllers\Admin\NotificacionController::class, 'index'])->name('notificaciones.index');
+        Route::post('/notificaciones/marcar-leidas', [\App\Http\Controllers\Admin\NotificacionController::class, 'marcarLeidas'])->name('notificaciones.marcar-leidas');
     }); //CIERRE DEL GRUPO MIDDLEWARE DE ADMINISTRADORES
 
     // Rutas para órdenes de pago manual

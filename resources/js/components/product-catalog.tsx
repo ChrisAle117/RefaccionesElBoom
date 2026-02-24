@@ -1,5 +1,5 @@
 ﻿import React, { useState, useEffect, useRef, useLayoutEffect, useMemo } from 'react';
-import { usePage, router } from '@inertiajs/react';
+import { usePage, router, Link } from '@inertiajs/react';
 import { type SharedData } from '@/types';
 import { ProductCard } from './product-card';
 import { Pagination } from './pagination';
@@ -211,7 +211,7 @@ export function ProductCatalog() {
             let columns = gridTemplateColumns === 'none' ? 0 : gridTemplateColumns.split(' ').filter(Boolean).length;
             if (columns === 0) {
                 const w = window.innerWidth;
-                columns = w >= 1920 ? 8 : w >= 1536 ? 6 : w >= 1280 ? 5 : w >= 1024 ? 4 : w >= 768 ? 3 : w >= 640 ? 2 : 1;
+                columns = w >= 1024 ? 4 : w >= 768 ? 3 : w >= 640 ? 2 : 1;
             }
             if (columns > 0) {
                 setColumnsCount(columns);
@@ -444,7 +444,7 @@ export function ProductCatalog() {
                 {/* Categorías Hero */}
                 {productTypes && productTypes.length > 0 ? (
                     <div className="w-full px-2 sm:px-6 py-8">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 w-full">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 w-full">
                             {productTypes.map((t, i) => {
                                 const slug = slugifyType(t);
                                 const backImage = CATEGORY_INFO[slug]?.image || '/images/default-large.jpg';
@@ -566,8 +566,8 @@ export function ProductCatalog() {
                         {/* Catalogos y donde comprar - Rediseño Premium */}
                         <div className="w-full flex flex-col items-center justify-center mt-24 mb-12">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl px-4">
-                                <a
-                                    href="/catalogos"
+                                <Link
+                                    href="/catalogos#main-content"
                                     className="group relative rounded-[2.5rem] overflow-hidden shadow-2xl transition-all duration-500 hover:scale-[1.02] hover:-translate-y-2 cursor-pointer flex flex-col aspect-[4/3] min-h-[250px] md:min-h-[320px] bg-slate-900 border-2 border-transparent hover:border-[#FBCC13]/50 hover:shadow-[0_0_30px_rgba(251,204,19,0.3)]"
                                 >
                                     {/* Imagen de Fondo con Zoom */}
@@ -593,10 +593,10 @@ export function ProductCatalog() {
                                             Ver productos <ArrowRight className="w-5 h-5" />
                                         </div>
                                     </div>
-                                </a>
+                                </Link>
 
-                                <a
-                                    href="/sucursales"
+                                <Link
+                                    href="/sucursales#main-content"
                                     className="group relative rounded-[2.5rem] overflow-hidden shadow-2xl transition-all duration-500 hover:scale-[1.02] hover:-translate-y-2 cursor-pointer flex flex-col aspect-[4/3] min-h-[250px] md:min-h-[320px] bg-slate-900 border-2 border-transparent hover:border-[#FBCC13]/50 hover:shadow-[0_0_30px_rgba(251,204,19,0.3)]"
                                 >
                                     {/* Imagen de Fondo con Zoom */}
@@ -619,7 +619,7 @@ export function ProductCatalog() {
                                             Nuestras Sucursales <ArrowRight className="w-5 h-5" />
                                         </div>
                                     </div>
-                                </a>
+                                </Link>
                             </div>
                         </div>
 
@@ -822,7 +822,7 @@ export function ProductCatalog() {
             ) : (
                 <div
                     ref={gridRef}
-                    className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 3xl:grid-cols-8 gap-3 sm:gap-4 md:gap-5 w-full p-2 product-grid-container"
+                    className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-5 w-full p-2 product-grid-container"
                 >
                     {currentProducts.length > 0 ? (
                         <>

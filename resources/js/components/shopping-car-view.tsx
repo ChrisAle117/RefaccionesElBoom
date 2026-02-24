@@ -156,7 +156,7 @@ export function ShoppingCarView() {
         { id: 4, title: 'Resumen' }
     ];
 
-    const MIN_PURCHASE_FOR_FREE_SHIPPING = 1000;
+    const MIN_PURCHASE_FOR_FREE_SHIPPING = 1999;
     const totalUnits = cartItems.reduce((sum, item) => sum + toInt(item.quantity, 0), 0);
     const finalTotal = totalPrice + (pickupAtStore ? 0 : (shipping?.price || 0));
 

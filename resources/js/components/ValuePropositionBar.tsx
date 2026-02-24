@@ -34,7 +34,7 @@ export default function ValuePropositionBar() {
             icon: <DollarSign className="w-5 h-5 text-blue-600 dark:text-blue-400" strokeWidth={1.5} />,
             iconLg: <DollarSign className="w-8 h-8 text-blue-600 dark:text-blue-500" strokeWidth={1.5} />,
             title: "Envío Gratis",
-            description: "A partir de $1,000"
+            description: "A partir de $1,999"
         },
         {
             icon: <CircleHelp className="w-5 h-5 text-blue-600 dark:text-blue-400" strokeWidth={1.5} />,
