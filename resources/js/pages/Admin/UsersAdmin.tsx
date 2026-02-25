@@ -1,5 +1,5 @@
 import React from 'react';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import AdminLayout from '@/layouts/admin-layout';
 import {
     Users,
@@ -32,9 +32,29 @@ interface UsersAdminProps {
         current_page: number;
         last_page: number;
     };
+    filters: {
+        search: string | null;
+    };
 }
 
-const UsersAdmin: React.FC<UsersAdminProps> = ({ users }) => {
+const UsersAdmin: React.FC<UsersAdminProps> = ({ users, filters }) => {
+    const [search, setSearch] = React.useState(filters?.search || '');
+
+    const handleSearch = (e?: React.FormEvent) => {
+        if (e) e.preventDefault();
+        router.get(route('admin.users.index'), { search }, {
+            preserveState: true,
+            replace: true,
+            only: ['users', 'filters']
+        });
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter') {
+            handleSearch();
+        }
+    };
+
     return (
         <AdminLayout title="Clientes">
             <Head title="Gestión de Clientes - Admin" />
@@ -57,11 +77,18 @@ const UsersAdmin: React.FC<UsersAdminProps> = ({ users }) => {
                             <input
                                 type="text"
                                 placeholder="Buscar cliente..."
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                                onKeyDown={handleKeyDown}
                                 className="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all outline-none"
                             />
                         </div>
-                        <button className="p-2 bg-white border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50 transition-all">
-                            <Filter className="w-5 h-5" />
+                        <button
+                            onClick={() => handleSearch()}
+                            className="p-2 bg-emerald-600 border border-emerald-600 rounded-xl text-white hover:bg-emerald-700 transition-all shadow-sm"
+                            title="Buscar"
+                        >
+                            <Search className="w-5 h-5" />
                         </button>
                     </div>
                 </div>

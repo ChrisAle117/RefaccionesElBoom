@@ -10,14 +10,28 @@ use Inertia\Inertia;
 
 class AdminUserController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $users = User::where('role', '!=', 'admin')
-            ->orderBy('created_at', 'desc')
-            ->paginate(15);
+        $search = $request->input('search');
+
+        $query = User::where('role', '!=', 'admin');
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%");
+            });
+        }
+
+        $users = $query->orderBy('created_at', 'desc')
+            ->paginate(15)
+            ->withQueryString();
 
         return Inertia::render('Admin/UsersAdmin', [
-            'users' => $users
+            'users' => $users,
+            'filters' => [
+                'search' => $search
+            ]
         ]);
     }
 

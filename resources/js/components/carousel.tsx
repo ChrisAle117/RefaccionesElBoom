@@ -91,18 +91,40 @@ const Carousel: React.FC<CarouselProps> = React.memo(({
                                 }`}
                             aria-hidden={index !== currentIndex}
                         >
-                            <img
-                                src={src}
-                                width={1920}
-                                height={1080}
-                                sizes="100vw"
-                                alt={data?.title || `Imagen del carrusel ${index + 1} - Refaccionaria El Boom`}
-                                className="w-full h-full object-cover object-center"
-                                loading={index === 0 ? 'eager' : 'lazy'}
-                                decoding="async"
-                                fetchPriority={index === 0 ? 'high' : undefined}
-                                draggable={false}
-                            />
+                            {data?.ctaHref ? (
+                                <Link
+                                    href={data.ctaHref}
+                                    className="block w-full h-full cursor-pointer relative group"
+                                    aria-label={data?.title || `Ir a: ${data?.ctaText || 'Ver más'}`}
+                                >
+                                    <img
+                                        src={src}
+                                        width={1920}
+                                        height={1080}
+                                        sizes="100vw"
+                                        alt={data?.title || `Imagen del carrusel ${index + 1} - Refaccionaria El Boom`}
+                                        className="w-full h-full object-cover object-center transition-transform duration-[2000ms] group-hover:scale-105"
+                                        loading={index === 0 ? 'eager' : 'lazy'}
+                                        decoding="async"
+                                        fetchPriority={index === 0 ? 'high' : undefined}
+                                        draggable={false}
+                                    />
+                                    <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                                </Link>
+                            ) : (
+                                <img
+                                    src={src}
+                                    width={1920}
+                                    height={1080}
+                                    sizes="100vw"
+                                    alt={data?.title || `Imagen del carrusel ${index + 1} - Refaccionaria El Boom`}
+                                    className="w-full h-full object-cover object-center"
+                                    loading={index === 0 ? 'eager' : 'lazy'}
+                                    decoding="async"
+                                    fetchPriority={index === 0 ? 'high' : undefined}
+                                    draggable={false}
+                                />
+                            )}
                             {/* Overlay con Botón en la esquina inferior izquierda */}
                             {index === currentIndex && data && data.ctaText && data.ctaHref && (
                                 <div className="absolute inset-x-0 bottom-0 top-0 flex items-end justify-start p-6 sm:p-12 z-20 pointer-events-none">
