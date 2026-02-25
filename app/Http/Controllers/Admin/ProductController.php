@@ -29,7 +29,7 @@ class ProductController extends Controller
             'active',
         ]);
 
-        // 1. Database-level filters (Very fast)
+        
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
@@ -51,9 +51,7 @@ class ProductController extends Controller
         }
 
         $totalOutOfStock = (clone $query)->where('disponibility', 0)->count();
-        // $query->orderBy('id_product', 'desc');
-
-        // 2. Determine if we have "Live" filters that require warehouse data
+        
         $availability = $request->input('availability', 'all');
         $minPrice = $request->filled('min_price') ? (float) $request->input('min_price') : null;
         $maxPrice = $request->filled('max_price') ? (float) $request->input('max_price') : null;
@@ -61,8 +59,7 @@ class ProductController extends Controller
         $hasLiveFilters = ($availability && $availability !== 'all') || $minPrice !== null || $maxPrice !== null;
 
         if ($hasLiveFilters) {
-            // If filtering by live data, we must fetch a larger set, prime them, and filter in memory.
-            // We limit to 500 to prevent memory exhaustion while still being useful.
+            
             $all = $query->limit(500)->get();
             
             Product::primePrices($all);
@@ -97,11 +94,11 @@ class ProductController extends Controller
                 ['path' => $request->url(), 'query' => $request->query()]
             );
         } else {
-            // Standard DB pagination (extremely fast)
+            
             $perPage = (int) ($request->input('per_page') ?: 10);
             $products = $query->paginate($perPage);
             
-            // Prime ONLY the items on the current page
+            
             Product::primePrices($products->getCollection());
             Product::primeStock($products->getCollection());
         }
@@ -129,12 +126,7 @@ class ProductController extends Controller
 
         $types = Product::query()->whereNotNull('type')->distinct()->pluck('type');
 
-        // Log compacto para confirmar payload final
-        // \Log::info('admin.products payload example', [
-        //     'first_product' => $productsArray[0] ?? null,
-        //     'count'         => is_array($productsArray) ? count($productsArray) : null,
-        // ]);
-
+        
         return Inertia::render('Admin/ProductsAdmin', [
             'products' => $productsArray,
             'filters' => [
@@ -246,7 +238,7 @@ class ProductController extends Controller
             $product->image = $path;
         }
 
-        // If product type changed from 'bocina' to something else, remove audio
+        
         if (strtolower((string) $originalType) === 'bocina' && strtolower((string) $product->type) !== 'bocina') {
             if ($product->audio_path) {
                 try { Storage::disk('public')->delete($product->audio_path); } catch (\Throwable $e) {}
@@ -254,7 +246,7 @@ class ProductController extends Controller
             $product->audio_path = null;
         }
 
-        // Optional inline audio upload on update
+       
         if ($request->hasFile('audio') && strtolower((string) $product->type) === 'bocina') {
             $request->validate([
                 'audio' => 'file|mimes:mp3,ogg,wav|max:10240',
@@ -272,7 +264,7 @@ class ProductController extends Controller
 
         $product->save();
 
-        // Redirigimos al listado mostrando mensaje de éxito
+        
         return redirect()->route('admin.products')->with('success', 'Cambios guardados exitosamente');
     }
 
@@ -335,7 +327,7 @@ class ProductController extends Controller
 
             return redirect()->route('admin.products')->with('success', 'Producto eliminado con éxito');
         } catch (\Exception $e) {
-            // \Log::error("Error al eliminar producto ID {$id}: " . $e->getMessage());
+           
             return back()->with('error', 'Ha ocurrido un error al intentar eliminar el producto: ' . $e->getMessage());
         }
     }
@@ -350,7 +342,7 @@ class ProductController extends Controller
             $message = $product->active ? 'Producto activado correctamente' : 'Producto desactivado correctamente';
             return redirect()->back()->with('success', $message);
         } catch (\Exception $e) {
-            // \Log::error("Error al cambiar estado del producto ID {$id}: " . $e->getMessage());
+           
             return back()->with('error', 'Error al cambiar el estado del producto');
         }
     }

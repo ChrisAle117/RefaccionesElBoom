@@ -17,7 +17,7 @@ class ProductTypeOrderController extends Controller
         $allTypes = Product::query()->select('type')->distinct()->pluck('type')->filter()->values()->all();
         $saved    = Cache::get(self::CACHE_KEY, []);
 
-        // Build ordered list: saved first (if exists), then remaining alphabetically
+        
         $saved = array_values(array_filter($saved, fn ($t) => in_array($t, $allTypes, true)));
         $remaining = array_values(array_diff($allTypes, $saved));
         sort($remaining, SORT_NATURAL | SORT_FLAG_CASE);
@@ -39,8 +39,6 @@ class ProductTypeOrderController extends Controller
         $order = array_values(array_filter($data['order'], fn ($v) => $v !== null && $v !== ''));
         Cache::forever(self::CACHE_KEY, $order);
 
-        // Limpiar cachés de listado de productos para que los cambios se vean de inmediato
-        // Se limpian las versiones base de welcome y dashboard (sin filtros de búsqueda/tipo)
         Cache::forget('products_listing_welcome_' . md5(''));
         Cache::forget('products_listing_dashboard_' . md5(''));
 

@@ -63,7 +63,7 @@ const ReportingAdmin: React.FC<ReportingAdminProps> = ({ stats, topCustomers, sa
         return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(price || 0);
     };
 
-    // Calculate max values for bar representations
+
     const maxSalesByState = Math.max(...salesByState.map(s => Number(s.total_sales)), 1);
     const maxProductRevenue = Math.max(...topProducts.map(p => Number(p.total_revenue)), 1);
 
@@ -72,14 +72,14 @@ const ReportingAdmin: React.FC<ReportingAdminProps> = ({ stats, topCustomers, sa
             <Head title="Reportes de Negocio - Admin" />
 
             <div className="container mx-auto p-4 sm:p-6 lg:p-8 max-w-7xl">
-                {/* Header */}
+
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
                     <div>
                         <div className="flex items-center gap-3 mb-2">
                             <div className="w-10 h-10 bg-rose-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-rose-100">
                                 <TrendingUp className="w-6 h-6" />
                             </div>
-                            <h1 className="text-2xl sm:text-3xl font-black font-title text-gray-900 uppercase tracking-tight">Centro de Inteligencia</h1>
+                            <h1 className="text-2xl sm:text-3xl font-black font-title text-gray-900 uppercase tracking-tight">Reportes de Negocio</h1>
                         </div>
                         <p className="text-gray-400 font-medium text-sm sm:text-base">Análisis de rendimiento, retención de clientes y geografía de ventas.</p>
                     </div>
@@ -92,7 +92,7 @@ const ReportingAdmin: React.FC<ReportingAdminProps> = ({ stats, topCustomers, sa
                     </Link>
                 </div>
 
-                {/* Top Statistics Grid */}
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                     {[
                         { label: 'Ingresos Totales', value: formatPrice(stats.total_revenue), icon: DollarSign, color: 'text-emerald-600', bgColor: 'bg-emerald-50' },
@@ -142,7 +142,6 @@ const ReportingAdmin: React.FC<ReportingAdminProps> = ({ stats, topCustomers, sa
                         </div>
                     </section>
 
-                    {/* Sales by Geography (Geografía de Ventas) */}
                     <section className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
                         <div className="p-6 border-b border-gray-50 flex items-center gap-3 bg-gray-50/30">
                             <MapPin className="w-5 h-5 text-rose-500" />
@@ -166,7 +165,7 @@ const ReportingAdmin: React.FC<ReportingAdminProps> = ({ stats, topCustomers, sa
                         </div>
                     </section>
 
-                    {/* Top Selling Products */}
+
                     <section className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden lg:col-span-2">
                         <div className="p-6 border-b border-gray-50 flex items-center gap-3 bg-gray-50/30">
                             <Package className="w-5 h-5 text-blue-500" />
@@ -195,7 +194,7 @@ const ReportingAdmin: React.FC<ReportingAdminProps> = ({ stats, topCustomers, sa
 
                                 <div className="relative w-48 h-48 mb-8 flex items-center justify-center">
                                     <svg viewBox="0 0 100 100" className="w-full h-full transform -rotate-90">
-                                        {/* Background Circle */}
+
                                         <circle cx="50" cy="50" r="40" fill="transparent" stroke="#f1f5f9" strokeWidth="20" />
 
                                         {(() => {
@@ -206,7 +205,7 @@ const ReportingAdmin: React.FC<ReportingAdminProps> = ({ stats, topCustomers, sa
                                                 const startPercent = cumulativePercent;
                                                 cumulativePercent += share;
 
-                                                // 2 * PI * R (approx 251.2 for R=40)
+
                                                 const dashArray = `${share * 251.2} 251.2`;
                                                 const dashOffset = `-${startPercent * 251.2}`;
 
@@ -257,7 +256,7 @@ const ReportingAdmin: React.FC<ReportingAdminProps> = ({ stats, topCustomers, sa
                         </div>
                     </section>
 
-                    {/* Final Row: Expanded Cart Insights */}
+
                     <section className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden lg:col-span-2">
                         <div className="p-6 border-b border-gray-50 flex items-center justify-between bg-gray-50/30">
                             <div className="flex items-center gap-3">

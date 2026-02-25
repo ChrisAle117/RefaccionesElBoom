@@ -40,7 +40,7 @@ class Product extends Model
 
     private const MISS = '__MISS__';
 
-    // --- ACCESORS ---
+
 
     public function getPriceAttribute($localValue)
     {
@@ -90,7 +90,7 @@ class Product extends Model
         return env('WAREHOUSE_STOCK_FALLBACK_LOCAL', true) ? (int)$localValue : 0;
     }
 
-    // --- FETCH LOGIC ---
+
 
     protected static function fetchPriceMap(array $ids): array
     {
@@ -240,10 +240,6 @@ class Product extends Model
         static::$liveStockBuffer = static::$liveStockBuffer + $map;
     }
 
-    /**
-     * Sincroniza la existencia desde el almacén hacia la base de datos local (columna disponibility).
-     * Solo actualiza si el almacén devuelve un valor válido (no __MISS__).
-     */
     public static function syncLocalStock(array $ids): void
     {
         $ids = array_values(array_unique(array_filter($ids)));

@@ -13,16 +13,16 @@ export default function Welcome() {
     const [pageTitle, setPageTitle] = React.useState('Refaccionaria El Boom | Tractopartes Nuevas y Usadas');
     const [metaDescription, setMetaDescription] = React.useState('Especialistas en tractopartes nuevas y usadas. Calidad y servicio para tu tractocamión en México.');
 
-    // Efecto para manejar el scroll automático al ancla #main-content
+
     React.useEffect(() => {
         if (window.location.hash === '#main-content') {
-            // Un pequeño delay para asegurar que TabNavigation y componentes lazy se hayan montado
+
             const timer = setTimeout(() => {
                 const element = document.getElementById('main-content');
                 if (element) {
                     element.scrollIntoView({ behavior: 'smooth' });
                 }
-            }, 300); // 300ms suele ser suficiente para transiciones de Inertia y Lazy loading
+            }, 300);
             return () => clearTimeout(timer);
         }
     }, [url]);
@@ -106,12 +106,12 @@ export default function Welcome() {
             <Head>
                 <title>{pageTitle}</title>
                 <meta name="description" content={metaDescription} />
-                {/* Metas dinámicos de OG para compartir */}
+
                 <meta property="og:title" content={pageTitle} />
                 <meta property="og:description" content={metaDescription} />
 
 
-                {/* Preload de imagen LCP del carrusel */}
+
                 <link
                     rel="preload"
                     as="image"
@@ -120,7 +120,7 @@ export default function Welcome() {
             </Head>
 
             <div className="min-h-screen bg-gray-50 dark:bg-gray-950 relative flex flex-col overflow-x-hidden">
-                {/* Hero / Carousel - Full Width */}
+
                 <div className="relative z-10 w-full font-sans">
                     <Carousel
                         images={carouselImages}
@@ -130,10 +130,10 @@ export default function Welcome() {
                     />
                 </div>
 
-                {/* Value Proposition Bar */}
+
                 <ValuePropositionBar />
 
-                {/* Main Content Area */}
+
                 <main id="main-content" className="container mx-auto">
                     <TabNavigation
                         stickyOffset="top-[80px]"
@@ -143,19 +143,19 @@ export default function Welcome() {
                     />
                 </main>
 
-                {/* Footer */}
+
                 <footer className="mt-auto bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800">
                     <div className="container mx-auto px-6 py-8">
                         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
 
-                            {/* Brand / Copyright */}
+
                             <div className="text-center md:text-left">
                                 <p className="text-sm text-gray-500 font-medium">
                                     © {new Date().getFullYear()} El Boom Tractopartes.
                                 </p>
                             </div>
 
-                            {/* Social Icons */}
+
                             <div className="flex space-x-6">
                                 <SocialLink href="https://wa.me/527771810370" icon={<MessageCircle />} label="WhatsApp" color="hover:text-green-500" />
                                 <SocialLink href="https://www.facebook.com/boomtractopartes/?locale=es_LA" icon={<Facebook />} label="Facebook" color="hover:text-blue-600" />
@@ -172,7 +172,7 @@ export default function Welcome() {
                                 />
                             </div>
 
-                            {/* Trust Badge */}
+
                             <div className="opacity-80 hover:opacity-100 transition-opacity">
                                 <a href="https://www.openpay.mx/" target="_blank" rel="noopener noreferrer" title="Más información sobre OpenPay">
                                     <img src="/images/openpay.png" alt="Pagos Seguros con OpenPay" className="h-8 w-auto mix-blend-multiply dark:mix-blend-normal" />

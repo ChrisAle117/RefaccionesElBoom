@@ -33,7 +33,6 @@ class DhlPickupController extends Controller
 
         $pickups = $query->paginate(20)->appends($request->only('search','date'));
 
-        // Prepara conteo por número de despacho (para identificar agrupaciones)
         $dispatchNumbers = collect($pickups->items())
             ->pluck('dispatch_confirmation_number')
             ->filter()
@@ -47,12 +46,11 @@ class DhlPickupController extends Controller
                 ->groupBy('dispatch_confirmation_number')
                 ->pluck('c', 'dispatch_confirmation_number');
 
-        // Mapear para exponer solo lo necesario y agregar bandera de etiqueta y conteo de grupo
         $data = collect($pickups->items())->map(function (DhlPickup $p) use ($counts) {
             $order = $p->order;
             $labelPath = $order ? $order->getAttribute('dhl_label_path') : null;
             $closeAt = $p->planned_pickup_at ? $p->planned_pickup_at->copy()->addMinutes(180) : null;
-            $pickupDate = $closeAt ? $closeAt->toDateString() : null; // ISO date for machine use
+            $pickupDate = $closeAt ? $closeAt->toDateString() : null; 
             $pickupDateDisplay = $closeAt ? $closeAt->copy()->setTimezone('America/Mexico_City')->format('d/m/Y') : null;
             $groupCount = $p->dispatch_confirmation_number ? ($counts[$p->dispatch_confirmation_number] ?? 1) : 1;
             return [

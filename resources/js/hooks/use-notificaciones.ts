@@ -17,7 +17,7 @@ export function useNotificaciones() {
     const shownIdsRef = useRef<Set<number>>(new Set());
     const successRef = useRef(success);
 
-    // Cargar IDs ya mostrados desde sessionStorage para evitar repeticiones al cambiar de página
+
     useEffect(() => {
         try {
             const stored = sessionStorage.getItem('notificaciones_mostradas');
@@ -37,7 +37,7 @@ export function useNotificaciones() {
         } catch { /* silent */ }
     };
 
-    // Actualizar el ref cada vez que success cambie (aunque Shadcn suele ser estable)
+
     useEffect(() => {
         successRef.current = success;
     }, [success]);
@@ -82,12 +82,12 @@ export function useNotificaciones() {
                 console.log('[useNotificaciones] Datos Normalizados:', normalizedData);
                 setUnreadCount(Number(data.unreadCount) || 0);
 
-                // Actualizar la lista de notificaciones
+
                 if (all || data.hayNuevas) {
                     setNotifications(normalizedData);
                 }
 
-                // Mostrar toasts solo en polling (all=false)
+
                 if (!all && data.hayNuevas) {
                     const nuevas = normalizedData.filter((n: Notificacion) => !shownIdsRef.current.has(n.id) && !n.leida);
                     console.log(`[useNotificaciones] ${nuevas.length} nuevas para avisar.`);
@@ -128,7 +128,7 @@ export function useNotificaciones() {
             if (res.ok) {
                 setNotifications(prev => prev.map(n => ids.includes(n.id) ? { ...n, leida: true } : n));
                 setUnreadCount(prev => Math.max(0, prev - ids.length));
-                // Refresco tras marcar
+
                 fetchNotifications(true);
             } else {
                 const text = await res.text();

@@ -24,14 +24,14 @@ class AdminUserController extends Controller
     public function show($id)
     {
         try {
-            // Intenta cargar con notas
+           
             $user = User::with(['address', 'orders', 'notes.admin'])
                 ->findOrFail($id);
         } catch (\Illuminate\Database\QueryException $e) {
-            // Si falla (probablemente falta la tabla user_notes), carga sin notas
+            
             $user = User::with(['address', 'orders'])
                 ->findOrFail($id);
-            // Agregamos notas vacías manualmente para evitar error en frontend
+           
             $user->setRelation('notes', collect([]));
         }
 

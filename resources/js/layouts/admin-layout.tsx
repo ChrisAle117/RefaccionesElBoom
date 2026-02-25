@@ -36,7 +36,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title = 'Admin', fu
     const [incidenceCount, setIncidenceCount] = useState<number | null>(null);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-    // Activar notificaciones por polling y obtener estado
+
     const { notifications, unreadCount, markAsRead, fetchNotifications } = useNotificaciones();
 
     useEffect(() => {
@@ -72,12 +72,12 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title = 'Admin', fu
         <div className="min-h-screen bg-gray-100 text-slate-900 relative">
             <Head title={title} />
 
-            {/* Header */}
+
             <header className="bg-white shadow sticky top-0 z-40">
                 <div className="mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between h-16">
                         <div className="flex items-center">
-                            {/* Hamburguesa para móvil */}
+
                             <button
                                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                                 className="sm:hidden p-2 rounded-md text-gray-600 hover:text-gray-900 focus:outline-none"
@@ -234,7 +234,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title = 'Admin', fu
                     </div>
                 </div>
 
-                {/* Mobile Menu Dropdown */}
+
                 <AnimatePresence>
                     {isMobileMenuOpen && (
                         <motion.div
@@ -271,14 +271,14 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title = 'Admin', fu
                 </AnimatePresence>
             </header>
 
-            {/* Main content */}
+
             <main className="py-10">
                 <div className={fullWidth ? 'w-full px-4 sm:px-6 lg:px-8' : 'max-w-7xl mx-auto sm:px-6 lg:px-8'}>
                     {children}
                 </div>
             </main>
 
-            {/* Footer */}
+
             <footer className="bg-white shadow-inner py-4">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <p className="text-center text-sm text-gray-500">

@@ -29,7 +29,7 @@ class NotificacionController extends Controller
                 $query->where('leida', false);
             }
 
-            // Para el sidebar queremos un historial limitado o con paginación si fuera muy grande
+       
             $notificaciones = $query->orderBy('created_at', 'desc')
                 ->limit($all ? 50 : 10)
                 ->get();
