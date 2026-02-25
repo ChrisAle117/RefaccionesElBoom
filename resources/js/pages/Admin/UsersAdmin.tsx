@@ -7,8 +7,7 @@ import {
     ChevronRight,
     Mail,
     Phone,
-    Calendar,
-    Filter
+    Calendar
 } from 'lucide-react';
 
 interface User {
