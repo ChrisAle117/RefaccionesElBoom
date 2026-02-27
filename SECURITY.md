@@ -17,24 +17,6 @@ Por favor, envíe un reporte detallado a:
 - **Correo electrónico:** sistemas@refaccioneselboom.com
 - **Asunto:** REPORTE DE SEGURIDAD - [Descripción breve]
 
-### Qué incluir en el reporte
-Para ayudarnos a identificar y solucionar el problema, incluya lo siguiente:
-- Descripción detallada de la vulnerabilidad.
-- Pasos necesarios para reproducir el hallazgo (pueden ser capturas de pantalla o fragmentos de código).
-- Impacto potencial del problema detectado.
-
-## Alcance de Seguridad
-
-Esta política cubre los siguientes componentes del proyecto:
-- API Backend (Laravel).
-- Panel de Administración y Cliente (React/Vite).
-- Procesamiento de pagos e integraciones logísticas.
-
-## Pautas de Seguridad para Desarrolladores
-
-1. **Gestión de Secretos:** Nunca incluya claves API, contraseñas o datos sensibles en el repositorio de código. Use archivos `.env` localmente.
-2. **Actualizaciones:** Mantenga las dependencias de `composer` y `npm` actualizadas para mitigar riesgos conocidos.
-3. **Validación:** Asegure que todas las entradas de usuario sean validadas y sanitizadas antes de ser procesadas por el sistema.
 
 ---
 *Última actualización: Febrero 2026*
