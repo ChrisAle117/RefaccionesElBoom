@@ -1,6 +1,8 @@
 # RefaccionesElBoom 🚗
 
-Sistema de gestión integral para tienda de refacciones automotrices. 
+![Security](https://img.shields.io/badge/Access-Restricted-red?style=for-the-badge&icon=github)
+![License](https://img.shields.io/badge/License-Proprietary-orange?style=for-the-badge)
+
 
 ## 📖 Descripción
 
